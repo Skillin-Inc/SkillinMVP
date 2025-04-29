@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useScreenDimensions, formatDOB, formatPhoneNumber ,formatZipCode , isValidEmail } from '../hooks';
-import { darkGray, white, purple, medGray, black } from '../styles';
+import { Colors, ButtonStyles, Typography } from '../styles';
+
+
 
 
 const SignUpScreen = () => {
@@ -34,13 +37,13 @@ const SignUpScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAwareScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Sign Up</Text>
   
       <TextInput
         style={styles.input}
         placeholder="First Name"
-        placeholderTextColor={black}
+        placeholderTextColor={Colors.black}
         value={firstName}
         onChangeText={setFirstName}
       />
@@ -48,7 +51,7 @@ const SignUpScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="Last Name"
-        placeholderTextColor={black}
+        placeholderTextColor={Colors.black}
         value={lastName}
         onChangeText={setLastName}
       />
@@ -56,7 +59,7 @@ const SignUpScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="Date of Birth (MM/DD/YYYY)"
-        placeholderTextColor={black}
+        placeholderTextColor={Colors.black}
         keyboardType="number-pad"
         value={dOB}
         onChangeText={(text) => setDOB(formatDOB(text))}
@@ -65,7 +68,7 @@ const SignUpScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="Zip Code"
-        placeholderTextColor={black}
+        placeholderTextColor={Colors.black}
         keyboardType="number-pad"
         value={zipCode}
         onChangeText={(text) => setZipCode(formatZipCode(text))}
@@ -74,7 +77,7 @@ const SignUpScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor={black}
+        placeholderTextColor={Colors.black}
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
@@ -83,7 +86,7 @@ const SignUpScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="Phone Number"
-        placeholderTextColor={black}
+        placeholderTextColor={Colors.black}
         keyboardType="phone-pad"
         value={phoneNumber}
         onChangeText={(text) => setPhoneNumber(formatPhoneNumber(text))}
@@ -92,7 +95,7 @@ const SignUpScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor={black}
+        placeholderTextColor={Colors.black}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -101,58 +104,61 @@ const SignUpScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
-        placeholderTextColor={black}
+        placeholderTextColor={Colors.black}
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
   
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+        <TouchableOpacity style={styles.button} onPress={handleSignUp}>
         <Text style={styles.buttonText}>Create Account</Text>
       </TouchableOpacity>
-    </ScrollView>
+
+      </KeyboardAwareScrollView>
   );
 }  
 const getStyles = (width: number, height: number) =>
     StyleSheet.create({
       container: {
         flexGrow: 1,
-        backgroundColor: white, // <- NO Colors.white
+        backgroundColor: Colors.white, 
         justifyContent: 'center',
         alignItems: 'center',
         padding: width * 0.05,
         marginTop: height * 0.05,
+        marginBottom: height * 0.05,
       },
       title: {
         fontSize: width > 400 ? 36 : 32,
         fontWeight: 'bold',
-        color: purple, // <- NO Colors.purple
+        color: Colors.purple,
         marginBottom: height * 0.04,
       },
       input: {
         width: '100%',
         height: height * 0.07,
-        borderColor: darkGray, // <- Use darkGray directly
+        borderColor: Colors.darkGray,
         borderWidth: 1,
         borderRadius: 8,
         paddingHorizontal: 15,
         fontSize: width > 400 ? 18 : 16,
         marginBottom: height * 0.025,
-        color: darkGray,
+        color: Colors.darkGray,
       },
       button: {
         width: '100%',
-        backgroundColor: purple,
+        backgroundColor: Colors.purple,
         paddingVertical: height * 0.02,
         borderRadius: 8,
         alignItems: 'center',
         marginTop: height * 0.02,
       },
       buttonText: {
-        color: white,
+        color: Colors.white,
         fontSize: width > 400 ? 20 : 18,
         fontWeight: 'bold',
       },
     });
-
+  
+  
 export default SignUpScreen;  

@@ -1,0 +1,4 @@
+4/28 Note to self 
+work on navgation thingy, inside of sign up after this launches into screen or modal of
+payment methods screen or pop up  / membership tier and or just make em a member in the db (inside of their account)
+buttinStyles not that great delet or edit it. sv

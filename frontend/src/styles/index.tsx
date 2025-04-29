@@ -1,2 +1,5 @@
 // styles/index.tsx
-export * from './colors';
+export { Colors } from './colors';
+export { Spacing } from './spacing';
+export { Typography } from './typography';
+export { ButtonStyles } from './buttonStyles';
