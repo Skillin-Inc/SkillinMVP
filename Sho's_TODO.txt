@@ -1,4 +1,2 @@
-4/28 Note to self 
-work on navgation thingy, inside of sign up after this launches into screen or modal of
-payment methods screen or pop up  / membership tier and or just make em a member in the db (inside of their account)
-buttinStyles not that great delet or edit it. sv
+5/2 Note to self 
+get rid of all the red in the home .tsx , navgation.tsx  start the login potentioal payment methods.

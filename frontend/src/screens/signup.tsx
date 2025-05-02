@@ -6,7 +6,6 @@ import { Colors, ButtonStyles, Typography } from '../styles';
 
 
 
-
 const SignUpScreen = () => {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight); // << use this here!
@@ -24,6 +23,27 @@ const SignUpScreen = () => {
 
   // well need to edit this later 
   const handleSignUp = () => {
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !dOB.trim() ||
+      !zipCode.trim() ||
+      !email.trim() ||
+      !phoneNumber.trim() ||
+      !password.trim() ||
+      !confirmPassword.trim()
+    ) {
+      alert('Please fill out all fields.');
+      return;
+    }
+  
+    if (password !== confirmPassword) {
+      alert('Passwords do not match.');
+      return;
+    }
+  
+    // You could add more validation here (e.g., email format, password length, etc.)
+  
     console.log('Signing up with:', {
       firstName,
       lastName,
@@ -32,9 +52,9 @@ const SignUpScreen = () => {
       email,
       phoneNumber,
       password,
-      confirmPassword,
     });
   };
+  
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container}>
