@@ -8,16 +8,18 @@ const LoginScreen = () => {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    if (!email.trim() || !password.trim()) {
+    // add logic to make sure the username witch is the email or phone number matches what in the db
+    // sends a request out to postgres then a get and saves it so whatever user dose it is with with that account / memberid
+    if (!userName.trim() || !password.trim()) {
       alert('Please fill out all fields.');
       return;
     }
 
-    console.log('Logging in with:', { email, password });
+    console.log('Logging in with:', { userName, password });
     // Add authentication logic here
   };
 
@@ -27,12 +29,10 @@ const LoginScreen = () => {
 
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Email or Phone number"
         placeholderTextColor={Colors.darkGray}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
+        value={userName}
+        onChangeText={setUserName}
       />
 
       <TextInput
