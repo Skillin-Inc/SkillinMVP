@@ -1,26 +1,47 @@
 import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+
 import { useScreenDimensions } from '../hooks';
 import { Colors, Typography } from '../styles';
 
 const LoginScreen = () => {
+  const navigation = useNavigation();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // add logic to make sure the username witch is the email or phone number matches what in the db
-    // sends a request out to postgres then a get and saves it so whatever user dose it is with with that account / memberid
+  const handleLogin = async () => {
     if (!userName.trim() || !password.trim()) {
-      alert('Please fill out all fields.');
+      Alert.alert('Missing Fields', 'Please fill out all fields.');
       return;
     }
 
     console.log('Logging in with:', { userName, password });
-    // Add authentication logic here
+
+    try {
+      // Simulate successful login (replace with real auth later)
+      await AsyncStorage.setItem('isLoggedIn', 'true');
+      // Navigate to Home screen and reset stack
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Home' }], // change this to landing
+      });
+    } catch (e) {
+      console.error('Failed to save login state', e);
+      Alert.alert('Login Failed', 'Something went wrong. Please try again.');
+    }
   };
 
   return (
@@ -33,6 +54,8 @@ const LoginScreen = () => {
         placeholderTextColor={Colors.darkGray}
         value={userName}
         onChangeText={setUserName}
+        autoCapitalize="none"
+        keyboardType="email-address"
       />
 
       <TextInput

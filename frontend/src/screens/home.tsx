@@ -1,92 +1,64 @@
+// src/screens/Home.tsx
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 
-import SkillinLogo from '@assets/icons/skillin-logo.png';
-import { useScreenDimensions } from '../hooks';
-import { Colors, Typography } from '../styles';
+import { useScreenDimensions } from '../hooks'; // make sure this hook exists
 
-const Home = () => {
-  const navigation = useNavigation();
+const HomeScreen = () => {
+  const navigation = useNavigation<NavigationProp<any>>();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('isLoggedIn');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Welcome' }],
+      });
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
+  };
+
   return (
-    <View style={[styles.container, { height: screenHeight }]}>
-      <Image
-        source={SkillinLogo}
-        style={[
-          styles.logo,
-          { width: screenWidth * 0.6, height: screenWidth * 0.6 },
-        ]}
-        resizeMode="contain"
-      />
-
-      <Text style={styles.title}>Learn a new hobby with a personal teacher</Text>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Login')}
-          accessibilityLabel="Log in to your Skillin account"
-        >
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('SignUp')}
-          accessibilityLabel="Sign up for Skillin"
-        >
-          <Text style={styles.buttonText}>Sign Up</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate('Preview')}
-          accessibilityLabel="Preview Skillin without an account"
-        >
-          <Text style={styles.buttonText}>Preview Skillin</Text>
-        </TouchableOpacity>
-      </View>
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome to the Home Page!</Text>
+      <TouchableOpacity style={styles.button} onPress={handleLogout}>
+        <Text style={styles.buttonText}>Log Out</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
-export default Home;
+export default HomeScreen;
+
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: '#f9f9f9',
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: Colors.purple,
       padding: 20,
     },
-    logo: {
-      marginBottom: 30,
-    },
     title: {
-      ...Typography.title,
-      color: Colors.white,
-      textAlign: 'center',
+      fontSize: width > 400 ? 28 : 24,
+      fontWeight: '600',
       marginBottom: 30,
-      fontSize: width > 400 ? 26 : 22,
-    },
-    buttonContainer: {
-      width: '100%',
-      maxWidth: 400,
+      textAlign: 'center',
     },
     button: {
-      backgroundColor: Colors.springGreen,
-      paddingVertical: 15,
+      backgroundColor: '#6a1b9a',
+      paddingVertical: 12,
+      paddingHorizontal: 30,
       borderRadius: 8,
-      alignItems: 'center',
-      marginTop: 15,
     },
     buttonText: {
-      ...Typography.buttonText,
-      fontSize: width > 400 ? 18 : 16,
-      color: Colors.white,
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
     },
   });
