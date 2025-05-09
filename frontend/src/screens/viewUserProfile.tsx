@@ -1,12 +1,20 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useScreenDimensions } from '../hooks';
 import { Colors, Typography } from '../styles';
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from '@components/Avatar';
 import Avatar_Placeholder from '../../assets/icons/Avatar_Placeholder.jpg';
-import { AuthContext } from '../../src/features/auth/AuthContext'; 
+import { AuthContext } from '../../src/features/auth/AuthContext';
+import { ImagePickerAvatar } from '../components';
+
 
 const mockUser = {
   avatar: Avatar_Placeholder,
@@ -22,14 +30,19 @@ const mockUser = {
 };
 
 const ViewUserProfileScreen = () => {
-  const { logout } = useContext(AuthContext); 
+  const { logout } = useContext(AuthContext);
   const navigation = useNavigation();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
+  const [showSensitive, setShowSensitive] = useState(false);
+  const [verifyStep, setVerifyStep] = useState(false);
+  const [enteredPassword, setEnteredPassword] = useState('');
+  const [error, setError] = useState('');
+
   const handleLogout = async () => {
     try {
-      await logout(); 
+      await logout();
     } catch (e) {
       console.error('Logout error:', e);
     }
@@ -37,21 +50,27 @@ const ViewUserProfileScreen = () => {
 
   return (
     <View style={styles.container}>
-<View style={styles.header}>
-<TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-  <Ionicons name="arrow-back" size={28} color={Colors.purple} />
-</TouchableOpacity>
+      {/* Top bar */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={28} color={Colors.purple} />
+      </TouchableOpacity>
 
-<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-  <Text style={styles.logoutText}>Log Out</Text>
-</TouchableOpacity>
-</View>
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutText}>Log Out</Text>
+      </TouchableOpacity>
+
+      <ImagePickerAvatar
+    initialUri={null} // or a URI string if you have one
+  onChange={(uri) => console.log('New avatar URI:', uri)}
+  size={140}
+/>
+      {/* Avatar and Info
       <Avatar
         avatar={mockUser.avatar}
         width={screenWidth * 0.4}
         height={screenWidth * 0.4}
         style={styles.avatar}
-      />
+      /> */}
       <Text style={styles.name}>{`${mockUser.firstName} ${mockUser.lastName}`}</Text>
 
       <View style={styles.infoBox}>
@@ -59,12 +78,54 @@ const ViewUserProfileScreen = () => {
         <Text style={styles.label}>Zip Code: {mockUser.zipCode}</Text>
         <Text style={styles.label}>Email: {mockUser.email}</Text>
         <Text style={styles.label}>Phone: {mockUser.phoneNumber}</Text>
-        <Text style={styles.label}>Password: {mockUser.password}</Text>
-        <Text style={styles.label}>Membership: {mockUser.membershipTier}</Text>
-        <Text style={styles.label}>Payment Info:</Text>
-        {mockUser.paymentInfo.map((item, index) => (
-          <Text key={index} style={styles.subLabel}>• {item}</Text>
-        ))}
+
+        {!showSensitive ? (
+          <>
+            {verifyStep ? (
+              <>
+                <Text style={styles.label}>Enter password to reveal:</Text>
+                <TextInput
+                  style={styles.input}
+                  secureTextEntry
+                  value={enteredPassword}
+                  onChangeText={setEnteredPassword}
+                  placeholder="Password"
+                />
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                <TouchableOpacity
+                  style={styles.revealButton}
+                  onPress={() => {
+                    if (enteredPassword === mockUser.password) {
+                      setShowSensitive(true);
+                      setError('');
+                      setVerifyStep(false);
+                    } else {
+                      setError('Incorrect password');
+                    }
+                  }}
+                >
+                  <Text style={styles.revealText}>Verify</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <TouchableOpacity
+                style={styles.revealButton}
+                onPress={() => setVerifyStep(true)}
+              >
+                <Text style={styles.revealText}>Reveal Sensitive Info</Text>
+              </TouchableOpacity>
+            )}
+          </>
+        ) : (
+          <>
+            <Text style={styles.label}>Password: {mockUser.password}</Text>
+            <Text style={styles.label}>Membership: {mockUser.membershipTier}</Text>
+            <Text style={styles.label}>Payment Info:</Text>
+            {mockUser.paymentInfo.map((item, index) => (
+              <Text key={index} style={styles.subLabel}>• {item}</Text>
+            ))}
+          </>
+        )}
       </View>
     </View>
   );
@@ -78,17 +139,8 @@ const getStyles = (width: number, height: number) =>
       flex: 1,
       backgroundColor: Colors.white,
       alignItems: 'center',
-      // paddingTop: height * 0.12, // give space for header
       paddingHorizontal: width * 0.05,
-    },
-    header: {
-      width: '100%',
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: 20,
-      marginTop: height * 0.05,
-      marginBottom: height * 0.03,
+      paddingTop: height * 0.12,
     },
     backButton: {
       position: 'absolute',
@@ -96,7 +148,6 @@ const getStyles = (width: number, height: number) =>
       left: 20,
       zIndex: 10,
     },
-    
     logoutButton: {
       position: 'absolute',
       top: height * 0.05,
@@ -107,17 +158,14 @@ const getStyles = (width: number, height: number) =>
       borderRadius: 6,
       zIndex: 10,
     },
-    
     logoutText: {
       color: Colors.white,
       fontSize: width > 400 ? 16 : 14,
       fontWeight: '600',
     },
-    
     avatar: {
       borderRadius: 100,
       marginBottom: height * 0.02,
-      marginTop :height * 0.04,
     },
     name: {
       fontSize: width > 400 ? 28 : 24,
@@ -140,15 +188,30 @@ const getStyles = (width: number, height: number) =>
       color: Colors.darkGray,
       fontSize: width > 400 ? 16 : 14,
     },
-    button: {
-      backgroundColor: '#6a1b9a',
-      paddingVertical: 12,
-      paddingHorizontal: 30,
+    input: {
+      width: '100%',
+      height: height * 0.06,
+      borderColor: Colors.darkGray,
+      borderWidth: 1,
       borderRadius: 8,
-    },
-    buttonText: {
-      color: '#fff',
+      paddingHorizontal: 10,
+      marginBottom: height * 0.015,
       fontSize: 16,
-      fontWeight: 'bold',
+    },
+    revealButton: {
+      backgroundColor: Colors.purple,
+      paddingVertical: 8,
+      paddingHorizontal: 20,
+      borderRadius: 6,
+      marginBottom: height * 0.02,
+    },
+    revealText: {
+      color: Colors.white,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    errorText: {
+      color: 'red',
+      marginBottom: height * 0.01,
     },
   });
