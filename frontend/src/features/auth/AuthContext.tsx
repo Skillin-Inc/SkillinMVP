@@ -7,6 +7,7 @@ type AuthContextType = {
   login: () => Promise<void>;
   logout: () => Promise<void>;
 };
+// we can use this to make sure they are memebers aslo if we do diffrent tiers
 
 export const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
