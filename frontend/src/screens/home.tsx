@@ -1,30 +1,33 @@
 // src/screens/Home.tsx
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 
-import { useScreenDimensions } from '../hooks'; // make sure this hook exists
+import { useScreenDimensions } from '../hooks';
+import { AuthContext } from '../../src/features/auth/AuthContext'; 
 
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp<any>>();
+  const { logout } = useContext(AuthContext); 
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem('isLoggedIn');
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Welcome' }],
-      });
+      await logout(); 
     } catch (e) {
       console.error('Logout error:', e);
     }
   };
+  const handleViewProfile = () => {
+    navigation.navigate('ViewUserProfile');
+  };
 
   return (
     <View style={styles.container}>
+            <TouchableOpacity style={styles.button} onPress={handleViewProfile}>
+        <Text style={styles.buttonText}>View Profile</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Welcome to the Home Page!</Text>
       <TouchableOpacity style={styles.button} onPress={handleLogout}>
         <Text style={styles.buttonText}>Log Out</Text>

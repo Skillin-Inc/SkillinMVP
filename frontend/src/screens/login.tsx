@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -13,9 +13,11 @@ import {
 
 import { useScreenDimensions } from '../hooks';
 import { Colors, Typography } from '../styles';
+import { AuthContext } from '../../src/features/auth/AuthContext'; // ✅ import your context
 
 const LoginScreen = () => {
   const navigation = useNavigation();
+  const { login } = useContext(AuthContext); // ✅ hook is inside the component
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -31,15 +33,9 @@ const LoginScreen = () => {
     console.log('Logging in with:', { userName, password });
 
     try {
-      // Simulate successful login (replace with real auth later)
-      await AsyncStorage.setItem('isLoggedIn', 'true');
-      // Navigate to Home screen and reset stack
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Home' }], // change this to landing
-      });
+      await login(); // ✅ triggers login from context, which updates state
     } catch (e) {
-      console.error('Failed to save login state', e);
+      console.error('Login error', e);
       Alert.alert('Login Failed', 'Something went wrong. Please try again.');
     }
   };
@@ -75,7 +71,6 @@ const LoginScreen = () => {
 };
 
 export default LoginScreen;
-
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
