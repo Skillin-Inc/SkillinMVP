@@ -2,8 +2,7 @@
 import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
-import { AuthContext } from './/src/features/auth/AuthContext';
+import { AuthContext } from './src/features/auth/AuthContext';
 
 import Welcome from './src/screens/welcome';
 import SignUpScreen from './src/screens/signup';
@@ -14,7 +13,9 @@ import HomeScreen from '@screens/home';
 const Stack = createStackNavigator();
 
 export default function Navigation() {
-  const { isLoggedIn } = useContext(AuthContext);
+  const { isLoggedIn, loading } = useContext(AuthContext);
+
+  if (loading) return null; // ✅ Don't show navigation stack while loading
 
   return (
     <NavigationContainer>

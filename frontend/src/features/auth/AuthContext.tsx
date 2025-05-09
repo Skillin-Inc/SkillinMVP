@@ -1,27 +1,30 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useState, useEffect } from 'react';
+// src/features/auth/AuthContext.tsx
+import React, { createContext, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type AuthContextType = {
   isLoggedIn: boolean;
+  loading: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
 };
-// we can use this to make sure they are memebers aslo if we do diffrent tiers
 
 export const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
+  loading: true,
   login: async () => {},
   logout: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadLoginState = async () => {
       const value = await AsyncStorage.getItem('isLoggedIn');
       setIsLoggedIn(value === 'true');
+      setLoading(false); // ✅ Finished loading
     };
     loadLoginState();
   }, []);
@@ -37,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
