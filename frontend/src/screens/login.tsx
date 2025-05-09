@@ -10,6 +10,8 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
 
 import { useScreenDimensions } from '../hooks';
 import { Colors, Typography } from '../styles';
@@ -42,6 +44,11 @@ const LoginScreen = () => {
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container}>
+        <View style={{ width: '100%', position: 'absolute', top: 50, left: 20 }}>
+    <TouchableOpacity onPress={() => navigation.goBack()}>
+    <Ionicons name="arrow-back" size={28} color={Colors.purple} />
+    </TouchableOpacity>
+  </View>
       <Text style={styles.title}>Log In</Text>
 
       <TextInput
@@ -101,7 +108,7 @@ const getStyles = (width: number, height: number) =>
     },
     button: {
       width: '100%',
-      backgroundColor: Colors.purple,
+      backgroundColor: Colors.springGreen,
       paddingVertical: height * 0.02,
       borderRadius: 8,
       alignItems: 'center',

@@ -3,6 +3,10 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { useScreenDimensions, formatDOB, formatPhoneNumber ,formatZipCode , isValidEmail } from '../hooks';
 import { Colors, ButtonStyles, Typography } from '../styles';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+
+
 
 
 
@@ -20,6 +24,9 @@ const SignUpScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState(''); // will not save this 
   const [membershipTier, setMembershipTier] = useState(''); // invis to users till inside profile
   const [paymentInfo, setPaymentInfo] = useState<string[]>([]); // invis to users till inside profile
+
+    const navigation = useNavigation();
+  
 
   // well need to edit this later 
   const handleSignUp = () => {
@@ -58,8 +65,13 @@ const SignUpScreen = () => {
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Sign Up</Text>
-  
+<View style={styles.header}>
+  <TouchableOpacity onPress={() => navigation.goBack()}>
+    <Ionicons name="arrow-back" size={28} color={Colors.purple} />
+  </TouchableOpacity>
+  <Text style={styles.headerTitle}>Sign Up</Text>
+</View>
+
       <TextInput
         style={styles.input}
         placeholder="First Name"
@@ -148,6 +160,21 @@ const getStyles = (width: number, height: number) =>
         marginTop: height * 0.05,
         marginBottom: height * 0.05,
       },
+      header: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: height * 0.04,
+        marginTop: height * 0.02,
+      },
+      
+      headerTitle: {
+        fontSize: width > 400 ? 32 : 28,
+        fontWeight: 'bold',
+        color: Colors.purple,
+        marginLeft: 15,
+      },
+      
       title: {
         fontSize: width > 400 ? 36 : 32,
         fontWeight: 'bold',
@@ -167,7 +194,7 @@ const getStyles = (width: number, height: number) =>
       },
       button: {
         width: '100%',
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.springGreen,
         paddingVertical: height * 0.02,
         borderRadius: 8,
         alignItems: 'center',

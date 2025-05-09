@@ -1,9 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useScreenDimensions } from '../hooks';
 import { Colors, Typography } from '../styles';
+import { Ionicons } from '@expo/vector-icons';
 import Avatar from '@components/Avatar';
 import Avatar_Placeholder from '../../assets/icons/Avatar_Placeholder.jpg';
+import { AuthContext } from '../../src/features/auth/AuthContext'; 
 
 const mockUser = {
   avatar: Avatar_Placeholder,
@@ -19,11 +22,30 @@ const mockUser = {
 };
 
 const ViewUserProfileScreen = () => {
+  const { logout } = useContext(AuthContext); 
+  const navigation = useNavigation();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
+  const handleLogout = async () => {
+    try {
+      await logout(); 
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
+  };
+
   return (
     <View style={styles.container}>
+<View style={styles.header}>
+<TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+  <Ionicons name="arrow-back" size={28} color={Colors.purple} />
+</TouchableOpacity>
+
+<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+  <Text style={styles.logoutText}>Log Out</Text>
+</TouchableOpacity>
+</View>
       <Avatar
         avatar={mockUser.avatar}
         width={screenWidth * 0.4}
@@ -53,17 +75,49 @@ export default ViewUserProfileScreen;
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
-      flexGrow: 1,
+      flex: 1,
       backgroundColor: Colors.white,
-      justifyContent: 'center',
       alignItems: 'center',
-      padding: width * 0.05,
-      marginTop: height * 0.05,
-      marginBottom: height * 0.05,
+      // paddingTop: height * 0.12, // give space for header
+      paddingHorizontal: width * 0.05,
     },
+    header: {
+      width: '100%',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      marginTop: height * 0.05,
+      marginBottom: height * 0.03,
+    },
+    backButton: {
+      position: 'absolute',
+      top: height * 0.05,
+      left: 20,
+      zIndex: 10,
+    },
+    
+    logoutButton: {
+      position: 'absolute',
+      top: height * 0.05,
+      right: 20,
+      backgroundColor: Colors.purple,
+      paddingVertical: 6,
+      paddingHorizontal: 15,
+      borderRadius: 6,
+      zIndex: 10,
+    },
+    
+    logoutText: {
+      color: Colors.white,
+      fontSize: width > 400 ? 16 : 14,
+      fontWeight: '600',
+    },
+    
     avatar: {
       borderRadius: 100,
-      marginBottom: height * 0.03,
+      marginBottom: height * 0.02,
+      marginTop :height * 0.04,
     },
     name: {
       fontSize: width > 400 ? 28 : 24,
@@ -85,5 +139,16 @@ const getStyles = (width: number, height: number) =>
       marginBottom: height * 0.01,
       color: Colors.darkGray,
       fontSize: width > 400 ? 16 : 14,
+    },
+    button: {
+      backgroundColor: '#6a1b9a',
+      paddingVertical: 12,
+      paddingHorizontal: 30,
+      borderRadius: 8,
+    },
+    buttonText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
     },
   });

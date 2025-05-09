@@ -1,37 +1,28 @@
 // src/screens/Home.tsx
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-
+import { Ionicons } from '@expo/vector-icons';
 import { useScreenDimensions } from '../hooks';
-import { AuthContext } from '../../src/features/auth/AuthContext'; 
 
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp<any>>();
-  const { logout } = useContext(AuthContext); 
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const handleLogout = async () => {
-    try {
-      await logout(); 
-    } catch (e) {
-      console.error('Logout error:', e);
-    }
-  };
   const handleViewProfile = () => {
     navigation.navigate('ViewUserProfile');
   };
 
   return (
     <View style={styles.container}>
-            <TouchableOpacity style={styles.button} onPress={handleViewProfile}>
-        <Text style={styles.buttonText}>View Profile</Text>
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleViewProfile}>
+          <Ionicons name="person-circle-outline" size={40} color="#6a1b9a" />
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.title}>Welcome to the Home Page!</Text>
-      <TouchableOpacity style={styles.button} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Log Out</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -47,21 +38,17 @@ const getStyles = (width: number, height: number) =>
       alignItems: 'center',
       padding: 20,
     },
+    header: {
+      width: '100%',
+      position: 'absolute',
+      top: height * 0.06,
+      right: 20,
+      alignItems: 'flex-end',
+      zIndex: 1,
+    },
     title: {
       fontSize: width > 400 ? 28 : 24,
       fontWeight: '600',
-      marginBottom: 30,
       textAlign: 'center',
-    },
-    button: {
-      backgroundColor: '#6a1b9a',
-      paddingVertical: 12,
-      paddingHorizontal: 30,
-      borderRadius: 8,
-    },
-    buttonText: {
-      color: '#fff',
-      fontSize: 16,
-      fontWeight: 'bold',
     },
   });
