@@ -41,6 +41,14 @@ const WelcomeScreen = () => {
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
 
+          <TouchableOpacity
+          style={styles.button}
+          onPress={() => navigation.navigate('TeacherSignUp')}
+          accessibilityLabel="Sign up for Skillin"
+        >
+          <Text style={styles.buttonText}> Teacher Sign Up</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Preview')}

@@ -37,6 +37,8 @@ const getStyles = (width: number, height: number) =>
       justifyContent: 'center',
       alignItems: 'center',
       padding: 20,
+      paddingBottom: height * 0.1, // prevents overlap with bottom tabs
+
     },
     header: {
       width: '100%',
