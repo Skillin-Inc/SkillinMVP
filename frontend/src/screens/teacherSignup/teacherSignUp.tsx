@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { useScreenDimensions, formatDOB, formatPhoneNumber ,formatZipCode , isValidEmail } from '../hooks';
-import { Colors, ButtonStyles, Typography } from '../styles';
+import { useScreenDimensions, formatDOB, formatPhoneNumber ,formatZipCode , isValidEmail } from '../../hooks';
+import { Colors, ButtonStyles, Typography } from '../../styles';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
