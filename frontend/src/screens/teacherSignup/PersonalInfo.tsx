@@ -9,7 +9,12 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { useScreenDimensions } from '../../hooks';
+import {
+  useScreenDimensions,
+  formatPhoneNumber,
+  formatZipCode,
+  isValidEmail,
+} from '../../hooks';
 import { Colors, Typography } from '../../styles';
 
 const PersonalInfoScreen = () => {
@@ -62,7 +67,7 @@ const PersonalInfoScreen = () => {
         style={styles.input}
         placeholder="Phone Number"
         value={phoneNumber}
-        onChangeText={setPhoneNumber}
+        onChangeText={(text) => setPhoneNumber(formatPhoneNumber(text))}
         keyboardType="phone-pad"
         placeholderTextColor={Colors.darkGray}
       />
@@ -70,13 +75,15 @@ const PersonalInfoScreen = () => {
         style={styles.input}
         placeholder="Zip Code"
         value={zipCode}
-        onChangeText={setZipCode}
+        onChangeText={(text) => setZipCode(formatZipCode(text))}
         keyboardType="number-pad"
         placeholderTextColor={Colors.darkGray}
       />
 
       <TouchableOpacity style={styles.uploadButton}>
-        <Text style={styles.uploadButtonText}>Upload Profile Photo (optional)</Text>
+        <Text style={styles.uploadButtonText}>
+          Upload Profile Photo (optional)
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
@@ -87,6 +94,7 @@ const PersonalInfoScreen = () => {
 };
 
 export default PersonalInfoScreen;
+
 
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({

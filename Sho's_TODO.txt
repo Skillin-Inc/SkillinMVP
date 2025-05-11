@@ -1,5 +1,7 @@
-5/3 Note to self 
+5/11 Note to self 
 get rid of all the red in the home .tsx , navgation.tsx  start the payment methods after you signup with stripe.
 i need the api info for stripe to start the payment devlopement procces also need the api infomation to start sending 
 user info to the db.
 Can start working on the home screen and build from there.
+Finish instructor wireframe outline ref 
+https://docs.google.com/presentation/d/1Cw7PVMMudM2ShLq30jZ76tuIfVV5oQMt/edit?slide=id.p1#slide=id.p1

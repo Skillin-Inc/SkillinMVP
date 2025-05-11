@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useScreenDimensions } from '../../hooks';
@@ -50,6 +50,10 @@ const ApplicationStartScreen = () => {
 
       <TouchableOpacity style={styles.button} onPress={handleStart}>
         <Text style={styles.buttonText}>Start Application</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.button} onPress={handleStart}>
+        <Text style={styles.buttonText}>How do payouts work?</Text>
       </TouchableOpacity>
     </View>
   );
