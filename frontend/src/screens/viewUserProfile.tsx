@@ -127,6 +127,10 @@ const ViewUserProfileScreen = () => {
           </>
         )}
       </View>
+            {/* when button clicked it switches to teacher homescreen*/}
+            <TouchableOpacity style={styles.revealButton} onPress={logout}> 
+              <Text style={styles.revealText}>Switch to instructor</Text>
+            </TouchableOpacity>
     </View>
   );
 };

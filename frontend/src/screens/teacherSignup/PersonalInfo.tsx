@@ -9,6 +9,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+
 import {
   useScreenDimensions,
   formatPhoneNumber,
@@ -17,8 +20,15 @@ import {
 } from '../../hooks';
 import { Colors, Typography } from '../../styles';
 
+type TeacherStackParamList = {
+  ApplicationStart: undefined;
+  PersonalInfo: undefined;
+  TeachingExperience: undefined;
+};
+
+
 const PersonalInfoScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -29,7 +39,7 @@ const PersonalInfoScreen = () => {
   const [zipCode, setZipCode] = useState('');
 
   const handleNext = () => {
-    //navigation.navigate('TeachingExperience');
+    navigation.navigate('TeachingExperience');
   };
 
   return (
