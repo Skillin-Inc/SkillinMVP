@@ -1,9 +1,9 @@
 // src/screens/Home.tsx
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { useScreenDimensions } from '../hooks';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { useScreenDimensions } from "../hooks";
 
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -11,7 +11,7 @@ const HomeScreen = () => {
   const styles = getStyles(screenWidth, screenHeight);
 
   const handleViewProfile = () => {
-    navigation.navigate('ViewUserProfile');
+    navigation.navigate("ViewUserProfile");
   };
 
   return (
@@ -33,24 +33,23 @@ const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#f9f9f9',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: "#f9f9f9",
+      justifyContent: "center",
+      alignItems: "center",
       padding: 20,
       paddingBottom: height * 0.1, // prevents overlap with bottom tabs
-
     },
     header: {
-      width: '100%',
-      position: 'absolute',
+      width: "100%",
+      position: "absolute",
       top: height * 0.06,
       right: 20,
-      alignItems: 'flex-end',
+      alignItems: "flex-end",
       zIndex: 1,
     },
     title: {
       fontSize: width > 400 ? 28 : 24,
-      fontWeight: '600',
-      textAlign: 'center',
+      fontWeight: "600",
+      textAlign: "center",
     },
   });

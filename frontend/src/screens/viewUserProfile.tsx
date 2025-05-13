@@ -1,32 +1,31 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   TextInput,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { useScreenDimensions } from '../hooks';
-import { Colors, Typography } from '../styles';
-import { Ionicons } from '@expo/vector-icons';
-import Avatar from '@components/Avatar';
-import Avatar_Placeholder from '../../assets/icons/Avatar_Placeholder.jpg';
-import { AuthContext } from '../../src/features/auth/AuthContext';
-import { ImagePickerAvatar } from '../components';
-
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { useScreenDimensions } from "../hooks";
+import { Colors, Typography } from "../styles";
+import { Ionicons } from "@expo/vector-icons";
+import Avatar from "@components/Avatar";
+import Avatar_Placeholder from "../../assets/icons/Avatar_Placeholder.jpg";
+import { AuthContext } from "../../src/features/auth/AuthContext";
+import { ImagePickerAvatar } from "../components";
 
 const mockUser = {
   avatar: Avatar_Placeholder,
-  firstName: 'Sho',
-  lastName: 'Vang',
-  dOB: '01/15/2000',
-  zipCode: '80204',
-  email: 'sho@example.com',
-  phoneNumber: '(123) 456-7890',
-  password: 'YourStrongPassword',
-  membershipTier: 'Premium',
-  paymentInfo: ['Visa •••• 4242', 'Exp: 12/26'],
+  firstName: "Sho",
+  lastName: "Vang",
+  dOB: "01/15/2000",
+  zipCode: "80204",
+  email: "sho@example.com",
+  phoneNumber: "(123) 456-7890",
+  password: "YourStrongPassword",
+  membershipTier: "Premium",
+  paymentInfo: ["Visa •••• 4242", "Exp: 12/26"],
 };
 
 const ViewUserProfileScreen = () => {
@@ -37,21 +36,24 @@ const ViewUserProfileScreen = () => {
 
   const [showSensitive, setShowSensitive] = useState(false);
   const [verifyStep, setVerifyStep] = useState(false);
-  const [enteredPassword, setEnteredPassword] = useState('');
-  const [error, setError] = useState('');
+  const [enteredPassword, setEnteredPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogout = async () => {
     try {
       await logout();
     } catch (e) {
-      console.error('Logout error:', e);
+      console.error("Logout error:", e);
     }
   };
 
   return (
     <View style={styles.container}>
       {/* Top bar */}
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
         <Ionicons name="arrow-back" size={28} color={Colors.purple} />
       </TouchableOpacity>
 
@@ -60,10 +62,10 @@ const ViewUserProfileScreen = () => {
       </TouchableOpacity>
 
       <ImagePickerAvatar
-    initialUri={null} // or a URI string if you have one
-  onChange={(uri) => console.log('New avatar URI:', uri)}
-  size={140}
-/>
+        initialUri={null} // or a URI string if you have one
+        onChange={(uri) => console.log("New avatar URI:", uri)}
+        size={140}
+      />
       {/* Avatar and Info
       <Avatar
         avatar={mockUser.avatar}
@@ -71,7 +73,9 @@ const ViewUserProfileScreen = () => {
         height={screenWidth * 0.4}
         style={styles.avatar}
       /> */}
-      <Text style={styles.name}>{`${mockUser.firstName} ${mockUser.lastName}`}</Text>
+      <Text
+        style={styles.name}
+      >{`${mockUser.firstName} ${mockUser.lastName}`}</Text>
 
       <View style={styles.infoBox}>
         <Text style={styles.label}>DOB: {mockUser.dOB}</Text>
@@ -97,10 +101,10 @@ const ViewUserProfileScreen = () => {
                   onPress={() => {
                     if (enteredPassword === mockUser.password) {
                       setShowSensitive(true);
-                      setError('');
+                      setError("");
                       setVerifyStep(false);
                     } else {
-                      setError('Incorrect password');
+                      setError("Incorrect password");
                     }
                   }}
                 >
@@ -119,18 +123,22 @@ const ViewUserProfileScreen = () => {
         ) : (
           <>
             <Text style={styles.label}>Password: {mockUser.password}</Text>
-            <Text style={styles.label}>Membership: {mockUser.membershipTier}</Text>
+            <Text style={styles.label}>
+              Membership: {mockUser.membershipTier}
+            </Text>
             <Text style={styles.label}>Payment Info:</Text>
             {mockUser.paymentInfo.map((item, index) => (
-              <Text key={index} style={styles.subLabel}>• {item}</Text>
+              <Text key={index} style={styles.subLabel}>
+                • {item}
+              </Text>
             ))}
           </>
         )}
       </View>
-            {/* when button clicked it switches to teacher homescreen*/}
-            <TouchableOpacity style={styles.revealButton} onPress={logout}> 
-              <Text style={styles.revealText}>Switch to instructor</Text>
-            </TouchableOpacity>
+      {/* when button clicked it switches to teacher homescreen*/}
+      <TouchableOpacity style={styles.revealButton} onPress={logout}>
+        <Text style={styles.revealText}>Switch to instructor</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -142,18 +150,18 @@ const getStyles = (width: number, height: number) =>
     container: {
       flex: 1,
       backgroundColor: Colors.white,
-      alignItems: 'center',
+      alignItems: "center",
       paddingHorizontal: width * 0.05,
       paddingTop: height * 0.12,
     },
     backButton: {
-      position: 'absolute',
+      position: "absolute",
       top: height * 0.05,
       left: 20,
       zIndex: 10,
     },
     logoutButton: {
-      position: 'absolute',
+      position: "absolute",
       top: height * 0.05,
       right: 20,
       backgroundColor: Colors.purple,
@@ -165,7 +173,7 @@ const getStyles = (width: number, height: number) =>
     logoutText: {
       color: Colors.white,
       fontSize: width > 400 ? 16 : 14,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     avatar: {
       borderRadius: 100,
@@ -173,12 +181,12 @@ const getStyles = (width: number, height: number) =>
     },
     name: {
       fontSize: width > 400 ? 28 : 24,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: Colors.purple,
       marginBottom: height * 0.03,
     },
     infoBox: {
-      width: '100%',
+      width: "100%",
     },
     label: {
       ...Typography.inputText,
@@ -193,7 +201,7 @@ const getStyles = (width: number, height: number) =>
       fontSize: width > 400 ? 16 : 14,
     },
     input: {
-      width: '100%',
+      width: "100%",
       height: height * 0.06,
       borderColor: Colors.darkGray,
       borderWidth: 1,
@@ -211,11 +219,11 @@ const getStyles = (width: number, height: number) =>
     },
     revealText: {
       color: Colors.white,
-      fontWeight: '600',
-      textAlign: 'center',
+      fontWeight: "600",
+      textAlign: "center",
     },
     errorText: {
-      color: 'red',
+      color: "red",
       marginBottom: height * 0.01,
     },
   });
