@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 
-const SignUpScreen = () => {
+function SignUpScreen() {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight); // << use this here!
 
@@ -29,7 +29,7 @@ const SignUpScreen = () => {
 
 
   // well need to edit this later
-  const handleSignUp = () => {
+  function handleSignUp() {
     if (
       !firstName.trim() ||
       !lastName.trim() ||
@@ -60,7 +60,7 @@ const SignUpScreen = () => {
       phoneNumber,
       password,
     });
-  };
+  }
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container}>
@@ -146,6 +146,7 @@ const SignUpScreen = () => {
       </TouchableOpacity>
     </KeyboardAwareScrollView>
   );
+<<<<<<< HEAD
 };
 const getStyles = (width: number, height: number) =>
 <<<<<<< HEAD
@@ -210,6 +211,12 @@ const getStyles = (width: number, height: number) =>
 export default SignUpScreen;
 =======
   StyleSheet.create({
+=======
+}
+
+function getStyles(width: number, height: number) {
+  return StyleSheet.create({
+>>>>>>> d7ffe42 (Applied Prettier and ESLint)
     container: {
       flexGrow: 1,
       backgroundColor: Colors.white,
@@ -250,6 +257,7 @@ export default SignUpScreen;
       fontWeight: "bold",
     },
   });
+}
 
 export default SignUpScreen;
 >>>>>>> 773865c (Applied prettier and ESLint)

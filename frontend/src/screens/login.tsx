@@ -16,22 +16,33 @@ import { useScreenDimensions } from "../hooks";
 import { Colors, Typography } from "../styles";
 import { AuthContext } from "../../src/features/auth/AuthContext"; // ✅ import your context
 
+<<<<<<< HEAD
 const LoginScreen = () => {
   const navigation = useNavigation();
   const { login } = useContext(AuthContext); // ✅ hook is inside the component
+=======
+function LoginScreen() {
+>>>>>>> d7ffe42 (Applied Prettier and ESLint)
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
 
+<<<<<<< HEAD
   const handleLogin = async () => {
+=======
+  function handleLogin() {
+    // add logic to make sure the username which is the email or phone number matches what's in the db
+    // sends a request out to postgres then a get and saves it so whatever user does it is with that account / memberid
+>>>>>>> d7ffe42 (Applied Prettier and ESLint)
     if (!userName.trim() || !password.trim()) {
       Alert.alert("Missing Fields", "Please fill out all fields.");
       return;
     }
 
     console.log("Logging in with:", { userName, password });
+<<<<<<< HEAD
 
     try {
       await login(); // ✅ triggers login from context, which updates state
@@ -40,6 +51,10 @@ const LoginScreen = () => {
       Alert.alert("Login Failed", "Something went wrong. Please try again.");
     }
   };
+=======
+    // Add authentication logic here
+  }
+>>>>>>> d7ffe42 (Applied Prettier and ESLint)
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container}>
@@ -74,11 +89,17 @@ const LoginScreen = () => {
       </TouchableOpacity>
     </KeyboardAwareScrollView>
   );
-};
+}
 
 export default LoginScreen;
+<<<<<<< HEAD
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
+=======
+
+function getStyles(width: number, height: number) {
+  return StyleSheet.create({
+>>>>>>> d7ffe42 (Applied Prettier and ESLint)
     container: {
       flexGrow: 1,
       backgroundColor: Colors.white,
@@ -119,3 +140,4 @@ const getStyles = (width: number, height: number) =>
       fontWeight: "bold",
     },
   });
+}

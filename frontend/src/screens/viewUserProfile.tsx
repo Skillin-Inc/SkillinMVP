@@ -28,9 +28,13 @@ const mockUser = {
   paymentInfo: ["Visa •••• 4242", "Exp: 12/26"],
 };
 
+<<<<<<< HEAD
 const ViewUserProfileScreen = () => {
   const { logout } = useContext(AuthContext);
   const navigation = useNavigation();
+=======
+export default function ViewUserProfileScreen() {
+>>>>>>> d7ffe42 (Applied Prettier and ESLint)
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -141,12 +145,10 @@ const ViewUserProfileScreen = () => {
       </TouchableOpacity>
     </View>
   );
-};
+}
 
-export default ViewUserProfileScreen;
-
-const getStyles = (width: number, height: number) =>
-  StyleSheet.create({
+function getStyles(width: number, height: number) {
+  return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: Colors.white,
@@ -227,3 +229,4 @@ const getStyles = (width: number, height: number) =>
       marginBottom: height * 0.01,
     },
   });
+}

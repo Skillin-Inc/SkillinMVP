@@ -1,7 +1,7 @@
 // /hooks/useInputFormatters.ts
 
 // ========== Date of Birth ==========
-export const formatDOB = (text: string) => {
+export function formatDOB(text: string): string {
   const cleaned = text.replace(/[^0-9]/g, "");
   const limited = cleaned.slice(0, 8);
 
@@ -16,9 +16,9 @@ export const formatDOB = (text: string) => {
   } else {
     return `${month}/${day}/${year}`;
   }
-};
+}
 
-export const isValidDate = (dob: string) => {
+export function isValidDate(dob: string): boolean {
   const [month, day, year] = dob.split("/").map(Number);
   if (!month || !day || !year) return false;
 
@@ -28,25 +28,25 @@ export const isValidDate = (dob: string) => {
     date.getMonth() === month - 1 &&
     date.getDate() === day
   );
-};
+}
 
 // ========== Email ==========
-export const isValidEmail = (email: string) => {
+export function isValidEmail(email: string): boolean {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email);
-};
+}
 
 // ========== Zip Code ==========
-export const formatZipCode = (text: string) => {
+export function formatZipCode(text: string): string {
   return text.replace(/[^0-9]/g, "").slice(0, 5); // Only 5 digits allowed
-};
+}
 
-export const isValidZipCode = (zip: string) => {
+export function isValidZipCode(zip: string): boolean {
   return /^\d{5}$/.test(zip);
-};
+}
 
 // ========== Phone Number ==========
-export const formatPhoneNumber = (text: string) => {
+export function formatPhoneNumber(text: string): string {
   const cleaned = text.replace(/[^0-9]/g, "").slice(0, 10); // Limit to 10 digits
 
   const areaCode = cleaned.slice(0, 3);
@@ -60,8 +60,8 @@ export const formatPhoneNumber = (text: string) => {
   } else {
     return `(${areaCode}) ${centralOffice}-${lineNumber}`;
   }
-};
+}
 
-export const isValidPhoneNumber = (phone: string) => {
+export function isValidPhoneNumber(phone: string): boolean {
   return /^\(\d{3}\)\s\d{3}-\d{4}$/.test(phone);
-};
+}

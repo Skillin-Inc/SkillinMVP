@@ -5,8 +5,13 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useScreenDimensions } from "../hooks";
 
+<<<<<<< HEAD
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp<any>>();
+=======
+export default function Home() {
+  const navigation = useNavigation();
+>>>>>>> d7ffe42 (Applied Prettier and ESLint)
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -25,12 +30,17 @@ const HomeScreen = () => {
       <Text style={styles.title}>Welcome to the Home Page!</Text>
     </View>
   );
-};
+}
 
+<<<<<<< HEAD
 export default HomeScreen;
 
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
+=======
+function getStyles(width: number, height: number) {
+  return StyleSheet.create({
+>>>>>>> d7ffe42 (Applied Prettier and ESLint)
     container: {
       flex: 1,
       backgroundColor: "#f9f9f9",
@@ -53,3 +63,4 @@ const getStyles = (width: number, height: number) =>
       textAlign: "center",
     },
   });
+}

@@ -2,8 +2,8 @@
 
 import { useWindowDimensions } from "react-native";
 
-export const useScreenDimensions = () => {
+export function useScreenDimensions() {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   return { screenWidth, screenHeight };
-};
+}

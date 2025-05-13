@@ -9,7 +9,6 @@ export default tseslint.config(
   {
     rules: {
       "func-style": ["error", "declaration"],
-      "prefer-arrow-callback": "error",
     },
   }
 );
