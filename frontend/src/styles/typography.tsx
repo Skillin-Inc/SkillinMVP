@@ -1,14 +1,14 @@
-import { Colors } from './colors';
+import { Colors } from "./colors";
 
 export const Typography = {
   buttonText: {
     color: Colors.white,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     fontSize: 16,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.darkText,
   },
   inputText: {
@@ -16,4 +16,3 @@ export const Typography = {
     color: Colors.darkGray,
   },
 };
-
