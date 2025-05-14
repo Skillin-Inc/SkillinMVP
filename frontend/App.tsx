@@ -1,6 +1,12 @@
 // App.tsx
-import Navigation from './Navigation';
+import Navigation from './navigation/Navigation';
+
+import { AuthProvider } from './/src/features/auth/AuthContext';
 
 export default function App() {
-  return <Navigation />;
+  return (
+    <AuthProvider>
+      <Navigation />
+    </AuthProvider>
+  );
 }

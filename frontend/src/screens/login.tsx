@@ -1,30 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+
 import { useScreenDimensions } from '../hooks';
 import { Colors, Typography } from '../styles';
+import { AuthContext } from '../../src/features/auth/AuthContext'; // ✅ import your context
 
 const LoginScreen = () => {
+  const navigation = useNavigation();
+  const { login } = useContext(AuthContext); // ✅ hook is inside the component
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // add logic to make sure the username witch is the email or phone number matches what in the db
-    // sends a request out to postgres then a get and saves it so whatever user dose it is with with that account / memberid
+  const handleLogin = async () => {
     if (!userName.trim() || !password.trim()) {
-      alert('Please fill out all fields.');
+      Alert.alert('Missing Fields', 'Please fill out all fields.');
       return;
     }
 
     console.log('Logging in with:', { userName, password });
-    // Add authentication logic here
+
+    try {
+      await login(); // ✅ triggers login from context, which updates state
+    } catch (e) {
+      console.error('Login error', e);
+      Alert.alert('Login Failed', 'Something went wrong. Please try again.');
+    }
   };
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container}>
+        <View style={{ width: '100%', position: 'absolute', top: 50, left: 20 }}>
+    <TouchableOpacity onPress={() => navigation.goBack()}>
+    <Ionicons name="arrow-back" size={28} color={Colors.purple} />
+    </TouchableOpacity>
+  </View>
       <Text style={styles.title}>Log In</Text>
 
       <TextInput
@@ -33,6 +57,8 @@ const LoginScreen = () => {
         placeholderTextColor={Colors.darkGray}
         value={userName}
         onChangeText={setUserName}
+        autoCapitalize="none"
+        keyboardType="email-address"
       />
 
       <TextInput
@@ -52,7 +78,6 @@ const LoginScreen = () => {
 };
 
 export default LoginScreen;
-
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
@@ -83,7 +108,7 @@ const getStyles = (width: number, height: number) =>
     },
     button: {
       width: '100%',
-      backgroundColor: Colors.purple,
+      backgroundColor: Colors.springGreen,
       paddingVertical: height * 0.02,
       borderRadius: 8,
       alignItems: 'center',

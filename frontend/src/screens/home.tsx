@@ -1,89 +1,56 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+// src/screens/Home.tsx
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { useScreenDimensions } from '../hooks';
 
-import SkillinLogo from "@assets/icons/skillin-logo.png";
-import { useScreenDimensions } from "../hooks";
-import { Colors, Typography } from "../styles";
-
-const Home = () => {
-  const navigation = useNavigation();
+const HomeScreen = () => {
+  const navigation = useNavigation<NavigationProp<any>>();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
+  const handleViewProfile = () => {
+    navigation.navigate('ViewUserProfile');
+  };
+
   return (
-    <View style={[styles.container, { height: screenHeight }]}>
-      <Image
-        source={SkillinLogo}
-        style={[styles.logo, { width: screenWidth * 0.6, height: screenWidth * 0.6 }]}
-        resizeMode="contain"
-      />
-
-      <Text style={styles.title}>Learn a new hobby with a personal teacher</Text>
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("Login")}
-          accessibilityLabel="Log in to your Skillin account"
-        >
-          <Text style={styles.buttonText}>Login</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("SignUp")}
-          accessibilityLabel="Sign up for Skillin"
-        >
-          <Text style={styles.buttonText}>Sign Up</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("Preview")}
-          accessibilityLabel="Preview Skillin without an account"
-        >
-          <Text style={styles.buttonText}>Preview Skillin</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleViewProfile}>
+          <Ionicons name="person-circle-outline" size={40} color="#6a1b9a" />
         </TouchableOpacity>
       </View>
+
+      <Text style={styles.title}>Welcome to the Home Page!</Text>
     </View>
   );
 };
 
-export default Home;
+export default HomeScreen;
+
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: Colors.purple,
+      backgroundColor: '#f9f9f9',
+      justifyContent: 'center',
+      alignItems: 'center',
       padding: 20,
+      paddingBottom: height * 0.1, // prevents overlap with bottom tabs
+
     },
-    logo: {
-      marginBottom: 30,
+    header: {
+      width: '100%',
+      position: 'absolute',
+      top: height * 0.06,
+      right: 20,
+      alignItems: 'flex-end',
+      zIndex: 1,
     },
     title: {
-      ...Typography.title,
-      color: Colors.white,
-      textAlign: "center",
-      marginBottom: 30,
-      fontSize: width > 400 ? 26 : 22,
-    },
-    buttonContainer: {
-      width: "100%",
-      maxWidth: 400,
-    },
-    button: {
-      backgroundColor: Colors.springGreen,
-      paddingVertical: 15,
-      borderRadius: 8,
-      alignItems: "center",
-      marginTop: 15,
-    },
-    buttonText: {
-      ...Typography.buttonText,
-      fontSize: width > 400 ? 18 : 16,
-      color: Colors.white,
+      fontSize: width > 400 ? 28 : 24,
+      fontWeight: '600',
+      textAlign: 'center',
     },
   });

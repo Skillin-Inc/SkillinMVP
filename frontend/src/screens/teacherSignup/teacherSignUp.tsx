@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { useScreenDimensions, formatDOB, formatPhoneNumber ,formatZipCode , isValidEmail } from '../hooks';
-import { Colors, ButtonStyles, Typography } from '../styles';
+import { useScreenDimensions, formatDOB, formatPhoneNumber ,formatZipCode , isValidEmail } from '../../hooks';
+import { Colors, ButtonStyles, Typography } from '../../styles';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 
 
 
-const SignUpScreen = () => {
+const TeacherSignUpScreen = () => {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight); // << use this here!
 
@@ -69,7 +69,7 @@ const SignUpScreen = () => {
   <TouchableOpacity onPress={() => navigation.goBack()}>
     <Ionicons name="arrow-back" size={28} color={Colors.purple} />
   </TouchableOpacity>
-  <Text style={styles.headerTitle}>Sign Up</Text>
+  <Text style={styles.headerTitle}>Teacher Sign Up</Text>
 </View>
 
       <TextInput
@@ -208,4 +208,4 @@ const getStyles = (width: number, height: number) =>
     });
   
   
-export default SignUpScreen;  
+export default TeacherSignUpScreen;  
