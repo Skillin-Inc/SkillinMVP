@@ -54,7 +54,7 @@ export interface NewUser {
   postal_code:  number;
 }
 
-// 2. 建立新使用者
+// Create new user
 export async function createUser(data: NewUser) {
   const {
     firstname,
@@ -74,6 +74,6 @@ export async function createUser(data: NewUser) {
     [firstname, lastname, email, phone_number, account_name, password, postal_code]
   );
 
-  // 回傳剛剛建立好的完整 row
+  
   return result.rows[0];
 }
