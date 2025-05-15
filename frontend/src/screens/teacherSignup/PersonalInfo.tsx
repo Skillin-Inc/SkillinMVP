@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -6,25 +6,22 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
+import * as ImagePicker from 'expo-image-picker';
+import { TeacherStackParamList } from '../../types/TeacherStackParamList';
 
 
 import {
   useScreenDimensions,
   formatPhoneNumber,
   formatZipCode,
-  isValidEmail,
 } from '../../hooks';
 import { Colors, Typography } from '../../styles';
-
-type TeacherStackParamList = {
-  ApplicationStart: undefined;
-  PersonalInfo: undefined;
-  TeachingExperience: undefined;
-};
+import { AuthContext } from '../../features/auth/AuthContext';
 
 
 const PersonalInfoScreen = () => {
@@ -32,15 +29,44 @@ const PersonalInfoScreen = () => {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [zipCode, setZipCode] = useState('');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
-  const handleNext = () => {
-    navigation.navigate('TeachingExperience');
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('We need permission to access your photos!');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setProfileImage(result.assets[0].uri);
+    }
   };
+
+const handleNext = () => {
+  navigation.navigate('TeachingExperience', {
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    zipCode,
+    profileImage,
+  });
+};
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -90,11 +116,24 @@ const PersonalInfoScreen = () => {
         placeholderTextColor={Colors.darkGray}
       />
 
-      <TouchableOpacity style={styles.uploadButton}>
+      <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
         <Text style={styles.uploadButtonText}>
-          Upload Profile Photo (optional)
+          {profileImage ? 'Change Profile Photo' : 'Upload Profile Photo (optional)'}
         </Text>
       </TouchableOpacity>
+
+      {profileImage && (
+        <Image
+          source={{ uri: profileImage }}
+          style={{
+            width: 100,
+            height: 100,
+            borderRadius: 50,
+            alignSelf: 'center',
+            marginBottom: 20,
+          }}
+        />
+      )}
 
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
         <Text style={styles.nextButtonText}>Next</Text>
@@ -104,7 +143,6 @@ const PersonalInfoScreen = () => {
 };
 
 export default PersonalInfoScreen;
-
 
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
@@ -142,7 +180,7 @@ const getStyles = (width: number, height: number) =>
       borderRadius: 8,
       paddingVertical: 10,
       alignItems: 'center',
-      marginBottom: height * 0.04,
+      marginBottom: height * 0.02,
     },
     uploadButtonText: {
       color: Colors.purple,

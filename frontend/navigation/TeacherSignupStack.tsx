@@ -7,6 +7,9 @@ import { AuthContext } from '../src/features/auth/AuthContext';
 import ApplicationStartScreen from '../src/screens/teacherSignup/ApplicationStart';
 import PersonalInfoScreen from '../src/screens/teacherSignup/PersonalInfo';
 import TeachingExperienceScreen from '../src/screens/teacherSignup/TeachingExperienceScreen';
+import VerificationScreen from '../src/screens/teacherSignup/Verification';
+//import ReviewSubmitScreen from '../src/screens/teacherSignup/ReviewAndSubmit';
+
 
 
 
@@ -18,8 +21,9 @@ export function TeacherNavigator() {
       <TeacherSignupStack.Screen name="ApplicationStart" component={ApplicationStartScreen} />
       <TeacherSignupStack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
       <TeacherSignupStack.Screen name="TeachingExperience" component={TeachingExperienceScreen} />
+      <TeacherSignupStack.Screen name="Verification" component={VerificationScreen} />
+      {/* <TeacherSignupStack.Screen name="ReviewSubmit" component={ReviewSubmitScreen} /> */}
 
-      {/* More teacher-only screens */}
     </TeacherSignupStack.Navigator>
   );
 }
