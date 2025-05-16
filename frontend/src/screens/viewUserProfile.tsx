@@ -28,13 +28,9 @@ const mockUser = {
   paymentInfo: ["Visa •••• 4242", "Exp: 12/26"],
 };
 
-<<<<<<< HEAD
-const ViewUserProfileScreen = () => {
+export default function ViewUserProfileScreen() {
   const { logout } = useContext(AuthContext);
   const navigation = useNavigation();
-=======
-export default function ViewUserProfileScreen() {
->>>>>>> d7ffe42 (Applied Prettier and ESLint)
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 

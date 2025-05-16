@@ -14,7 +14,8 @@ export default tseslint.config(
   },
   {
     rules: {
-      "func-style": ["error", "declaration", { allowArrowFunctions: true }],
+      "func-style": ["error", "declaration"],
+      // "func-style": ["error", "declaration", { allowArrowFunctions: true }],
       "promise/prefer-await-to-then": ["error"],
     },
   }

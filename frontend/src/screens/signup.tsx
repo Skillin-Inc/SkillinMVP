@@ -1,16 +1,25 @@
-import React, { useState } from 'react';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { useScreenDimensions, formatDOB, formatPhoneNumber ,formatZipCode , isValidEmail } from '../hooks';
-import { Colors, ButtonStyles, Typography } from '../styles';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from "react";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
+import {
+  useScreenDimensions,
+  formatDOB,
+  formatPhoneNumber,
+  formatZipCode,
+  isValidEmail,
+} from "../hooks";
+import { Colors, ButtonStyles, Typography } from "../styles";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
-
-
-
-
-function SignUpScreen() {
+export default function SignUpScreen() {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight); // << use this here!
 
@@ -25,8 +34,7 @@ function SignUpScreen() {
   const [membershipTier, setMembershipTier] = useState(""); // invis to users till inside profile
   const [paymentInfo, setPaymentInfo] = useState<string[]>([]); // invis to users till inside profile
 
-    const navigation = useNavigation();
-
+  const navigation = useNavigation();
 
   // well need to edit this later
   function handleSignUp() {
@@ -64,12 +72,12 @@ function SignUpScreen() {
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container}>
-<View style={styles.header}>
-  <TouchableOpacity onPress={() => navigation.goBack()}>
-    <Ionicons name="arrow-back" size={28} color={Colors.purple} />
-  </TouchableOpacity>
-  <Text style={styles.headerTitle}>Sign Up</Text>
-</View>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={28} color={Colors.purple} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Sign Up</Text>
+      </View>
 
       <TextInput
         style={styles.input}
@@ -146,77 +154,9 @@ function SignUpScreen() {
       </TouchableOpacity>
     </KeyboardAwareScrollView>
   );
-<<<<<<< HEAD
-};
-const getStyles = (width: number, height: number) =>
-<<<<<<< HEAD
-    StyleSheet.create({
-      container: {
-        flexGrow: 1,
-        backgroundColor: Colors.white,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: width * 0.05,
-        marginTop: height * 0.05,
-        marginBottom: height * 0.05,
-      },
-      header: {
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: height * 0.04,
-        marginTop: height * 0.02,
-      },
-
-      headerTitle: {
-        fontSize: width > 400 ? 32 : 28,
-        fontWeight: 'bold',
-        color: Colors.purple,
-        marginLeft: 15,
-      },
-
-      title: {
-        fontSize: width > 400 ? 36 : 32,
-        fontWeight: 'bold',
-        color: Colors.purple,
-        marginBottom: height * 0.04,
-      },
-      input: {
-        width: '100%',
-        height: height * 0.07,
-        borderColor: Colors.darkGray,
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        fontSize: width > 400 ? 18 : 16,
-        marginBottom: height * 0.025,
-        color: Colors.darkGray,
-      },
-      button: {
-        width: '100%',
-        backgroundColor: Colors.springGreen,
-        paddingVertical: height * 0.02,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: height * 0.02,
-      },
-      buttonText: {
-        color: Colors.white,
-        fontSize: width > 400 ? 20 : 18,
-        fontWeight: 'bold',
-      },
-    });
-
-
-export default SignUpScreen;
-=======
-  StyleSheet.create({
-=======
 }
-
 function getStyles(width: number, height: number) {
   return StyleSheet.create({
->>>>>>> d7ffe42 (Applied Prettier and ESLint)
     container: {
       flexGrow: 1,
       backgroundColor: Colors.white,
@@ -226,6 +166,21 @@ function getStyles(width: number, height: number) {
       marginTop: height * 0.05,
       marginBottom: height * 0.05,
     },
+    header: {
+      width: "100%",
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: height * 0.04,
+      marginTop: height * 0.02,
+    },
+
+    headerTitle: {
+      fontSize: width > 400 ? 32 : 28,
+      fontWeight: "bold",
+      color: Colors.purple,
+      marginLeft: 15,
+    },
+
     title: {
       fontSize: width > 400 ? 36 : 32,
       fontWeight: "bold",
@@ -245,7 +200,7 @@ function getStyles(width: number, height: number) {
     },
     button: {
       width: "100%",
-      backgroundColor: Colors.purple,
+      backgroundColor: Colors.springGreen,
       paddingVertical: height * 0.02,
       borderRadius: 8,
       alignItems: "center",
@@ -258,6 +213,3 @@ function getStyles(width: number, height: number) {
     },
   });
 }
-
-export default SignUpScreen;
->>>>>>> 773865c (Applied prettier and ESLint)
