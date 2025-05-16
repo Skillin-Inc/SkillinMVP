@@ -1,9 +1,9 @@
- // /hooks/useScreenDimensions.tsx
+// /hooks/useScreenDimensions.tsx
 
-import { useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from "react-native";
 
-export const useScreenDimensions = () => {
+export function useScreenDimensions() {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
 
   return { screenWidth, screenHeight };
-};
+}
