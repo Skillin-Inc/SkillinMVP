@@ -55,12 +55,12 @@ console.log('📦 Received from TeachingExperienceScreen:', route.params);
   };
 
   const handleSubmit = () => {
-    // navigation.navigate('ReviewSubmit', {
-    //   ...route.params,
-    //   idImage,
-    //   verificationLink,
-    //   videoIntro,
-    // });
+    navigation.navigate('ReviewSubmit', {
+      ...route.params,
+      idImage,
+      verificationLink,
+      videoIntro,
+    });
   };
 
   return (
