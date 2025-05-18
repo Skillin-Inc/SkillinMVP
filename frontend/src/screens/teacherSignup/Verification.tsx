@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -20,31 +19,24 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 const VerificationScreen = () => {
   const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
-const route = useRoute<RouteProp<TeacherStackParamList, 'Verification'>>();
-console.log('📦 Received from TeachingExperienceScreen:', route.params);
+  const route = useRoute<RouteProp<TeacherStackParamList, 'Verification'>>();
+  console.log('📦 Received from TeachingExperienceScreen:', route.params);
 
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const [idImage, setIdImage] = useState<string | null>(null);
-  const [verificationLink, setVerificationLink] = useState('');
-  const [videoIntro, setVideoIntro] = useState<string | null>(null);
+  const [idFrontImage, setIdFrontImage] = useState<string | null>(null);
+  const [idBackImage, setIdBackImage] = useState<string | null>(null);
 
-  const pickMedia = async (setState: React.Dispatch<React.SetStateAction<string | null>>, type: 'image' | 'video') => {
-    const permission =
-      type === 'image'
-        ? await ImagePicker.requestMediaLibraryPermissionsAsync()
-        : await ImagePicker.requestCameraPermissionsAsync();
-
-    if (permission.status !== 'granted') {
-      alert(`Permission to access ${type === 'image' ? 'photos' : 'camera'} is required.`);
+  const pickImage = async (setState: React.Dispatch<React.SetStateAction<string | null>>) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      alert('We need permission to access your photos!');
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: type === 'image'
-        ? ImagePicker.MediaTypeOptions.Images
-        : ImagePicker.MediaTypeOptions.Videos,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       quality: 0.5,
     });
@@ -55,12 +47,13 @@ console.log('📦 Received from TeachingExperienceScreen:', route.params);
   };
 
   const handleSubmit = () => {
-    navigation.navigate('ReviewSubmit', {
-      ...route.params,
-      idImage,
-      verificationLink,
-      videoIntro,
-    });
+  navigation.navigate('ReviewSubmit', {
+    ...route.params,
+    idFront: idFrontImage,
+    idBack: idBackImage,
+  });
+
+
   };
 
   return (
@@ -72,37 +65,30 @@ console.log('📦 Received from TeachingExperienceScreen:', route.params);
         <Text style={styles.headerTitle}>Step 2.5: Verification</Text>
       </View>
 
-      <TouchableOpacity style={styles.uploadButton} onPress={() => pickMedia(setIdImage, 'image')}>
+      <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setIdFrontImage)}>
         <Text style={styles.uploadButtonText}>
-          {idImage ? 'Change Uploaded ID' : 'Upload Government ID Photo'}
+          {idFrontImage ? 'Change ID Front' : 'Upload ID Front'}
         </Text>
       </TouchableOpacity>
 
-      {idImage && (
+      {idFrontImage && (
         <Image
-          source={{ uri: idImage }}
+          source={{ uri: idFrontImage }}
           style={{ width: '100%', height: 200, borderRadius: 8, marginBottom: 20 }}
         />
       )}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Or paste a link to your verification/background check"
-        value={verificationLink}
-        onChangeText={setVerificationLink}
-        placeholderTextColor={Colors.darkGray}
-      />
-
-      <TouchableOpacity style={styles.uploadButton} onPress={() => pickMedia(setVideoIntro, 'video')}>
+      <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setIdBackImage)}>
         <Text style={styles.uploadButtonText}>
-          {videoIntro ? 'Change Video Intro' : 'Upload Optional Video Introduction'}
+          {idBackImage ? 'Change ID Back' : 'Upload ID Back'}
         </Text>
       </TouchableOpacity>
 
-      {videoIntro && (
-        <Text style={styles.infoText}>
-          Video selected: {videoIntro.split('/').pop()}
-        </Text>
+      {idBackImage && (
+        <Image
+          source={{ uri: idBackImage }}
+          style={{ width: '100%', height: 200, borderRadius: 8, marginBottom: 20 }}
+        />
       )}
 
       <TouchableOpacity style={styles.nextButton} onPress={handleSubmit}>
@@ -133,17 +119,6 @@ const getStyles = (width: number, height: number) =>
       fontWeight: 'bold',
       color: Colors.purple,
     },
-    input: {
-      width: '100%',
-      height: height * 0.07,
-      borderColor: Colors.darkGray,
-      borderWidth: 1,
-      borderRadius: 8,
-      paddingHorizontal: 15,
-      fontSize: width > 400 ? 18 : 16,
-      marginBottom: height * 0.025,
-      color: Colors.black,
-    },
     uploadButton: {
       borderColor: Colors.purple,
       borderWidth: 1,
@@ -167,10 +142,5 @@ const getStyles = (width: number, height: number) =>
       color: Colors.white,
       fontSize: 18,
       fontWeight: 'bold',
-    },
-    infoText: {
-      color: Colors.darkGray,
-      marginBottom: height * 0.025,
-      fontStyle: 'italic',
     },
   });

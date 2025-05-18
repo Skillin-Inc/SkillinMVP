@@ -14,7 +14,6 @@ export type TeachingExperience = {
 };
 
 export type Verification = {
-  idImage: string | null;
-  verificationLink: string;
-  videoIntro: string | null;
+  idFront: string | null;
+  idBack: string | null;
 };

@@ -21,7 +21,6 @@ import {
   formatZipCode,
 } from '../../hooks';
 import { Colors, Typography } from '../../styles';
-import { AuthContext } from '../../features/auth/AuthContext';
 
 
 const PersonalInfoScreen = () => {

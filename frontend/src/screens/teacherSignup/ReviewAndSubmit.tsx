@@ -17,11 +17,12 @@ const ReviewSubmitScreen = () => {
   const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
   const route = useRoute<RouteProp<TeacherStackParamList, 'ReviewSubmit'>>();
 
-  const {
-    firstName, lastName, email, phoneNumber, zipCode, profileImage,
-    experienceList, certifications, portfolios,
-    idImage, verificationLink, videoIntro,
-  } = route.params;
+const {
+  firstName, lastName, email, phoneNumber, zipCode, profileImage,
+  experienceList, certifications, portfolios,
+  idFront, idBack,
+} = route.params;
+
 
 const handleEdit = (screenName: keyof TeacherStackParamList) => {
   navigation.navigate(screenName as any); // or 'as never' if strict
@@ -49,27 +50,34 @@ const handleEdit = (screenName: keyof TeacherStackParamList) => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionHeader}>Teaching Experience</Text>
-        {experienceList.map((exp, index) => (
-          <Text key={index}>• {exp.expertise} ({exp.years} yrs)</Text>
-        ))}
-        <Text>Certifications: {certifications.join(', ')}</Text>
-        <Text>Portfolios: {portfolios.join(', ')}</Text>
-        <TouchableOpacity onPress={() => handleEdit('TeachingExperience')}>
-          <Text style={styles.editLink}>Edit</Text>
-        </TouchableOpacity>
-      </View>
+<View style={styles.section}>
+  <Text style={styles.sectionHeader}>Teaching Experience</Text>
+  {experienceList.map((exp, index) => (
+    <Text key={index}>• {exp.expertise} ({exp.years} yrs)</Text>
+  ))}
+  
+  <Text>Certifications:</Text>
+  {certifications.map((uri, index) => (
+    <Image key={index} source={{ uri }} style={styles.image} />
+  ))}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionHeader}>Verification</Text>
-        {idImage && <Image source={{ uri: idImage }} style={styles.image} />}
-        {verificationLink ? <Text>Verification Link: {verificationLink}</Text> : null}
-        {videoIntro ? <Text>Video Intro: {videoIntro.split('/').pop()}</Text> : null}
-        <TouchableOpacity onPress={() => handleEdit('Verification')}>
-          <Text style={styles.editLink}>Edit</Text>
-        </TouchableOpacity>
-      </View>
+  <Text>Portfolios: {portfolios.join(', ')}</Text>
+  <TouchableOpacity onPress={() => handleEdit('TeachingExperience')}>
+    <Text style={styles.editLink}>Edit</Text>
+  </TouchableOpacity>
+</View>
+
+
+<View style={styles.section}>
+  <Text style={styles.sectionHeader}>Verification</Text>
+  {idFront && <Image source={{ uri: idFront }} style={styles.image} />}
+  {idBack && <Image source={{ uri: idBack }} style={styles.image} />}
+  <TouchableOpacity onPress={() => handleEdit('Verification')}>
+    <Text style={styles.editLink}>Edit</Text>
+  </TouchableOpacity>
+</View>
+
+
 
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitText}>Submit Application</Text>

@@ -118,7 +118,7 @@ const TeachingExperienceScreen = () => {
 
       <TouchableOpacity style={styles.uploadButton} onPress={pickCertificationImage}>
         <Text style={styles.uploadButtonText}>
-          {certificationImage ? 'Change Certification Image' : 'Upload Certification Photo'}
+          {certificationImage ? 'Change Certification Image' : 'Upload Your Certification'}
         </Text>
       </TouchableOpacity>
 
