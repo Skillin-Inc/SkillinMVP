@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React from "react";
+import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
-import SkillinLogo from '@assets/icons/skillin-logo.png';
-import { useScreenDimensions } from '../hooks';
-import { Colors, Typography } from '../styles';
+import SkillinLogo from "@assets/icons/skillin-logo.png";
+import { useScreenDimensions } from "../hooks";
+import { Colors, Typography } from "../styles";
 
-const WelcomeScreen = () => {
+export default function WelcomeScreen() {
   const navigation = useNavigation();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
@@ -22,12 +22,14 @@ const WelcomeScreen = () => {
         resizeMode="contain"
       />
 
-      <Text style={styles.title}>Learn a new hobby with a personal teacher</Text>
+      <Text style={styles.title}>
+        Learn a new hobby with a personal teacher
+      </Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Login')}
+          onPress={() => navigation.navigate("Login")}
           accessibilityLabel="Log in to your Skillin account"
         >
           <Text style={styles.buttonText}>Login</Text>
@@ -35,15 +37,15 @@ const WelcomeScreen = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('SignUp')}
+          onPress={() => navigation.navigate("SignUp")}
           accessibilityLabel="Sign up for Skillin"
         >
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
 
-          <TouchableOpacity
+        <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('TeacherSignUp')}
+          onPress={() => navigation.navigate("TeacherSignUp")}
           accessibilityLabel="Sign up for Skillin"
         >
           <Text style={styles.buttonText}> Teacher Sign Up</Text>
@@ -51,7 +53,7 @@ const WelcomeScreen = () => {
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Preview')}
+          onPress={() => navigation.navigate("Preview")}
           accessibilityLabel="Preview Skillin without an account"
         >
           <Text style={styles.buttonText}>Preview Skillin</Text>
@@ -59,15 +61,14 @@ const WelcomeScreen = () => {
       </View>
     </View>
   );
-};
+}
 
-export default WelcomeScreen;
-const getStyles = (width: number, height: number) =>
-  StyleSheet.create({
+function getStyles(width: number, height: number) {
+  return StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       backgroundColor: Colors.purple,
       padding: 20,
     },
@@ -77,19 +78,19 @@ const getStyles = (width: number, height: number) =>
     title: {
       ...Typography.title,
       color: Colors.white,
-      textAlign: 'center',
+      textAlign: "center",
       marginBottom: 30,
       fontSize: width > 400 ? 26 : 22,
     },
     buttonContainer: {
-      width: '100%',
+      width: "100%",
       maxWidth: 400,
     },
     button: {
       backgroundColor: Colors.springGreen,
       paddingVertical: 15,
       borderRadius: 8,
-      alignItems: 'center',
+      alignItems: "center",
       marginTop: 15,
     },
     buttonText: {
@@ -98,3 +99,4 @@ const getStyles = (width: number, height: number) =>
       color: Colors.white,
     },
   });
+}

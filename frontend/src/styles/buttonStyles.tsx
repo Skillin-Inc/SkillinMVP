@@ -1,11 +1,11 @@
-import { Colors } from './colors';
-import { Spacing } from './spacing';
-import { Typography } from './typography';
+import { Colors } from "./colors";
+import { Spacing } from "./spacing";
+import { Typography } from "./typography";
 
 const base = {
   ...Typography.buttonText,
-  alignItems: 'center',
-  justifyContent: 'center', // Good to add this too
+  alignItems: "center",
+  justifyContent: "center", // Good to add this too
   marginHorizontal: Spacing.base,
   marginVertical: Spacing.base,
 };
@@ -52,7 +52,7 @@ export const ButtonStyles = {
   },
   textOnly: {
     ...base,
-    backgroundColor: 'transparent',
-    shadowColor: 'transparent',
+    backgroundColor: "transparent",
+    shadowColor: "transparent",
   },
 };
