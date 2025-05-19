@@ -20,7 +20,7 @@ export const Colors = {
     transparentPrimary: 'rgba(255, 192, 203, 0.5)',
     errorText: 'red',
     purple: '#414288',
-    labelGray: '#C0C5CA',
+    labelGray: '#c9c6c5',
     black: '#31393C',
     blue: '#568CEB',
     springGreen: '#16B4A4',
