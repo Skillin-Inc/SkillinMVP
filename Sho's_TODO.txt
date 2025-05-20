@@ -6,4 +6,5 @@ Can start working on the home screen and build from there.
 Finish instructor wireframe outline ref 
 https://docs.google.com/presentation/d/1Cw7PVMMudM2ShLq30jZ76tuIfVV5oQMt/edit?slide=id.p1#slide=id.p1
 
+add back ground check after the teaching experince. ( upload the ids and socailas stuff)
 when applicaion is done send to email via pdf 

@@ -1,11 +1,9 @@
 // src/server.ts
 import express, { Request, Response } from "express";
 import cors from "cors";
-import dotenv from "dotenv";
+import "dotenv/config";
 
-import usersRouter from "./routes/users";  // ← Import the users router
-
-dotenv.config();
+import usersRouter from "./routes/users"; // ← Import the users router
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
