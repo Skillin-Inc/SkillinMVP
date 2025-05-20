@@ -15,5 +15,5 @@ CREATE TABLE "users" (
   "username" text,
   "hashedPassword" text,
   "postalCode" integer,
-  "createdAt" timestamptz
+  "createdAt" timestamptz(3) default current_timestamp
 );

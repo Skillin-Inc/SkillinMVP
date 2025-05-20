@@ -6,7 +6,7 @@
   "scripts": {
     "expo": "npm run start --prefix frontend",
     "dev": "npm run dev --prefix backend",
-    "db:import": "sh database/import.sh",
+    "db:import": "sh backend/database/import.sh",
     "install:frontend": "npm install --prefix frontend",
     "install:backend": "npm install --prefix backend",
     "postinstall": "npm-run-all --parallel install:*"
