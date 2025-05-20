@@ -77,3 +77,15 @@ export async function createUser(data: NewUser) {
   
   return result.rows[0];
 }
+
+
+// Delete Users
+export async function deleteUserByEmail(email: String){
+  const result = await pool.query(
+    `DELETE FROM public.users
+     WHERE email = $1
+     RETURNING *`,
+     [email]
+  );
+  return result.rows[0] ?? null;
+}

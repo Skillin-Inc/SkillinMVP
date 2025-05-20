@@ -21,6 +21,7 @@ app.get("/", (req: Request, res: Response) => {
 // Mount all /users routes
 app.use("/users", usersRouter);
 
+
 // Catch-all 404 for any unmatched routes
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });

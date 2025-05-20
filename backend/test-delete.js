@@ -1,0 +1,24 @@
+// test-delete.js
+const axios = require('axios');
+
+async function testDelete() {
+  const email = 'jon3.doe@example.com';
+
+  const encodedEmail = encodeURIComponent(email);
+  const url = `http://localhost:4000/users/${encodedEmail}`;
+
+  try {
+    const res = await axios.delete(url);
+    console.log(`Status: ${res.status}`);
+    console.log('Body:', res.data);
+  } catch (err) {
+    if (err.response) {
+      console.error(`Error Status: ${err.response.status}`);
+      console.error('Error Body:', err.response.data);
+    } else {
+      console.error('Request Error:', err.message);
+    }
+  }
+}
+
+testDelete();
