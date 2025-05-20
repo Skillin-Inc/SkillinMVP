@@ -11,7 +11,7 @@ CREATE TABLE "users" (
   "firstName" text,
   "lastName" text,
   "email" text,
-  "phoneNumber" text,
+  "phoneNumber" VARCHAR(15),
   "username" text,
   "hashedPassword" text,
   "postalCode" integer,
