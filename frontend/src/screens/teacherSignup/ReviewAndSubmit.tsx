@@ -9,36 +9,72 @@ import {
 } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+
 import { TeacherStackParamList } from "../../types/TeacherStackParamList";
 import { Colors } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
 
 const ReviewSubmitScreen = () => {
   const navigation =
+    //  useNavigation<StackNavigationProp<TeacherStackParamList, "ReviewSubmit">>();
     useNavigation<StackNavigationProp<TeacherStackParamList>>();
   const route = useRoute<RouteProp<TeacherStackParamList, "ReviewSubmit">>();
   const { screenWidth, screenHeight } = useScreenDimensions();
 
   const {
-    firstName,
-    lastName,
-    email,
-    phoneNumber,
-    zipCode,
-    profileImage,
-    experienceList,
-    certifications,
-    portfolios,
-    idFront,
-    idBack,
-  } = route.params;
+    firstName = "",
+    lastName = "",
+    email = "",
+    phoneNumber = "",
+    zipCode = "",
+    profileImage = null,
+    experienceList = [],
+    certifications = [],
+    portfolios = [],
+    idFront = null,
+    idBack = null,
+  } = route.params || {};
 
   const handleEdit = (screen: keyof TeacherStackParamList) => {
     navigation.navigate(screen as any);
   };
 
   const handleSubmit = () => {
+    generateAndSharePDF;
     navigation.navigate("ApplicationStart");
+  };
+
+  const generateAndSharePDF = async () => {
+    const html = `
+    <html>
+      <body style="font-family: Arial; padding: 20px;">
+        <h1 style="color: #5A2A82;">Review Application</h1>
+        <h2>👤 Personal Info</h2>
+        <p><strong>First Name:</strong> ${firstName}</p>
+        <p><strong>Last Name:</strong> ${lastName}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phoneNumber}</p>
+        <p><strong>Zip Code:</strong> ${zipCode}</p>
+
+        <h2>📚 Teaching Experience</h2>
+        <ul>
+          ${experienceList
+            .map((exp) => `<li>${exp.expertise} (${exp.years} yrs)</li>`)
+            .join("")}
+        </ul>
+        <p><strong>Portfolio:</strong> ${portfolios.join(", ")}</p>
+
+        <h2>✅ Verification</h2>
+        <p>Uploaded ID Front: ${idFront ? "Yes" : "No"}</p>
+        <p>Uploaded ID Back: ${idBack ? "Yes" : "No"}</p>
+      </body>
+    </html>
+  `;
+
+    const { uri } = await Print.printToFileAsync({ html });
+    await Sharing.shareAsync(uri);
   };
 
   const styles = getStyles(screenWidth, screenHeight);
@@ -185,6 +221,7 @@ const getStyles = (width: number, height: number) =>
       alignItems: "center",
       marginTop: 10,
     },
+
     submitText: {
       color: "#fff",
       fontSize: width > 400 ? 17 : 15,
