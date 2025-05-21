@@ -1,4 +1,4 @@
-export const Spacing = {
+export const SPACINGS = {
   smallest: 4,
   small: 8,
   base: 16,
