@@ -1,20 +1,13 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
-import { TeacherStackParamList } from "../../types/TeacherStackParamList";
-import { Colors } from "../../styles";
+import { TeacherStackParamList } from "../../types/navigation";
 import { useScreenDimensions } from "../../hooks";
+import { COLORS } from "../../styles";
 
 const ReviewSubmitScreen = () => {
   const navigation =
@@ -60,9 +53,7 @@ const ReviewSubmitScreen = () => {
 
         <h2>📚 Teaching Experience</h2>
         <ul>
-          ${experienceList
-            .map((exp) => `<li>${exp.expertise} (${exp.years} yrs)</li>`)
-            .join("")}
+          ${experienceList.map((exp) => `<li>${exp.expertise} (${exp.years} yrs)</li>`).join("")}
         </ul>
         <p><strong>Portfolio:</strong> ${portfolios.join(", ")}</p>
 
@@ -100,9 +91,7 @@ const ReviewSubmitScreen = () => {
         <Text style={styles.label}>
           Zip Code: <Text style={styles.value}>{zipCode}</Text>
         </Text>
-        {profileImage && (
-          <Image source={{ uri: profileImage }} style={styles.image} />
-        )}
+        {profileImage && <Image source={{ uri: profileImage }} style={styles.image} />}
         <TouchableOpacity onPress={() => handleEdit("PersonalInfo")}>
           <Text style={styles.editLink}>Edit</Text>
         </TouchableOpacity>
@@ -117,9 +106,7 @@ const ReviewSubmitScreen = () => {
         ))}
         {certifications.length > 0 && (
           <>
-            <Text style={[styles.label, { marginTop: 10 }]}>
-              Certifications:
-            </Text>
+            <Text style={[styles.label, { marginTop: 10 }]}>Certifications:</Text>
             {certifications.map((uri, idx) => (
               <Image key={idx} source={{ uri }} style={styles.image} />
             ))}
@@ -161,13 +148,13 @@ const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
       padding: width * 0.05,
-      backgroundColor: Colors.white,
+      backgroundColor: COLORS.white,
     },
     header: {
       fontSize: width > 400 ? 26 : 22,
       fontWeight: "bold",
       marginBottom: height * 0.03,
-      color: Colors.purple,
+      color: COLORS.purple,
       textAlign: "center",
       marginTop: height * 0.05,
     },
@@ -185,17 +172,17 @@ const getStyles = (width: number, height: number) =>
     sectionTitle: {
       fontSize: width > 400 ? 18 : 16,
       fontWeight: "700",
-      color: Colors.purple,
+      color: COLORS.purple,
       marginBottom: height * 0.015,
     },
     label: {
       fontWeight: "600",
-      color: Colors.purple,
+      color: COLORS.purple,
       marginBottom: 4,
     },
     value: {
       fontWeight: "600", // make it slightly bolder
-      color: Colors.black, // ensure it's true black
+      color: COLORS.black, // ensure it's true black
       fontSize: width > 400 ? 16 : 15, // slightly larger
       marginBottom: 6, // spacing between items
     },
@@ -210,12 +197,12 @@ const getStyles = (width: number, height: number) =>
       borderColor: "#ddd",
     },
     editLink: {
-      color: Colors.purple,
+      color: COLORS.purple,
       fontWeight: "500",
       marginTop: height * 0.01,
     },
     submitButton: {
-      backgroundColor: Colors.springGreen,
+      backgroundColor: COLORS.green,
       paddingVertical: height * 0.025,
       borderRadius: 10,
       alignItems: "center",

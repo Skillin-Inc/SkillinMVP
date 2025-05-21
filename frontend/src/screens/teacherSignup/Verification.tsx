@@ -1,26 +1,19 @@
 // src/screens/teacherSignup/VerificationScreen.tsx
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Image,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import * as ImagePicker from 'expo-image-picker';
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 
-import { useScreenDimensions } from '../../hooks';
-import { Colors } from '../../styles';
-import { TeacherStackParamList } from '../../types/TeacherStackParamList';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useScreenDimensions } from "../../hooks";
+import { TeacherStackParamList } from "../../types/navigation";
+import { COLORS } from "../../styles";
 
 const VerificationScreen = () => {
   const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
-  const route = useRoute<RouteProp<TeacherStackParamList, 'Verification'>>();
-  console.log('📦 Received from TeachingExperienceScreen:', route.params);
+  const route = useRoute<RouteProp<TeacherStackParamList, "Verification">>();
+  console.log("📦 Received from TeachingExperienceScreen:", route.params);
 
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
@@ -30,8 +23,8 @@ const VerificationScreen = () => {
 
   const pickImage = async (setState: React.Dispatch<React.SetStateAction<string | null>>) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      alert('We need permission to access your photos!');
+    if (status !== "granted") {
+      alert("We need permission to access your photos!");
       return;
     }
 
@@ -47,47 +40,41 @@ const VerificationScreen = () => {
   };
 
   const handleSubmit = () => {
-  navigation.navigate('ReviewSubmit', {
-    ...route.params,
-    idFront: idFrontImage,
-    idBack: idBackImage,
-  });
-
-
+    navigation.navigate("ReviewSubmit", {
+      ...route.params,
+      idFront: idFrontImage,
+      idBack: idBackImage,
+    });
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={28} color={Colors.purple} />
+          <Ionicons name="arrow-back" size={28} color={COLORS.purple} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Step 2.5: Verification</Text>
       </View>
 
       <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setIdFrontImage)}>
-        <Text style={styles.uploadButtonText}>
-          {idFrontImage ? 'Change ID Front' : 'Upload ID Front'}
-        </Text>
+        <Text style={styles.uploadButtonText}>{idFrontImage ? "Change ID Front" : "Upload ID Front"}</Text>
       </TouchableOpacity>
 
       {idFrontImage && (
         <Image
           source={{ uri: idFrontImage }}
-          style={{ width: '100%', height: 200, borderRadius: 8, marginBottom: 20 }}
+          style={{ width: "100%", height: 200, borderRadius: 8, marginBottom: 20 }}
         />
       )}
 
       <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setIdBackImage)}>
-        <Text style={styles.uploadButtonText}>
-          {idBackImage ? 'Change ID Back' : 'Upload ID Back'}
-        </Text>
+        <Text style={styles.uploadButtonText}>{idBackImage ? "Change ID Back" : "Upload ID Back"}</Text>
       </TouchableOpacity>
 
       {idBackImage && (
         <Image
           source={{ uri: idBackImage }}
-          style={{ width: '100%', height: 200, borderRadius: 8, marginBottom: 20 }}
+          style={{ width: "100%", height: 200, borderRadius: 8, marginBottom: 20 }}
         />
       )}
 
@@ -104,43 +91,43 @@ const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
-      backgroundColor: Colors.white,
+      backgroundColor: COLORS.white,
       padding: width * 0.06,
       paddingTop: height * 0.08,
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: height * 0.03,
     },
     headerTitle: {
       marginLeft: 15,
       fontSize: width > 400 ? 24 : 22,
-      fontWeight: 'bold',
-      color: Colors.purple,
+      fontWeight: "bold",
+      color: COLORS.purple,
     },
     uploadButton: {
-      borderColor: Colors.purple,
+      borderColor: COLORS.purple,
       borderWidth: 1,
       borderRadius: 8,
       paddingVertical: 10,
-      alignItems: 'center',
+      alignItems: "center",
       marginBottom: height * 0.02,
     },
     uploadButtonText: {
-      color: Colors.purple,
+      color: COLORS.purple,
       fontSize: 16,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     nextButton: {
-      backgroundColor: Colors.springGreen,
+      backgroundColor: COLORS.green,
       paddingVertical: height * 0.02,
       borderRadius: 8,
-      alignItems: 'center',
+      alignItems: "center",
     },
     nextButtonText: {
-      color: Colors.white,
+      color: COLORS.white,
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: "bold",
     },
   });
