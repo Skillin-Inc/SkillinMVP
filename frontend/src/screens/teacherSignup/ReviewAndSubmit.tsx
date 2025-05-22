@@ -1,9 +1,16 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+} from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
+import * as FileSystem from "expo-file-system";
 
 import { TeacherStackParamList } from "../../types/navigation";
 import { useScreenDimensions } from "../../hooks";
@@ -31,16 +38,12 @@ const ReviewSubmitScreen = () => {
   } = route.params || {};
 
   const handleEdit = (screen: keyof TeacherStackParamList) => {
-    navigation.navigate(screen as any);
+    navigation.navigate(screen as never); // never was any at first but casue code to be red
   };
 
-  const handleSubmit = () => {
-    generateAndSharePDF;
-    navigation.navigate("ApplicationStart");
-  };
-
-  const generateAndSharePDF = async () => {
-    const html = `
+  const handleSubmit = async () => {
+    try {
+      const html = `
     <html>
       <body style="font-family: Arial; padding: 20px;">
         <h1 style="color: #5A2A82;">Review Application</h1>
@@ -53,7 +56,9 @@ const ReviewSubmitScreen = () => {
 
         <h2>📚 Teaching Experience</h2>
         <ul>
-          ${experienceList.map((exp) => `<li>${exp.expertise} (${exp.years} yrs)</li>`).join("")}
+          ${experienceList
+            .map((exp) => `<li>${exp.expertise} (${exp.years} yrs)</li>`)
+            .join("")}
         </ul>
         <p><strong>Portfolio:</strong> ${portfolios.join(", ")}</p>
 
@@ -63,9 +68,33 @@ const ReviewSubmitScreen = () => {
       </body>
     </html>
   `;
+      const { uri } = await Print.printToFileAsync({ html });
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: "base64",
+      });
 
-    const { uri } = await Print.printToFileAsync({ html });
-    await Sharing.shareAsync(uri);
+      const response = await fetch("https://your-server.com/send-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: `Application_${Date.now()}.pdf`,
+          pdfBase64: base64,
+          emailTo: email,
+        }),
+      });
+
+      if (response.ok) {
+        alert("PDF submitted and emailed!");
+        navigation.navigate("ApplicationStart");
+      } else {
+        const errText = await response.text();
+        console.error("Email error:", errText);
+        alert("Error sending email.");
+      }
+    } catch (err) {
+      console.error("Submission failed:", err);
+      alert("Something went wrong while submitting.");
+    }
   };
 
   const styles = getStyles(screenWidth, screenHeight);
@@ -91,7 +120,9 @@ const ReviewSubmitScreen = () => {
         <Text style={styles.label}>
           Zip Code: <Text style={styles.value}>{zipCode}</Text>
         </Text>
-        {profileImage && <Image source={{ uri: profileImage }} style={styles.image} />}
+        {profileImage && (
+          <Image source={{ uri: profileImage }} style={styles.image} />
+        )}
         <TouchableOpacity onPress={() => handleEdit("PersonalInfo")}>
           <Text style={styles.editLink}>Edit</Text>
         </TouchableOpacity>
@@ -106,7 +137,9 @@ const ReviewSubmitScreen = () => {
         ))}
         {certifications.length > 0 && (
           <>
-            <Text style={[styles.label, { marginTop: 10 }]}>Certifications:</Text>
+            <Text style={[styles.label, { marginTop: 10 }]}>
+              Certifications:
+            </Text>
             {certifications.map((uri, idx) => (
               <Image key={idx} source={{ uri }} style={styles.image} />
             ))}
