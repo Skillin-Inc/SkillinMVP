@@ -1,8 +1,8 @@
 // src/routes/users.ts
 import { Router, Request, Response } from "express";
-import { createUser, NewUser, getUserById,getUserByAccount,getUserByPhone,getUserByEmail } from "../db";    
+import { createUser, NewUser, getUserById, getUserByUsername, getUserByPhone, getUserByEmail, verifyUser } from "../db";
 
-const router = Router();              
+const router = Router();
 
 // GET /users/:id
 router.get("/:id", async (req, res) => {
@@ -11,93 +11,111 @@ router.get("/:id", async (req, res) => {
 
   if (!user) {
     res.status(404).json({ error: "User not found" });
-    return;     
+    return;
   }
 
   res.json(user);
-  return;       
+  return;
 });
 
-// GET /users/:account_name
-router.get("/by-account/:account", async (req, res) => {
-  const account = String(req.params.account);  
-  const user = await getUserByAccount(account);
-   if (!user) {
+// GET /users/by-username/:username
+router.get("/by-username/:username", async (req, res) => {
+  const username = String(req.params.username);
+  const user = await getUserByUsername(username);
+  if (!user) {
     res.status(404).json({ error: "User not found" });
-    return;     
+    return;
   }
 
   res.json(user);
-  return;       
+  return;
 });
 
-// GET /users/:phone_name
+// GET /users/by-phone/:phone
 router.get("/by-phone/:phone", async (req, res) => {
-  const phone_number = String(req.params.phone);  
-  const user = await getUserByPhone(phone_number);
-   if (!user) {
+  const phoneNumber = String(req.params.phone);
+  const user = await getUserByPhone(phoneNumber);
+  if (!user) {
     res.status(404).json({ error: "User not found" });
-    return;     
+    return;
   }
 
   res.json(user);
-  return;       
+  return;
 });
 
-
-// GET /users/:email
+// GET /users/by-email/:email
 router.get("/by-email/:email", async (req, res) => {
-  const email = String(req.params.email);  
+  const email = String(req.params.email);
   const user = await getUserByEmail(email);
-   if (!user) {
+  if (!user) {
     res.status(404).json({ error: "User not found" });
-    return;     
+    return;
   }
 
   res.json(user);
-  return;       
+  return;
 });
 
+// POST /users/login
 router.post(
-  "/", 
-  // 1st generic: params (none → {})
-  // 2nd generic: response body (any)
-  // 3rd generic: request body (NewUser)
-  async (
-    req: Request<{}, any, NewUser>, 
-    res: Response
-  ): Promise<void> => {
-    const body = req.body;
+  "/login",
+  async (req: Request<object, unknown, { emailOrPhone: string; password: string }>, res: Response): Promise<void> => {
+    const { emailOrPhone, password } = req.body;
 
-    
-    const required: (keyof NewUser)[] = [
-      "firstname",
-      "lastname",
-      "email",
-      "phone_number",
-      "account_name",
-      "password",
-      "postal_code",
-    ];
-
-    for (const key of required) {
-      if (body[key] === undefined) {
-        res.status(400).json({ error: `Missing field: ${key}` });
-        return;          
-      }
+    if (!emailOrPhone || !password) {
+      res.status(400).json({ error: "Email/phone and password are required" });
+      return;
     }
 
     try {
-      const newUser = await createUser(body);
-      res.status(201).json(newUser);
-    } catch (err: any) {
-      console.error(err);
-      res.status(500).json({ error: err.message });
+      const user = await verifyUser(emailOrPhone, password);
+      if (!user) {
+        res.status(401).json({ error: "Invalid credentials" });
+        return;
+      }
+
+      res.json({ success: true, user });
+    } catch (error: unknown) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
     }
-    return;             
   }
 );
 
+// POST /users (register)
+router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
+  const body = req.body;
 
+  const required: (keyof NewUser)[] = [
+    "firstName",
+    "lastName",
+    "email",
+    "phoneNumber",
+    "username",
+    "password",
+    "postalCode",
+  ];
+
+  for (const key of required) {
+    if (body[key] === undefined) {
+      res.status(400).json({ error: `Missing field: ${key}` });
+      return;
+    }
+  }
+
+  try {
+    const newUser = await createUser(body);
+    res.status(201).json(newUser);
+  } catch (error: unknown) {
+    console.error(error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error occurred" });
+    }
+  }
+  return;
+});
 
 export default router;

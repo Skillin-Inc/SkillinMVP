@@ -1,15 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar, Alert } from "react-native";
 import { useScreenDimensions, formatDOB, formatPhoneNumber, formatZipCode, isValidEmail } from "../../hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { COLORS } from "../../styles";
+import { AuthContext } from "../../hooks/AuthContext";
 
 export default function Register() {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
   const navigation = useNavigation();
+  const { register } = useContext(AuthContext);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -17,15 +19,14 @@ export default function Register() {
   const [zipCode, setZipCode] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
   const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
-  const [membershipTier, setMembershipTier] = useState(""); // invis to users till inside profile
-  const [paymentInfo, setPaymentInfo] = useState<string[]>([]); // invis to users till inside profile
+  const [isLoading, setIsLoading] = useState(false);
 
-  // well need to edit this later
-  function handleSignUp() {
+  async function handleSignUp() {
     if (
       !firstName.trim() ||
       !lastName.trim() ||
@@ -33,29 +34,58 @@ export default function Register() {
       !zipCode.trim() ||
       !email.trim() ||
       !phoneNumber.trim() ||
+      !username.trim() ||
       !password.trim() ||
       !confirmPassword.trim()
     ) {
-      alert("Please fill out all fields.");
+      Alert.alert("Missing Fields", "Please fill out all fields.");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      Alert.alert("Invalid Email", "Please enter a valid email address.");
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match.");
+      Alert.alert("Password Mismatch", "Passwords do not match.");
       return;
     }
 
-    // You could add more validation here (e.g., email format, password length, etc.)
+    if (password.length < 6) {
+      Alert.alert("Weak Password", "Password must be at least 6 characters long.");
+      return;
+    }
 
-    console.log("Signing up with:", {
-      firstName,
-      lastName,
-      dOB,
-      zipCode,
-      email,
-      phoneNumber,
-      password,
-    });
+    const postalCode = parseInt(zipCode.replace(/\D/g, ""), 10);
+    if (isNaN(postalCode)) {
+      Alert.alert("Invalid Zip Code", "Please enter a valid zip code.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await register({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        phoneNumber: phoneNumber.replace(/\D/g, ""),
+        username: username.trim(),
+        password,
+        postalCode,
+      });
+
+      Alert.alert("Success", "Account created successfully! You are now logged in.");
+    } catch (error) {
+      console.error("Registration error:", error);
+      Alert.alert(
+        "Registration Failed",
+        error instanceof Error ? error.message : "An unexpected error occurred. Please try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -79,6 +109,7 @@ export default function Register() {
               placeholderTextColor={COLORS.gray}
               value={firstName}
               onChangeText={setFirstName}
+              editable={!isLoading}
             />
           </View>
 
@@ -89,6 +120,7 @@ export default function Register() {
               placeholderTextColor={COLORS.gray}
               value={lastName}
               onChangeText={setLastName}
+              editable={!isLoading}
             />
           </View>
         </View>
@@ -102,6 +134,7 @@ export default function Register() {
             keyboardType="number-pad"
             value={dOB}
             onChangeText={(text) => setDOB(formatDOB(text))}
+            editable={!isLoading}
           />
         </View>
 
@@ -114,6 +147,7 @@ export default function Register() {
             keyboardType="number-pad"
             value={zipCode}
             onChangeText={(text) => setZipCode(formatZipCode(text))}
+            editable={!isLoading}
           />
         </View>
 
@@ -124,8 +158,10 @@ export default function Register() {
             placeholder="Email"
             placeholderTextColor={COLORS.gray}
             keyboardType="email-address"
+            autoCapitalize="none"
             value={email}
             onChangeText={setEmail}
+            editable={!isLoading}
           />
         </View>
 
@@ -138,6 +174,20 @@ export default function Register() {
             keyboardType="phone-pad"
             value={phoneNumber}
             onChangeText={(text) => setPhoneNumber(formatPhoneNumber(text))}
+            editable={!isLoading}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Ionicons name="person-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor={COLORS.gray}
+            autoCapitalize="none"
+            value={username}
+            onChangeText={setUsername}
+            editable={!isLoading}
           />
         </View>
 
@@ -150,6 +200,7 @@ export default function Register() {
             secureTextEntry={hidePassword}
             value={password}
             onChangeText={setPassword}
+            editable={!isLoading}
           />
           <TouchableOpacity style={styles.passwordToggle} onPress={() => setHidePassword(!hidePassword)}>
             <Ionicons name={hidePassword ? "eye-outline" : "eye-off-outline"} size={20} color={COLORS.darkGray} />
@@ -165,6 +216,7 @@ export default function Register() {
             secureTextEntry={hideConfirmPassword}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
+            editable={!isLoading}
           />
           <TouchableOpacity style={styles.passwordToggle} onPress={() => setHideConfirmPassword(!hideConfirmPassword)}>
             <Ionicons
@@ -176,13 +228,17 @@ export default function Register() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Create Account</Text>
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleSignUp}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>{isLoading ? "Creating Account..." : "Create Account"}</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Already have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Login" as never)}>
+        <TouchableOpacity onPress={() => !isLoading && navigation.navigate("Login" as never)}>
           <Text style={styles.loginText}>Sign In</Text>
         </TouchableOpacity>
       </View>
@@ -287,6 +343,9 @@ function getStyles(width: number, height: number) {
       color: COLORS.purple,
       fontSize: 14,
       fontWeight: "bold",
+    },
+    buttonDisabled: {
+      backgroundColor: COLORS.gray,
     },
   });
 }

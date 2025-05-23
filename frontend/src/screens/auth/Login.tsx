@@ -2,7 +2,6 @@ import React, { useState, useContext } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, StatusBar } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useScreenDimensions } from "../../hooks";
@@ -15,23 +14,29 @@ export default function Login() {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const [userName, setUserName] = useState("");
+  const [emailOrPhone, setEmailOrPhone] = useState("");
   const [password, setPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleLogin() {
-    if (!userName.trim() || !password.trim()) {
+    if (!emailOrPhone.trim() || !password.trim()) {
       Alert.alert("Missing Fields", "Please fill out all fields.");
       return;
     }
 
-    console.log("Logging in with:", { userName, password });
+    setIsLoading(true);
 
     try {
-      await login(); // ✅ triggers login from context, which updates state
-    } catch (e) {
-      console.error("Login error", e);
-      Alert.alert("Login Failed", "Something went wrong. Please try again.");
+      await login({
+        emailOrPhone: emailOrPhone.trim(),
+        password,
+      });
+    } catch (error) {
+      console.error("Login error", error);
+      Alert.alert("Login Failed", error instanceof Error ? error.message : "Invalid credentials. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -53,10 +58,11 @@ export default function Login() {
             style={styles.input}
             placeholder="Email or Phone number"
             placeholderTextColor={COLORS.gray}
-            value={userName}
-            onChangeText={setUserName}
+            value={emailOrPhone}
+            onChangeText={setEmailOrPhone}
             autoCapitalize="none"
             keyboardType="email-address"
+            editable={!isLoading}
           />
         </View>
 
@@ -69,6 +75,7 @@ export default function Login() {
             secureTextEntry={hidePassword}
             value={password}
             onChangeText={setPassword}
+            editable={!isLoading}
           />
           <TouchableOpacity style={styles.passwordToggle} onPress={() => setHidePassword(!hidePassword)}>
             <Ionicons name={hidePassword ? "eye-outline" : "eye-off-outline"} size={22} color={COLORS.darkGray} />
@@ -80,13 +87,17 @@ export default function Login() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Sign In</Text>
+      <TouchableOpacity
+        style={[styles.button, isLoading && styles.buttonDisabled]}
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>{isLoading ? "Signing In..." : "Sign In"}</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>Don't have an account? </Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Register" as never)}>
+        <TouchableOpacity onPress={() => !isLoading && navigation.navigate("Register" as never)}>
           <Text style={styles.signupText}>Sign Up</Text>
         </TouchableOpacity>
       </View>
@@ -194,6 +205,9 @@ function getStyles(width: number, height: number) {
       color: COLORS.purple,
       fontSize: 14,
       fontWeight: "bold",
+    },
+    buttonDisabled: {
+      backgroundColor: COLORS.gray,
     },
   });
 }
