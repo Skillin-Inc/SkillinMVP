@@ -21,6 +21,7 @@ export type AuthStackParamList = {
 
 export type TeacherStackParamList = {
   PersonalInfo: undefined;
+  PayoutsInfo: undefined;
   TeachingExperience: PersonalInfo;
   Verification: PersonalInfo & TeachingExperience;
   ReviewSubmit: PersonalInfo &

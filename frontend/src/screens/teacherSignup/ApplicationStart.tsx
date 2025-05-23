@@ -11,10 +11,12 @@ import { COLORS } from "../../styles";
 type TeacherStackParamList = {
   ApplicationStart: undefined;
   PersonalInfo: undefined;
+  PayoutsInfo: undefined; // ← THIS LINE IS PROBABLY MISSING
 };
 
 const ApplicationStartScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
+  const navigation =
+    useNavigation<StackNavigationProp<TeacherStackParamList>>();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -22,7 +24,16 @@ const ApplicationStartScreen = () => {
     navigation.navigate("PersonalInfo");
   };
 
-  const steps = ["Personal Info", "Experience", "Curriculum", "Verification", "Review & Submit"];
+  const handlePaymentInfo = () => {
+    navigation.navigate("PayoutsInfo");
+  };
+  const steps = [
+    "Personal Info",
+    "Experience",
+    "Curriculum",
+    "Verification",
+    "Review & Submit",
+  ];
 
   return (
     <View style={styles.container}>
@@ -33,8 +44,8 @@ const ApplicationStartScreen = () => {
         <Text style={styles.headerTitle}>Become a Skillin Instructor</Text>
       </View>
       <Text style={styles.subtext}>
-        As an early ambassador of Skillin, you’ll get white-glove support to help set up your teaching profile and
-        curriculum.
+        As an early ambassador of Skillin, you’ll get white-glove support to
+        help set up your teaching profile and curriculum.
       </Text>
 
       <Text style={styles.sectionHeader}>Application Steps:</Text>
@@ -49,8 +60,9 @@ const ApplicationStartScreen = () => {
         <Text style={styles.buttonText}>Start Application</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleStart}>
-        <Text style={styles.buttonText}>How do payouts work?</Text>
+      <TouchableOpacity style={styles.button} onPress={handlePaymentInfo}>
+        <Text style={styles.buttonText}>How do payouts work?</Text>{" "}
+        {/* need to route this to the payouts page */}
       </TouchableOpacity>
     </View>
   );
