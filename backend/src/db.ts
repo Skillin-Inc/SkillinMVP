@@ -2,31 +2,47 @@
 import { Pool } from "pg";
 import "dotenv/config";
 
+// export const pool = new Pool({
+//   host: process.env.PG_HOST,
+//   port: Number(process.env.PG_PORT) || 5432,
+//   user: process.env.PG_USER,
+//   password: process.env.PG_PASSWORD,
+//   database: process.env.PG_DATABASE,
+// });
+
 export const pool = new Pool({
-  host: process.env.PG_HOST,
-  port: Number(process.env.PG_PORT) || 5432,
-  user: process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
-  database: process.env.PG_DATABASE,
+  connectionString: process.env.DATABASE_URL,
 });
 
 export async function getUserById(id: number) {
-  const result = await pool.query('SELECT * FROM public.users WHERE "userId" = $1', [id]);
+  const result = await pool.query(
+    'SELECT * FROM public.users WHERE "userId" = $1',
+    [id]
+  );
   return result.rows[0] ?? null;
 }
 
 export async function getUserByUsername(username: string) {
-  const result = await pool.query("SELECT * FROM public.users WHERE username = $1", [username]);
+  const result = await pool.query(
+    "SELECT * FROM public.users WHERE username = $1",
+    [username]
+  );
   return result.rows[0] ?? null;
 }
 
 export async function getUserByPhone(phoneNumber: string) {
-  const result = await pool.query('SELECT * FROM public.users WHERE "phoneNumber" = $1', [phoneNumber]);
+  const result = await pool.query(
+    'SELECT * FROM public.users WHERE "phoneNumber" = $1',
+    [phoneNumber]
+  );
   return result.rows[0] ?? null;
 }
 
 export async function getUserByEmail(email: string) {
-  const result = await pool.query("SELECT * FROM public.users WHERE email = $1", [email]);
+  const result = await pool.query(
+    "SELECT * FROM public.users WHERE email = $1",
+    [email]
+  );
   return result.rows[0] ?? null;
 }
 
@@ -41,7 +57,15 @@ export interface NewUser {
 }
 
 export async function createUser(data: NewUser) {
-  const { firstName, lastName, email, phoneNumber, username, password, postalCode } = data;
+  const {
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    username,
+    password,
+    postalCode,
+  } = data;
 
   const result = await pool.query(
     `INSERT INTO public.users
