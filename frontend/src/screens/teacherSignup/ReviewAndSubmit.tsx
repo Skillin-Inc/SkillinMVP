@@ -43,43 +43,92 @@ const ReviewSubmitScreen = () => {
 
   const handleSubmit = async () => {
     try {
+      const profileImageBase64 = profileImage
+        ? await FileSystem.readAsStringAsync(profileImage, {
+            encoding: "base64",
+          })
+        : null;
+      const certificationImagesBase64 = await Promise.all(
+        certifications.map(async (uri) =>
+          uri
+            ? await FileSystem.readAsStringAsync(uri, { encoding: "base64" })
+            : null
+        )
+      );
+      const idFrontBase64 = idFront
+        ? await FileSystem.readAsStringAsync(idFront, { encoding: "base64" })
+        : null;
+
+      const idBackBase64 = idBack
+        ? await FileSystem.readAsStringAsync(idBack, { encoding: "base64" })
+        : null;
       const html = `
-    <html>
-      <body style="font-family: Arial; padding: 20px;">
-        <h1 style="color: #5A2A82;">Review Application</h1>
-        <h2>👤 Personal Info</h2>
-        <p><strong>First Name:</strong> ${firstName}</p>
-        <p><strong>Last Name:</strong> ${lastName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phoneNumber}</p>
-        <p><strong>Zip Code:</strong> ${zipCode}</p>
+<html>
+  <body style="font-family: Arial; padding: 20px;">
+    <h1 style="color: #5A2A82;">Review Application</h1>
 
-        <h2>📚 Teaching Experience</h2>
-        <ul>
-          ${experienceList
-            .map((exp) => `<li>${exp.expertise} (${exp.years} yrs)</li>`)
-            .join("")}
-        </ul>
-        <p><strong>Portfolio:</strong> ${portfolios.join(", ")}</p>
+    <h2>👤 Personal Info</h2>
+    <p><strong>First Name:</strong> ${firstName}</p>
+    <p><strong>Last Name:</strong> ${lastName}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Phone:</strong> ${phoneNumber}</p>
+    <p><strong>Zip Code:</strong> ${zipCode}</p>
 
-        <h2>✅ Verification</h2>
-        <p>Uploaded ID Front: ${idFront ? "Yes" : "No"}</p>
-        <p>Uploaded ID Back: ${idBack ? "Yes" : "No"}</p>
-      </body>
-    </html>
-  `;
+    <h2>🖼 Profile Image</h2>
+    ${
+      profileImageBase64
+        ? `<img src="data:image/jpeg;base64,${profileImageBase64}" style="width:100%; max-width:300px; margin-bottom:10px;" />`
+        : "<p>No Profile Image Provided</p>"
+    }
+
+    <h2>📚 Teaching Experience</h2>
+    <ul>
+      ${experienceList
+        .map(
+          (exp) =>
+            `<li>${exp.expertise || "N/A"} (${exp.years || "0"} yrs)</li>`
+        )
+        .join("")}
+    </ul>
+    <p><strong>Portfolio:</strong> ${portfolios.join(", ")}</p>
+
+    <h2>📄 Certifications</h2>
+    ${certificationImagesBase64
+      .map((base64, idx) =>
+        base64
+          ? `<img src="data:image/jpeg;base64,${base64}" style="width:100%; max-width:300px; margin-bottom:10px;" />`
+          : `<p>Missing Certification ${idx + 1}</p>`
+      )
+      .join("")}
+
+    <h2>✅ Verification</h2>
+    ${
+      idFrontBase64
+        ? `<img src="data:image/jpeg;base64,${idFrontBase64}" style="width:100%; max-width:300px; margin-bottom:10px;" />`
+        : "<p>No ID Front Provided</p>"
+    }
+    ${
+      idBackBase64
+        ? `<img src="data:image/jpeg;base64,${idBackBase64}" style="width:100%; max-width:300px;" />`
+        : "<p>No ID Back Provided</p>"
+    }
+
+  </body>
+</html>
+`;
+
       const { uri } = await Print.printToFileAsync({ html });
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: "base64",
       });
 
-      const response = await fetch("https://your-server.com/send-pdf", {
+      const response = await fetch("http://localhost:4000/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           filename: `Application_${Date.now()}.pdf`,
           pdfBase64: base64,
-          emailTo: email,
+          emailTo: "shovang112233@gmail.com", // this needs to be changed to the correct email
         }),
       });
 
