@@ -4,16 +4,16 @@ SET client_min_messages TO warning;
 
 DROP SCHEMA "public" CASCADE;
 
-CREATE SCHEMA "public"
+CREATE SCHEMA "public";
 
 CREATE TABLE "users" (
   "userId" serial PRIMARY KEY,
-  "firstName" text,
-  "lastName" text,
-  "email" text,
-  "phoneNumber" VARCHAR(15),
-  "username" text,
-  "hashedPassword" text,
-  "postalCode" integer,
+  "firstName" text NOT NULL,
+  "lastName" text NOT NULL,
+  "email" text UNIQUE NOT NULL,
+  "phoneNumber" VARCHAR(15) UNIQUE NOT NULL,
+  "username" text UNIQUE NOT NULL,
+  "hashedPassword" text NOT NULL,
+  "postalCode" integer NOT NULL,
   "createdAt" timestamptz(3) default current_timestamp
 );
