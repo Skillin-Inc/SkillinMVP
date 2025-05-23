@@ -16,9 +16,7 @@ export const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -41,9 +39,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoggedIn(false);
   };
 
-  return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ isLoggedIn, loading, login, logout }}>{children}</AuthContext.Provider>;
 };

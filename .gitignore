@@ -43,9 +43,6 @@ frontend/assets/*.db
 # TypeScript
 backend/*.tsbuildinfo
 
-# MacOS metadata
-Icon?
-
 # Others
 .env.local
 .env.development.local
