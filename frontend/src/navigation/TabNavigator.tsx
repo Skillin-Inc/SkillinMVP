@@ -3,7 +3,8 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-import Home from "../screens/home";
+import Home from "../screens/Home";
+import MessagesStack from "./MessagesStack";
 import Profile from "../screens/Profile";
 import { TabNavigatorParamList } from "../types";
 
@@ -24,6 +25,9 @@ export default function TabNavigator() {
             case "Home":
               iconName = "home-outline";
               break;
+            case "MessagesStack":
+              iconName = "chatbubble-outline";
+              break;
             // case "Search":
             //   iconName = "search-outline";
             //   break;
@@ -43,6 +47,7 @@ export default function TabNavigator() {
       })}
     >
       <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="MessagesStack" component={MessagesStack} />
       <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );
