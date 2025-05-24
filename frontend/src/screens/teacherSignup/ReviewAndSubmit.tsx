@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import * as Print from "expo-print";
@@ -50,18 +43,12 @@ const ReviewSubmitScreen = () => {
         : null;
       const certificationImagesBase64 = await Promise.all(
         certifications.map(async (uri) =>
-          uri
-            ? await FileSystem.readAsStringAsync(uri, { encoding: "base64" })
-            : null
+          uri ? await FileSystem.readAsStringAsync(uri, { encoding: "base64" }) : null
         )
       );
-      const idFrontBase64 = idFront
-        ? await FileSystem.readAsStringAsync(idFront, { encoding: "base64" })
-        : null;
+      const idFrontBase64 = idFront ? await FileSystem.readAsStringAsync(idFront, { encoding: "base64" }) : null;
 
-      const idBackBase64 = idBack
-        ? await FileSystem.readAsStringAsync(idBack, { encoding: "base64" })
-        : null;
+      const idBackBase64 = idBack ? await FileSystem.readAsStringAsync(idBack, { encoding: "base64" }) : null;
       const html = `
 <html>
   <body style="font-family: Arial; padding: 20px;">
@@ -83,12 +70,7 @@ const ReviewSubmitScreen = () => {
 
     <h2>📚 Teaching Experience</h2>
     <ul>
-      ${experienceList
-        .map(
-          (exp) =>
-            `<li>${exp.expertise || "N/A"} (${exp.years || "0"} yrs)</li>`
-        )
-        .join("")}
+      ${experienceList.map((exp) => `<li>${exp.expertise || "N/A"} (${exp.years || "0"} yrs)</li>`).join("")}
     </ul>
     <p><strong>Portfolio:</strong> ${portfolios.join(", ")}</p>
 
@@ -169,9 +151,7 @@ const ReviewSubmitScreen = () => {
         <Text style={styles.label}>
           Zip Code: <Text style={styles.value}>{zipCode}</Text>
         </Text>
-        {profileImage && (
-          <Image source={{ uri: profileImage }} style={styles.image} />
-        )}
+        {profileImage && <Image source={{ uri: profileImage }} style={styles.image} />}
         <TouchableOpacity onPress={() => handleEdit("PersonalInfo")}>
           <Text style={styles.editLink}>Edit</Text>
         </TouchableOpacity>
@@ -186,9 +166,7 @@ const ReviewSubmitScreen = () => {
         ))}
         {certifications.length > 0 && (
           <>
-            <Text style={[styles.label, { marginTop: 10 }]}>
-              Certifications:
-            </Text>
+            <Text style={[styles.label, { marginTop: 10 }]}>Certifications:</Text>
             {certifications.map((uri, idx) => (
               <Image key={idx} source={{ uri }} style={styles.image} />
             ))}

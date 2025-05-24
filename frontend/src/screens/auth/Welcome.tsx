@@ -4,7 +4,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import SkillinLogo from "../../../assets/icons/skillin-logo.png";
 import { useScreenDimensions } from "../../hooks";
-import { COLORS, TYPOGRAPHY } from "../../styles";
+import { COLORS } from "../../styles";
 import { AuthStackParamList } from "../../types";
 
 type Props = StackScreenProps<AuthStackParamList, "Welcome">;

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { View, Image, StyleSheet, TouchableOpacity, Text, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import AvatarPlaceholder from "../../assets/icons/Avatar_Placeholder.png";
 
 type Props = {
   initialUri?: string | undefined;
@@ -38,7 +39,7 @@ export default function ImagePickerAvatar({ initialUri, onChange, size = 140 }: 
     <View style={{ alignItems: "center" }}>
       <TouchableOpacity onPress={pickImage}>
         <Image
-          source={imageUri ? { uri: imageUri } : require("../../assets/icons/Avatar_Placeholder.png")}
+          source={imageUri ? { uri: imageUri } : AvatarPlaceholder}
           style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}
         />
         <View style={styles.editIcon}>

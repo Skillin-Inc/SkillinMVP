@@ -2,11 +2,6 @@ import { NavigatorScreenParams } from "@react-navigation/native";
 
 import { PersonalInfo, TeachingExperience } from "./teacher";
 
-export type AppNavigatorParamList = {
-  AuthStack: NavigatorScreenParams<AuthStackParamList>;
-  TabNavigator: NavigatorScreenParams<TabNavigatorParamList>;
-};
-
 export type TabNavigatorParamList = {
   Home: undefined;
   Profile: undefined;
