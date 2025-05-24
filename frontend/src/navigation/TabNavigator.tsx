@@ -18,7 +18,7 @@ export default function TabNavigator() {
         tabBarActiveTintColor: "#414288",
         tabBarInactiveTintColor: "gray",
         tabBarIcon: ({ color, size }) => {
-          let iconName = "home-outline";
+          let iconName: keyof typeof Ionicons.glyphMap = "home-outline";
 
           switch (route.name) {
             case "Home":
@@ -38,7 +38,7 @@ export default function TabNavigator() {
               break;
           }
 
-          return <Ionicons name="home-outline" size={size} color={color} />;
+          return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
     >
