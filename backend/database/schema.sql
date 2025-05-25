@@ -17,3 +17,11 @@ CREATE TABLE "users" (
   "postalCode" integer NOT NULL,
   "createdAt" timestamptz(3) default current_timestamp
 );
+
+CREATE TABLE "messages" (
+  "id" serial PRIMARY KEY,
+  "sender_id" integer NOT NULL REFERENCES "users"("userId") ON DELETE CASCADE,
+  "receiver_id" integer NOT NULL REFERENCES "users"("userId") ON DELETE CASCADE,
+  "content" text NOT NULL,
+  "created_at" timestamptz(3) default current_timestamp
+);
