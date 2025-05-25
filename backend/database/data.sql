@@ -10,5 +10,5 @@
 --      ('Build projects', false),
 --      ('Get a job', false);
 
-INSERT INTO "users" ("firstName", "lastName", "email", "phoneNumber", "username", "hashedPassword", "postalCode")
+INSERT INTO "users" ("first_name", "last_name", "email", "phone_number", "username", "hashed_password", "postal_code")
   VALUES ('Henry', 'Pham', 'bob@gmail.com', '1231231234', 'bobbybobby', 'bobbypassword', 99999)
