@@ -56,7 +56,7 @@ export default function Login() {
           <Ionicons name="mail-outline" size={22} color={COLORS.darkGray} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
-            placeholder="Email or Phone number"
+            placeholder="Email"
             placeholderTextColor={COLORS.gray}
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}

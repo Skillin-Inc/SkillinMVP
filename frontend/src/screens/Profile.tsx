@@ -46,7 +46,7 @@ export default function Profile({ navigation, route }: Props) {
     }
   };
   const handleSwitchMode = () => {
-    navigation.navigate(isFromTeacher ? "UserTabs" : "TeacherHome");
+    navigation.navigate(isFromTeacher ? "UserTabs" : "TeacherTabs");
   };
 
   return (
