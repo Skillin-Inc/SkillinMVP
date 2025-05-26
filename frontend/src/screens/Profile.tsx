@@ -8,7 +8,7 @@ import Avatar_Placeholder from "../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../hooks/AuthContext";
 import ImagePickerAvatar from "../components/ImagePickerAvatar";
 import { COLORS } from "../styles";
-import { TabNavigatorParamList } from "../types";
+import { RootStackParamList } from "../types";
 
 const mockUser = {
   avatar: Avatar_Placeholder,
@@ -23,9 +23,9 @@ const mockUser = {
   paymentInfo: ["Visa •••• 4242", "Exp: 12/26"],
 };
 
-type Props = StackScreenProps<TabNavigatorParamList, "Profile">;
+type Props = StackScreenProps<RootStackParamList, "Profile">;
 
-export default function Profile({ navigation }: Props) {
+export default function Profile({ navigation, route }: Props) {
   const { logout } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
@@ -35,6 +35,8 @@ export default function Profile({ navigation }: Props) {
   const [enteredPassword, setEnteredPassword] = useState("");
   const [error, setError] = useState("");
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
+  const { from } = route.params;
+  const isFromTeacher = from === "TeacherHome";
 
   const handleLogout = async () => {
     try {
@@ -42,6 +44,9 @@ export default function Profile({ navigation }: Props) {
     } catch (e) {
       console.error("Logout error:", e);
     }
+  };
+  const handleSwitchMode = () => {
+    navigation.navigate(isFromTeacher ? "UserTabs" : "TeacherHome");
   };
 
   return (
@@ -207,11 +212,12 @@ export default function Profile({ navigation }: Props) {
         </View>
 
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleLogout}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleSwitchMode}>
             <Ionicons name="school-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>Switch to Teacher Mode</Text>
+            <Text style={styles.actionButtonText}>
+              {isFromTeacher ? "Switch to Student Mode" : "Switch to Teacher Mode"}
+            </Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.editProfileButton}>
             <Ionicons name="create-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
             <Text style={styles.actionButtonText}>Edit Profile</Text>
