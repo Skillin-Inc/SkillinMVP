@@ -124,27 +124,25 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
       res.status(500).json({ error: "Unknown error occurred" });
     }
   }
-);
+  return;
+});
+// Delete by Email
+const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
+  const { email } = req.params;
 
+  try {
+    const deleted = await deleteUserByEmail(email);
 
-// Delete by Email 
-const deleteByEmailHandler: RequestHandler<{ email: string }> = 
-  async (req, res, next) => {
-    const { email } = req.params;
-
-    try {
-      const deleted = await deleteUserByEmail(email);
-
-      if (deleted) {
-        res.status(200).json({ message: "User deleted", user: deleted });
-      } else {
-        res.status(404).json({ message: "No user found" });
-      }
-      return;
-    } catch (err) {
-      next(err);
+    if (deleted) {
+      res.status(200).json({ message: "User deleted", user: deleted });
+    } else {
+      res.status(404).json({ message: "No user found" });
     }
-  };
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
 
 router.delete("/:email", deleteByEmailHandler);
 export default router;
