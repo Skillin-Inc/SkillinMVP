@@ -79,10 +79,13 @@ export async function verifyUser(emailOrPhone: string, password: string) {
     return null;
   }
 
+  // TEMPORARY: compare plain text password
   if (user.hashedPassword !== password) {
     return null;
   }
 
-  delete user.hashedPassword;
+  // OPTIONAL: remove this if you need hashedPassword on frontend (for now)
+  // delete user.hashedPassword;
+
   return user;
 }

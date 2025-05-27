@@ -14,11 +14,13 @@ const mockUser = {
   avatar: Avatar_Placeholder,
   firstName: "Sho",
   lastName: "Vang",
-  dOB: "01/15/2000",
-  zipCode: "80204",
+  dOB: "01/15/2000", // Might remove this becuase this isn't geting saved into the db maybe we can just do an age limit ? or will
+  // we need to do that?
+  zipCode: "80204", // maybe we can hid this as well i dont think its nessar for the user to see their own zipcode
+  // espishaly if we are not doing anything location based.
   email: "sho@example.com",
   phoneNumber: "(123) 456-7890",
-  password: "YourStrongPassword",
+  password: "MockPW",
   membershipTier: "Premium",
   paymentInfo: ["Visa •••• 4242", "Exp: 12/26"],
 };
@@ -26,7 +28,7 @@ const mockUser = {
 type Props = StackScreenProps<RootStackParamList, "Profile">;
 
 export default function Profile({ navigation, route }: Props) {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -80,10 +82,10 @@ export default function Profile({ navigation, route }: Props) {
           size={120}
         />
 
-        <Text style={styles.name}>{`${mockUser.firstName} ${mockUser.lastName}`}</Text>
+        <Text style={styles.name}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`}</Text>
         <View style={styles.membershipBadge}>
           <Ionicons name="star" size={14} color={COLORS.white} />
-          <Text style={styles.membershipText}>{mockUser.membershipTier}</Text>
+          <Text style={styles.membershipText}>{user?.membershipTier ?? "bronze"}</Text>
         </View>
       </View>
 
@@ -95,7 +97,7 @@ export default function Profile({ navigation, route }: Props) {
             <Ionicons name="calendar-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
             <View>
               <Text style={styles.infoLabel}>Date of Birth</Text>
-              <Text style={styles.infoValue}>{mockUser.dOB}</Text>
+              <Text style={styles.infoValue}>{user?.dOB ?? "Not provided"}</Text>
             </View>
           </View>
 
@@ -103,7 +105,7 @@ export default function Profile({ navigation, route }: Props) {
             <Ionicons name="location-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
             <View>
               <Text style={styles.infoLabel}>Zip Code</Text>
-              <Text style={styles.infoValue}>{mockUser.zipCode}</Text>
+              <Text style={styles.infoValue}>{user?.postalCode}</Text>
             </View>
           </View>
 
@@ -111,7 +113,7 @@ export default function Profile({ navigation, route }: Props) {
             <Ionicons name="mail-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
             <View>
               <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{mockUser.email}</Text>
+              <Text style={styles.infoValue}>{user?.email}</Text>
             </View>
           </View>
 
@@ -119,7 +121,7 @@ export default function Profile({ navigation, route }: Props) {
             <Ionicons name="call-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
             <View>
               <Text style={styles.infoLabel}>Phone Number</Text>
-              <Text style={styles.infoValue}>{mockUser.phoneNumber}</Text>
+              <Text style={styles.infoValue}>{user?.phoneNumber}</Text>
             </View>
           </View>
         </View>
@@ -158,7 +160,7 @@ export default function Profile({ navigation, route }: Props) {
                     <TouchableOpacity
                       style={styles.verifyButton}
                       onPress={() => {
-                        if (enteredPassword === mockUser.password) {
+                        if (enteredPassword === user?.hashedPassword) {
                           setShowSensitive(true);
                           setError("");
                           setVerifyStep(false);
@@ -185,7 +187,7 @@ export default function Profile({ navigation, route }: Props) {
                 <Ionicons name="key-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
                 <View>
                   <Text style={styles.infoLabel}>Password</Text>
-                  <Text style={styles.infoValue}>{mockUser.password}</Text>
+                  <Text style={styles.infoValue}>{user?.hashedPassword}</Text>
                 </View>
               </View>
 
