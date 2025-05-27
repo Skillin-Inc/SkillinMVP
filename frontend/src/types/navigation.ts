@@ -40,5 +40,6 @@ export type AuthStackParamList = {
 export type RootStackParamList = {
   UserTabs: undefined;
   TeacherHome: undefined;
+  TeacherTabs: undefined;
   Profile: { from: "TeacherHome" | "Home" };
 };

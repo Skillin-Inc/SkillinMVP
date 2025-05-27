@@ -6,6 +6,8 @@ import { AuthContext } from "../hooks/AuthContext";
 
 import AuthStack from "./AuthStack";
 import TabNavigator from "./TabNavigator";
+import TeacherTabNavigator from "./TeacherTabNavigator"; // adjust the path as needed
+
 import TeacherHome from "../screens/TeacherHome"; // adjust path if needed
 import Profile from "../screens/Profile"; // adjust path if needed
 import { RootStackParamList } from "src/types";
@@ -22,7 +24,8 @@ export default function AppNavigator() {
       {isLoggedIn ? (
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           <RootStack.Screen name="UserTabs" component={TabNavigator} />
-          <RootStack.Screen name="TeacherHome" component={TeacherHome} />
+          {/* <RootStack.Screen name="TeacherHome" component={TeacherHome} /> */}
+          <RootStack.Screen name="TeacherTabs" component={TeacherTabNavigator} />
           <RootStack.Screen name="Profile" component={Profile} />
         </RootStack.Navigator>
       ) : (

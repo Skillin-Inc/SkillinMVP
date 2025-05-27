@@ -38,10 +38,30 @@ export default function TeacherHome() {
           <Text style={styles.smallCardText}>📅 Schedule</Text>
         </TouchableOpacity>
       </View>
-
-      <TouchableOpacity style={styles.card}>
-        <Text style={styles.cardText}>📤 Upload Video</Text>
-      </TouchableOpacity>
+      <View style={styles.card}>
+        <Text style={styles.cardText}>📆 Upcoming Sessions</Text>
+        <ScrollView style={styles.scrollList} nestedScrollEnabled>
+          {[
+            { title: "1-on-1 with John", time: "2:00 PM" },
+            { title: "Group Training", time: "4:30 PM" },
+            { title: "Math Review with Sarah", time: "6:00 PM" },
+            { title: "Office Hours", time: "7:15 PM" },
+          ].map((session, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.sessionItem}
+              onPress={() => {
+                // Placeholder: handle tap to open details
+                console.log("Tapped:", session.title);
+              }}
+            >
+              <Text style={styles.cardSubText}>
+                {session.title} — {session.time}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
     </ScrollView>
   );
 }
@@ -85,20 +105,40 @@ const getStyles = (width, height) =>
       fontWeight: "600",
       textAlign: "center",
     },
-    card: {
-      backgroundColor: COLORS.purple,
-      padding: 20,
-      borderRadius: 10,
-      alignItems: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 3,
+    scrollList: {
+      maxHeight: height * 0.2,
+      marginTop: 10,
     },
+    sessionItem: {
+      paddingVertical: 14, // ⬆️ Increased from 8
+      paddingHorizontal: 14, // ⬆️ Increased from 10
+      backgroundColor: COLORS.purple,
+      borderRadius: 10, // ⬆️ Softer edges
+      marginBottom: 10, // ⬆️ More spacing between cards
+    },
+
+    cardSubText: {
+      fontSize: width > 400 ? 16 : 15, // ⬆️ Slightly larger font
+      color: COLORS.white,
+      fontWeight: "500", // ⬆️ Slightly bolder
+      marginTop: 5,
+    },
+
+    card: {
+      backgroundColor: "rgba(22, 180, 164, 0.7)",
+      padding: 20,
+      borderRadius: 16,
+      alignItems: "flex-start",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 5,
+    },
+
     cardText: {
       fontSize: width > 400 ? 18 : 16,
-      color: COLORS.white,
+      color: COLORS.black,
       fontWeight: "600",
     },
   });
