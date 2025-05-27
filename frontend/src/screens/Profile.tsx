@@ -17,7 +17,7 @@ const mockUser = {
   dOB: "01/15/2000", // Might remove this becuase this isn't geting saved into the db maybe we can just do an age limit ? or will
   // we need to do that?
   zipCode: "80204", // maybe we can hid this as well i dont think its nessar for the user to see their own zipcode
-  // espishaly if we are not doing anything location based.
+  // espishaly if we are not doing anything location based. right?
   email: "sho@example.com",
   phoneNumber: "(123) 456-7890",
   password: "MockPW",
