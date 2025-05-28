@@ -1,26 +1,22 @@
+// types.ts
 import { NavigatorScreenParams } from "@react-navigation/native";
 
-import { PersonalInfo, TeachingExperience } from "./teacher";
-
+// Chat Stack
 export type MessagesStackParamList = {
   Messages: undefined;
   Chat: { userId: string };
 };
 
+// Tabs
 export type TabNavigatorParamList = {
   Home: undefined;
   MessagesStack: NavigatorScreenParams<MessagesStackParamList>;
   Profile: undefined;
 };
 
-export type AuthStackParamList = {
-  Welcome: undefined;
-  Login: undefined;
-  TeacherNavigator: NavigatorScreenParams<TeacherStackParamList>;
-  Register: undefined;
-};
-
+// Teacher Signup Flow
 export type TeacherStackParamList = {
+  ApplicationStart: undefined;
   PersonalInfo: undefined;
   PayoutsInfo: undefined;
   TeachingExperience: PersonalInfo;
@@ -30,5 +26,20 @@ export type TeacherStackParamList = {
       idFront: string | null;
       idBack: string | null;
     };
-  ApplicationStart: undefined;
+};
+
+// Auth Stack
+export type AuthStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
+  Register: undefined;
+  TeacherNavigator: NavigatorScreenParams<TeacherStackParamList>;
+};
+
+// App Root
+export type RootStackParamList = {
+  UserTabs: undefined;
+  TeacherHome: undefined;
+  TeacherTabs: undefined;
+  Profile: { from: "TeacherHome" | "Home" };
 };

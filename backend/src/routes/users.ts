@@ -1,6 +1,15 @@
 // src/routes/users.ts
-import { Router, Request, Response } from "express";
-import { createUser, NewUser, getUserById, getUserByUsername, getUserByPhone, getUserByEmail, verifyUser } from "../db";
+import { Router, Request, Response, NextFunction, RequestHandler } from "express";
+import {
+  createUser,
+  NewUser,
+  getUserById,
+  getUserByUsername,
+  getUserByPhone,
+  getUserByEmail,
+  verifyUser,
+  deleteUserByEmail,
+} from "../db";
 
 const router = Router();
 
@@ -117,5 +126,23 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
   }
   return;
 });
+// Delete by Email
+const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
+  const { email } = req.params;
 
+  try {
+    const deleted = await deleteUserByEmail(email);
+
+    if (deleted) {
+      res.status(200).json({ message: "User deleted", user: deleted });
+    } else {
+      res.status(404).json({ message: "No user found" });
+    }
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.delete("/:email", deleteByEmailHandler);
 export default router;

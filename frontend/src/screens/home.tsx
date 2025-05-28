@@ -1,20 +1,21 @@
-// src/screens/Home.tsx
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { StackScreenProps } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 import { useScreenDimensions } from "../hooks";
-import { TabNavigatorParamList } from "../types";
+import { RootStackParamList } from "../types";
 
-type Props = StackScreenProps<TabNavigatorParamList, "Home">;
+type NavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
 
-export default function Home({ navigation }: Props) {
+export default function Home() {
+  const navigation = useNavigation<NavigationProp>();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
   const handleViewProfile = () => {
-    navigation.navigate("Profile");
+    navigation.navigate("Profile", { from: "Home" }); // or "Home"
   };
 
   return (

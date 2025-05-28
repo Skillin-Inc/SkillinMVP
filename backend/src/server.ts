@@ -21,6 +21,7 @@ app.get("/", (req: Request, res: Response) => {
 app.use("/users", usersRouter);
 app.use("/send-email", sendEmailRouter); // Mounts POST /send-pdf
 
+
 // Catch-all 404 for any unmatched routes
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });

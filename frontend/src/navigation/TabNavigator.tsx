@@ -3,9 +3,8 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-import Home from "../screens/Home";
+import Home from "../screens/home";
 import MessagesStack from "./MessagesStack";
-import Profile from "../screens/Profile";
 import { TabNavigatorParamList } from "../types";
 
 const Tab = createBottomTabNavigator<TabNavigatorParamList>();
@@ -34,12 +33,10 @@ export default function TabNavigator() {
             // case "MyLessons":
             //   iconName = "book-outline";
             //   break;
-            // case "Message":
-            //   iconName = "chatbubble-outline";
+
+            // case "Profile":
+            //   iconName = "person-outline";
             //   break;
-            case "Profile":
-              iconName = "person-outline";
-              break;
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -48,7 +45,7 @@ export default function TabNavigator() {
     >
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="MessagesStack" component={MessagesStack} />
-      <Tab.Screen name="Profile" component={Profile} />
+      {/* <Tab.Screen name="Profile" component={Profile} /> */}
     </Tab.Navigator>
   );
 }
