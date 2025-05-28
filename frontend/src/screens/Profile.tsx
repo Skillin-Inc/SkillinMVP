@@ -82,7 +82,7 @@ export default function Profile({ navigation, route }: Props) {
           size={120}
         />
 
-        <Text style={styles.name}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`}</Text>
+        <Text style={styles.name}>{`${user?.username ?? ""} `}</Text>
         <View style={styles.membershipBadge}>
           <Ionicons name="star" size={14} color={COLORS.white} />
           <Text style={styles.membershipText}>{user?.membershipTier ?? "bronze"}</Text>
