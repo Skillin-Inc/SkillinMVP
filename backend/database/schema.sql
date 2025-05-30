@@ -19,5 +19,6 @@ CREATE TABLE "users" (
   "username" text UNIQUE NOT NULL,
   "hashedPassword" text NOT NULL,
   "postalCode" integer NOT NULL,
+  "isTeacher" boolean NOT NULL DEFAULT false,
   "createdAt" timestamptz(3) default current_timestamp
 );
