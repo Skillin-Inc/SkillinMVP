@@ -1,5 +1,5 @@
 // test-delete.js
-// node test-delete.js
+// Run using: node test-delete.js
 const axios = require("axios");
 
 async function testDelete() {
