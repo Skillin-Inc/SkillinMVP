@@ -1,14 +1,15 @@
-// test-delete.js
-// Run using: node test-delete.js
+// test-update.js
+// Run using: node test-update.js
+
 const axios = require("axios");
 
-async function testDelete() {
-  const email = "shovang112233@gmail.com";
+async function toggleIsTeacher() {
+  const email = "bob@gmail.com";
   const encodedEmail = encodeURIComponent(email);
-  const url = `http://localhost:4000/users/${encodedEmail}`; // ✅ fixed path
+  const url = `http://localhost:4000/users/${encodedEmail}`; // ✅ matches backend
 
   try {
-    const res = await axios.delete(url);
+    const res = await axios.patch(url);
     console.log(`Status: ${res.status}`);
     console.log("Body:", res.data);
   } catch (err) {
@@ -21,4 +22,4 @@ async function testDelete() {
   }
 }
 
-testDelete();
+toggleIsTeacher();

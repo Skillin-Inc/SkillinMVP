@@ -24,6 +24,7 @@ export interface User {
   username: string;
   postalCode: number;
   createdAt: string;
+  isTeacher: boolean;
 }
 
 export interface LoginResponse {

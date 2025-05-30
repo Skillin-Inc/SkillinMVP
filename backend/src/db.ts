@@ -42,24 +42,26 @@ export interface NewUser {
   username: string;
   password: string;
   postalCode: number;
+  isTeacher: boolean;
 }
 
 export async function createUser(data: NewUser) {
-  const { firstName, lastName, email, phoneNumber, username, password, postalCode } = data;
+  const { firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher = false } = data;
 
   const result = await pool.query(
     `INSERT INTO public.users
-      ("firstName", "lastName", email, "phoneNumber", username, "hashedPassword", "postalCode")
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING "userId", "firstName", "lastName", email, "phoneNumber", username, "postalCode", "createdAt"`,
+      ("firstName", "lastName", email, "phoneNumber", username, "hashedPassword", "postalCode", "isTeacher")
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     RETURNING "userId", "firstName", "lastName", email, "phoneNumber", username, "postalCode", "isTeacher", "createdAt"`,
     [
       firstName,
       lastName,
       email,
       phoneNumber,
       username,
-      password, // currently plain text for testing
+      password, // hash this in production
       postalCode,
+      isTeacher,
     ]
   );
 
@@ -99,4 +101,23 @@ export async function deleteUserByEmail(email: string) {
     [email]
   );
   return result.rows[0] ?? null;
+}
+
+// in Toggle Teacher Status
+export async function toggleIsTeacherByEmail(email: string) {
+  const current = await pool.query(`SELECT "isTeacher" FROM public.users WHERE email = $1`, [email]);
+
+  if (current.rows.length === 0) return null;
+
+  const flipped = !current.rows[0].isTeacher;
+
+  const result = await pool.query(
+    `UPDATE public.users
+     SET "isTeacher" = $1
+     WHERE email = $2
+     RETURNING *`,
+    [flipped, email]
+  );
+
+  return result.rows[0];
 }

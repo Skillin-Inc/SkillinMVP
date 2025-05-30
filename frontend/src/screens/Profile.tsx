@@ -29,6 +29,8 @@ type Props = StackScreenProps<RootStackParamList, "Profile">;
 
 export default function Profile({ navigation, route }: Props) {
   const { logout, user } = useContext(AuthContext);
+  console.log("USER DATA:", user);
+
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -82,7 +84,7 @@ export default function Profile({ navigation, route }: Props) {
           size={120}
         />
 
-        <Text style={styles.name}>{`${user?.firstName ?? ""} ${user?.lastName ?? ""}`}</Text>
+        <Text style={styles.name}>{`${user?.username ?? ""} `}</Text>
         <View style={styles.membershipBadge}>
           <Ionicons name="star" size={14} color={COLORS.white} />
           <Text style={styles.membershipText}>{user?.membershipTier ?? "bronze"}</Text>
@@ -214,12 +216,30 @@ export default function Profile({ navigation, route }: Props) {
         </View>
 
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleSwitchMode}>
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              !user?.isTeacher && { backgroundColor: COLORS.gray }, // visually disable
+            ]}
+            onPress={() => {
+              if (user?.isTeacher) {
+                handleSwitchMode();
+              } else {
+                alert("Only teachers can access this feature.");
+              }
+            }}
+            disabled={!user?.isTeacher}
+          >
             <Ionicons name="school-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
             <Text style={styles.actionButtonText}>
-              {isFromTeacher ? "Switch to Student Mode" : "Switch to Teacher Mode"}
+              {user?.isTeacher
+                ? isFromTeacher
+                  ? "Switch to Student Mode"
+                  : "Switch to Teacher Mode"
+                : "Teacher Access Only"}
             </Text>
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.editProfileButton}>
             <Ionicons name="create-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
             <Text style={styles.actionButtonText}>Edit Profile</Text>
