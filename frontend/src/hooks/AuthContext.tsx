@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const newUser = await apiService.register(registerData);
       setUser(newUser);
-      setIsLoggedIn(true);
+      setIsLoggedIn(false);
       await AsyncStorage.setItem("userData", JSON.stringify(newUser));
     } catch (error) {
       console.error("Registration error:", error);

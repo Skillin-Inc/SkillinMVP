@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, TextStyle, StatusBar } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, TextStyle, StatusBar, Linking } from "react-native";
 import { StackScreenProps } from "@react-navigation/stack";
 
 import SkillinLogo from "../../../assets/icons/skillin-logo.png";
@@ -12,6 +12,10 @@ type Props = StackScreenProps<AuthStackParamList, "Welcome">;
 export default function WelcomeScreen({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
+  const handlePaymentPress = () => {
+    Linking.openURL("https://buy.stripe.com/9AQ03wbg7ayg7SM288");
+    // Don't auto-navigate to Welcome unless you really want to
+  };
 
   return (
     <View style={[styles.container, { height: screenHeight }]}>
@@ -42,13 +46,19 @@ export default function WelcomeScreen({ navigation }: Props) {
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handlePaymentPress}>
+            <Text style={styles.buttonText}>Handle payments</Text>
+          </TouchableOpacity>
+
+          {/* removing this feature till we have email situaton handled also till we know if more people want to be teachers. */}
+          {/* 
           <TouchableOpacity
             style={[styles.button, styles.secondaryButton]}
             onPress={() => navigation.navigate("TeacherNavigator", { screen: "ApplicationStart" })}
             accessibilityLabel="Teacher sign up for Skillin"
           >
-            <Text style={styles.secondaryButtonText}>I'm a Teacher</Text>
-          </TouchableOpacity>
+            <Text style={styles.secondaryButtonText}>Sign up to be a teacher</Text>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>

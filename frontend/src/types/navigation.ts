@@ -32,6 +32,7 @@ export type TeacherStackParamList = {
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
+  RegisterPayment: undefined;
   Register: undefined;
   TeacherNavigator: NavigatorScreenParams<TeacherStackParamList>;
 };

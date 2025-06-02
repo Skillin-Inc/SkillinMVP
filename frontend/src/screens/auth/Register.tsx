@@ -76,7 +76,12 @@ export default function Register() {
         postalCode,
       });
 
-      Alert.alert("Success", "Account created successfully! You are now logged in.");
+      Alert.alert("Success", "Account created successfully! You are now logged in.", [
+        {
+          text: "OK",
+          onPress: () => navigation.navigate("RegisterPayment"),
+        },
+      ]);
     } catch (error) {
       console.error("Registration error:", error);
       Alert.alert(
@@ -87,7 +92,6 @@ export default function Register() {
       setIsLoading(false);
     }
   }
-
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
