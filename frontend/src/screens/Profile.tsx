@@ -29,7 +29,7 @@ type Props = StackScreenProps<RootStackParamList, "Profile">;
 
 export default function Profile({ navigation, route }: Props) {
   const { logout, user } = useContext(AuthContext);
-  console.log("USER DATA:", user);
+  // console.log("USER DATA:", user);
 
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
