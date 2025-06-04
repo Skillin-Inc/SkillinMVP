@@ -4,7 +4,7 @@ import { NavigatorScreenParams } from "@react-navigation/native";
 // Chat Stack
 export type MessagesStackParamList = {
   Messages: undefined;
-  Chat: { userId: string };
+  Chat: { id: string };
 };
 
 // Tabs
@@ -12,6 +12,7 @@ export type TabNavigatorParamList = {
   Home: undefined;
   MessagesStack: NavigatorScreenParams<MessagesStackParamList>;
   Profile: undefined;
+  Temp: undefined;
 };
 
 // Teacher Signup Flow

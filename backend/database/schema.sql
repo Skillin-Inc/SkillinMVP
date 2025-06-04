@@ -11,14 +11,22 @@ CREATE SCHEMA "public";
 --"membershipTier" membership_tier NOT NULL DEFAULT 'bronze';
 
 CREATE TABLE "users" (
-  "userId" serial PRIMARY KEY,
-  "firstName" text NOT NULL,
-  "lastName" text NOT NULL,
+  "id" serial PRIMARY KEY,
+  "first_name" text NOT NULL,
+  "last_name" text NOT NULL,
   "email" text UNIQUE NOT NULL,
-  "phoneNumber" VARCHAR(15) UNIQUE NOT NULL,
+  "phone_number" VARCHAR(15) UNIQUE NOT NULL,
   "username" text UNIQUE NOT NULL,
-  "hashedPassword" text NOT NULL,
-  "postalCode" integer NOT NULL,
+  "hashed_password" text NOT NULL,
+  "postal_code" integer NOT NULL,
   "isTeacher" boolean NOT NULL DEFAULT false,
-  "createdAt" timestamptz(3) default current_timestamp
+  "created_at" timestamptz(3) default current_timestamp
+);
+
+CREATE TABLE "messages" (
+  "id" serial PRIMARY KEY,
+  "sender_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "receiver_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "content" text NOT NULL,
+  "created_at" timestamptz(3) default current_timestamp
 );

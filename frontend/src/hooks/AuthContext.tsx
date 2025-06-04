@@ -4,6 +4,25 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { apiService, LoginData, RegisterData, User } from "../services/api";
 
+type StoredUserData = {
+  // frontend format
+  id?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  username?: string;
+  postalCode?: number;
+  createdAt?: string;
+
+  // backend format
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  postal_code?: number;
+  created_at?: string;
+};
+
 type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
@@ -27,17 +46,87 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
+  const transformStoredUserData = (userData: unknown): User | null => {
+    if (!userData || typeof userData !== "object") return null;
+
+    const userObj = userData as StoredUserData;
+
+    try {
+      if (
+        userObj.first_name &&
+        userObj.last_name &&
+        userObj.email &&
+        userObj.phone_number &&
+        userObj.username &&
+        userObj.id !== undefined &&
+        userObj.postal_code !== undefined &&
+        userObj.created_at
+      ) {
+        return {
+          id: userObj.id,
+          firstName: userObj.first_name,
+          lastName: userObj.last_name,
+          email: userObj.email,
+          phoneNumber: userObj.phone_number,
+          username: userObj.username,
+          postalCode: userObj.postal_code,
+          createdAt: userObj.created_at,
+        };
+      }
+
+      if (
+        userObj.firstName &&
+        userObj.lastName &&
+        userObj.email &&
+        userObj.phoneNumber &&
+        userObj.username &&
+        userObj.id !== undefined &&
+        userObj.postalCode !== undefined &&
+        userObj.createdAt
+      ) {
+        return {
+          id: userObj.id,
+          firstName: userObj.firstName,
+          lastName: userObj.lastName,
+          email: userObj.email,
+          phoneNumber: userObj.phoneNumber,
+          username: userObj.username,
+          postalCode: userObj.postalCode,
+          createdAt: userObj.createdAt,
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error transforming user data:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     const loadLoginState = async () => {
       try {
         const userDataString = await AsyncStorage.getItem("userData");
         if (userDataString) {
-          const userData = JSON.parse(userDataString);
-          setUser(userData);
-          setIsLoggedIn(true);
+          const storedUserData = JSON.parse(userDataString);
+          console.log("Raw stored userData:", storedUserData);
+
+          const transformedUser = transformStoredUserData(storedUserData);
+          if (transformedUser) {
+            console.log("Transformed userData:", transformedUser);
+            setUser(transformedUser);
+            setIsLoggedIn(true);
+
+            if (JSON.stringify(storedUserData) !== JSON.stringify(transformedUser)) {
+              await AsyncStorage.setItem("userData", JSON.stringify(transformedUser));
+            }
+          } else {
+            await AsyncStorage.removeItem("userData");
+          }
         }
       } catch (error) {
         console.error("Error loading login state:", error);
+        await AsyncStorage.removeItem("userData");
       }
       setLoading(false);
     };

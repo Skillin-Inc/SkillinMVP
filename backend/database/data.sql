@@ -15,4 +15,3 @@ INSERT INTO "users" ("firstName", "lastName", "email", "phoneNumber", "username"
 
 INSERT INTO "users" ("firstName", "lastName", "email", "phoneNumber", "username", "hashedPassword", "postalCode", "isTeacher")
   VALUES ('Demo', 'Teacher', 'teacher@email.com', '5551234567', 'teacherdemo', 'Password', 99999, true);
-
