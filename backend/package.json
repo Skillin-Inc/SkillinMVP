@@ -6,7 +6,7 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node-dev src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "setup-db": "node setup-database.js"
+    "setup-db": "ts-node setup-database.ts"
   },
   "keywords": [],
   "author": "",

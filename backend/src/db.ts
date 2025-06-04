@@ -2,14 +2,6 @@
 import { Pool } from "pg";
 import "dotenv/config";
 
-// export const pool = new Pool({
-//   host: process.env.PG_HOST,
-//   port: Number(process.env.PG_PORT) || 5432,
-//   user: process.env.PG_USER,
-//   password: process.env.PG_PASSWORD,
-//   database: process.env.PG_DATABASE,
-// });
-
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
@@ -32,6 +24,13 @@ export async function getUserByPhone(phoneNumber: string) {
 export async function getUserByEmail(email: string) {
   const result = await pool.query("SELECT * FROM public.users WHERE email = $1", [email]);
   return result.rows[0] ?? null;
+}
+
+export async function getAllUsers() {
+  const result = await pool.query(
+    'SELECT "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "created_at" FROM public.users ORDER BY "created_at" DESC'
+  );
+  return result.rows;
 }
 
 export interface NewUser {
@@ -58,7 +57,7 @@ export async function createUser(data: NewUser) {
       email,
       phoneNumber,
       username,
-      password, // currently plain text for testing
+      password, // need to change when we start using aws
       postalCode,
     ]
   );
@@ -87,7 +86,6 @@ export async function verifyUser(emailOrPhone: string, password: string) {
   return user;
 }
 
-// Message-related functions
 export interface NewMessage {
   sender_id: number;
   receiver_id: number;

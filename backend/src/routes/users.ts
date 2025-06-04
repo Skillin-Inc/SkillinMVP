@@ -1,10 +1,29 @@
 // src/routes/users.ts
 import { Router, Request, Response } from "express";
-import { createUser, NewUser, getUserById, getUserByUsername, getUserByPhone, getUserByEmail, verifyUser } from "../db";
+import {
+  createUser,
+  NewUser,
+  getUserById,
+  getUserByUsername,
+  getUserByPhone,
+  getUserByEmail,
+  verifyUser,
+  getAllUsers,
+} from "../db";
 
 const router = Router();
 
-// GET /users/:id
+router.get("/", async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.json(users);
+  } catch (error: unknown) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+  return;
+});
+
 router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
   const user = await getUserById(id);
@@ -18,7 +37,6 @@ router.get("/:id", async (req, res) => {
   return;
 });
 
-// GET /users/by-username/:username
 router.get("/by-username/:username", async (req, res) => {
   const username = String(req.params.username);
   const user = await getUserByUsername(username);
@@ -31,7 +49,6 @@ router.get("/by-username/:username", async (req, res) => {
   return;
 });
 
-// GET /users/by-phone/:phone
 router.get("/by-phone/:phone", async (req, res) => {
   const phoneNumber = String(req.params.phone);
   const user = await getUserByPhone(phoneNumber);
@@ -44,7 +61,6 @@ router.get("/by-phone/:phone", async (req, res) => {
   return;
 });
 
-// GET /users/by-email/:email
 router.get("/by-email/:email", async (req, res) => {
   const email = String(req.params.email);
   const user = await getUserByEmail(email);
@@ -57,7 +73,6 @@ router.get("/by-email/:email", async (req, res) => {
   return;
 });
 
-// POST /users/login
 router.post(
   "/login",
   async (req: Request<object, unknown, { emailOrPhone: string; password: string }>, res: Response): Promise<void> => {
@@ -83,7 +98,6 @@ router.post(
   }
 );
 
-// POST /users (register)
 router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
   const body = req.body;
 

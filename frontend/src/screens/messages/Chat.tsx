@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -19,113 +19,96 @@ import { COLORS } from "../../styles";
 import { MessagesStackParamList } from "../../types";
 import { MessageBubble, Message } from "../../components/MessageBubble";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
+import { AuthContext } from "../../hooks/AuthContext";
+import { apiService, BackendMessage, BackendUser } from "../../services/api";
 
 type Props = StackScreenProps<MessagesStackParamList, "Chat">;
 
-const dummyMessages: Message[] = [
-  {
-    id: "1",
-    text: "Hey! How are you doing today?",
-    timestamp: "2:45 PM",
-    my: false,
-  },
-  {
-    id: "2",
-    text: "I'm doing great, thanks for asking! How about you?",
-    timestamp: "2:46 PM",
-    my: true,
-  },
-  {
-    id: "3",
-    text: "I'm good too! Are we still on for our lesson tomorrow?",
-    timestamp: "2:47 PM",
-    my: false,
-  },
-  {
-    id: "4",
-    text: "Absolutely! Same time as usual?",
-    timestamp: "2:48 PM",
-    my: true,
-  },
-  {
-    id: "5",
-    text: "Perfect! See you at 3 PM then 😊",
-    timestamp: "2:49 PM",
-    my: false,
-  },
-  {
-    id: "6",
-    text: "Thanks for the lesson!",
-    timestamp: "1:30 PM",
-    my: false,
-  },
-  {
-    id: "7",
-    text: "You're welcome! You did really well today.",
-    timestamp: "1:31 PM",
-    my: true,
-  },
-  {
-    id: "8",
-    text: "I finally understand calculus now 🎉",
-    timestamp: "1:32 PM",
-    my: false,
-  },
-  {
-    id: "9",
-    text: "That's awesome! Keep practicing and you'll master it.",
-    timestamp: "1:33 PM",
-    my: true,
-  },
-  {
-    id: "10",
-    text: "Can we schedule for tomorrow?",
-    timestamp: "12:15 PM",
-    my: false,
-  },
-  {
-    id: "11",
-    text: "Sure! What time works for you?",
-    timestamp: "12:16 PM",
-    my: true,
-  },
-  {
-    id: "12",
-    text: "How about 4 PM?",
-    timestamp: "12:17 PM",
-    my: false,
-  },
-  {
-    id: "13",
-    text: "4 PM works perfectly! I'll send you the meeting link.",
-    timestamp: "12:18 PM",
-    my: true,
-  },
-];
-
 export default function Chat({ route, navigation }: Props) {
-  const { userId } = route.params;
+  const { id } = route.params; // This is the other user's ID
+  const { user: currentUser } = useContext(AuthContext);
   const { screenWidth } = useScreenDimensions();
-  const [messages, setMessages] = useState<Message[]>(dummyMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
+  const [otherUser, setOtherUser] = useState<BackendUser | null>(null);
+  const [loading, setLoading] = useState(true);
   const flatListRef = useRef<FlatList>(null);
   const styles = getStyles();
 
-  const currentUser = { id: userId, name: "Emma Thompson" };
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUser) return;
 
-  const handleSendMessage = () => {
-    if (messageText.trim()) {
-      setMessages([
-        ...messages,
-        { id: Date.now().toString(), text: messageText, timestamp: new Date().toLocaleTimeString(), my: true },
-      ]);
+      try {
+        const userInfo = await apiService.getUserById(Number(id));
+        setOtherUser(userInfo);
+
+        const backendMessages = await apiService.getMessagesBetweenUsers(currentUser.id, Number(id));
+
+        const formattedMessages: Message[] = backendMessages.map((msg: BackendMessage) => ({
+          id: msg.id.toString(),
+          text: msg.content,
+          timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          my: msg.sender_id === currentUser.id,
+        }));
+
+        setMessages(formattedMessages);
+      } catch (error) {
+        console.error("Error fetching chat data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentUser, id]);
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !currentUser) return;
+
+    try {
+      const newBackendMessage = await apiService.createMessage({
+        sender_id: currentUser.id,
+        receiver_id: Number(id),
+        content: messageText.trim(),
+      });
+
+      const newMessage: Message = {
+        id: newBackendMessage.id.toString(),
+        text: newBackendMessage.content,
+        timestamp: new Date(newBackendMessage.created_at).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        my: true,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
       setMessageText("");
 
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+          </TouchableOpacity>
+          <Text style={styles.headerName}>Loading...</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading messages...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -137,7 +120,9 @@ export default function Chat({ route, navigation }: Props) {
         <View style={styles.headerInfo}>
           <Image source={AvatarPlaceholder} style={styles.headerAvatar} />
           <View>
-            <Text style={styles.headerName}>{currentUser?.name || "Unknown User"}</Text>
+            <Text style={styles.headerName}>
+              {otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : "Unknown User"}
+            </Text>
             <Text style={styles.headerStatus}>Online</Text>
           </View>
         </View>
@@ -265,6 +250,16 @@ function getStyles() {
     },
     sendButtonInactive: {
       backgroundColor: "#E5E5EA",
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.lightGray,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: COLORS.gray,
     },
   });
 }

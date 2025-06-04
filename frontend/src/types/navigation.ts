@@ -4,13 +4,14 @@ import { PersonalInfo, TeachingExperience } from "./teacher";
 
 export type MessagesStackParamList = {
   Messages: undefined;
-  Chat: { userId: string };
+  Chat: { id: string };
 };
 
 export type TabNavigatorParamList = {
   Home: undefined;
   MessagesStack: NavigatorScreenParams<MessagesStackParamList>;
   Profile: undefined;
+  Temp: undefined;
 };
 
 export type AuthStackParamList = {

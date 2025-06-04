@@ -1,90 +1,120 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
 import UserItem, { ChatUser } from "../../components/UserItem";
 import { MessagesStackParamList } from "../../types";
+import { AuthContext } from "../../hooks/AuthContext";
+import { apiService } from "../../services/api";
 
 type Props = StackScreenProps<MessagesStackParamList, "Messages">;
 
-const dummyUsers = [
-  {
-    id: "1",
-    name: "Emma Thompson",
-    lastMessage: "Hey! How are you doing today?",
-    timestamp: "2:45 PM",
-    unreadCount: 2,
-  },
-  {
-    id: "2",
-    name: "James Wilson",
-    lastMessage: "Thanks for the lesson!",
-    timestamp: "1:30 PM",
-    unreadCount: 0,
-  },
-  {
-    id: "3",
-    name: "Sarah Davis",
-    lastMessage: "Can we schedule for tomorrow?",
-    timestamp: "12:15 PM",
-    unreadCount: 1,
-  },
-  {
-    id: "4",
-    name: "Michael Brown",
-    lastMessage: "Great explanation on the math problem",
-    timestamp: "11:30 AM",
-    unreadCount: 0,
-  },
-  {
-    id: "5",
-    name: "Lisa Rodriguez",
-    lastMessage: "See you in the next session!",
-    timestamp: "Yesterday",
-    unreadCount: 3,
-  },
-  {
-    id: "6",
-    name: "David Chen",
-    lastMessage: "Could you share those resources?",
-    timestamp: "Yesterday",
-    unreadCount: 0,
-  },
-  {
-    id: "7",
-    name: "Anna Martinez",
-    lastMessage: "Perfect! I understand now",
-    timestamp: "Monday",
-    unreadCount: 0,
-  },
-  {
-    id: "8",
-    name: "Robert Johnson",
-    lastMessage: "Thanks for your patience",
-    timestamp: "Monday",
-    unreadCount: 1,
-  },
-];
-
 export default function Messages({ navigation }: Props) {
   const { screenWidth } = useScreenDimensions();
+  const { user: currentUser } = useContext(AuthContext);
   const [searchQuery, setSearchQuery] = useState("");
+  const [users, setUsers] = useState<ChatUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const styles = getStyles(screenWidth);
 
+  const fetchUsersWithConversations = async () => {
+    if (!currentUser) return;
+
+    try {
+      setLoading(true);
+      const [allUsers, conversations] = await Promise.all([
+        apiService.getAllUsers(),
+        apiService.getConversationsForUser(currentUser.id),
+      ]);
+
+      const conversationMap = new Map(conversations.map((conv) => [conv.other_user_id, conv]));
+
+      const otherUsers = allUsers
+        .filter((user) => user.id !== currentUser?.id)
+        .map((user) => {
+          const conversation = conversationMap.get(user.id);
+
+          return {
+            id: user.id.toString(),
+            name: `${user.first_name} ${user.last_name}`,
+            lastMessage: conversation ? conversation.last_message : "Start a conversation!",
+            timestamp: conversation ? formatTimestamp(conversation.last_message_time) : "Now",
+            unreadCount: 2, // implement this soon
+          };
+        });
+
+      setUsers(otherUsers);
+    } catch (error) {
+      console.error("Error fetching users and conversations:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsersWithConversations();
+  }, [currentUser]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (currentUser) {
+        fetchUsersWithConversations();
+      }
+    }, [currentUser])
+  );
+
+  const formatTimestamp = (timestamp: string): string => {
+    const messageDate = new Date(timestamp);
+    const now = new Date();
+    const diffInMs = now.getTime() - messageDate.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    // now, minutes, hours, yesterday, days, month and day
+    if (diffInMinutes < 1) {
+      return "Now";
+    } else if (diffInMinutes < 60) {
+      return `${diffInMinutes}m ago`;
+    } else if (diffInHours < 24) {
+      return messageDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } else if (diffInDays === 1) {
+      return "Yesterday";
+    } else if (diffInDays < 7) {
+      return messageDate.toLocaleDateString([], { weekday: "long" });
+    } else {
+      return messageDate.toLocaleDateString([], { month: "short", day: "numeric" });
+    }
+  };
+
   const filteredUsers = useMemo(() => {
-    return dummyUsers.filter(
+    return users.filter(
       (user) =>
         user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, users]);
 
   const handleUserPress = (user: ChatUser) => {
-    navigation.navigate("Chat", { userId: user.id });
+    navigation.navigate("Chat", { id: user.id });
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Messages</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading conversations...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -169,6 +199,16 @@ function getStyles(screenWidth: number) {
       height: 1,
       backgroundColor: "#E5E5EA",
       marginLeft: screenWidth > 400 ? 82 : 77,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: COLORS.white,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: COLORS.gray,
     },
   });
 }
