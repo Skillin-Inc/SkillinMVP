@@ -41,16 +41,18 @@ export interface NewUser {
   username: string;
   password: string;
   postalCode: number;
+  isTeacher: boolean;
 }
 
 export async function createUser(data: NewUser) {
-  const { firstName, lastName, email, phoneNumber, username, password, postalCode } = data;
+  const { firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher = false } = data;
 
   const result = await pool.query(
     `INSERT INTO public.users
-      ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code")
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "created_at"`,
+      ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "isTeacher")
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "isTeacher", "created_at"`,
+
     [
       firstName,
       lastName,
@@ -59,6 +61,7 @@ export async function createUser(data: NewUser) {
       username,
       password, // need to change when we start using aws
       postalCode,
+      isTeacher,
     ]
   );
 
@@ -149,4 +152,34 @@ export async function getConversationsForUser(userId: number) {
   );
 
   return result.rows;
+}
+
+// Delete Users
+export async function deleteUserByEmail(email: string) {
+  const result = await pool.query(
+    `DELETE FROM public.users
+     WHERE email = $1
+     RETURNING *`,
+    [email]
+  );
+  return result.rows[0] ?? null;
+}
+
+// in Toggle Teacher Status
+export async function toggleIsTeacherByEmail(email: string) {
+  const current = await pool.query(`SELECT "isTeacher" FROM public.users WHERE email = $1`, [email]);
+
+  if (current.rows.length === 0) return null;
+
+  const flipped = !current.rows[0].isTeacher;
+
+  const result = await pool.query(
+    `UPDATE public.users
+     SET "isTeacher" = $1
+     WHERE email = $2
+     RETURNING *`,
+    [flipped, email]
+  );
+
+  return result.rows[0];
 }

@@ -5,6 +5,10 @@ SET client_min_messages TO warning;
 DROP SCHEMA "public" CASCADE;
 
 CREATE SCHEMA "public";
+-- Maybe Membership Tiers?
+-- Create the ENUM type first
+--CREATE TYPE membership_tier AS ENUM ('bronze', 'silver', 'gold');
+--"membershipTier" membership_tier NOT NULL DEFAULT 'bronze';
 
 CREATE TABLE "users" (
   "id" serial PRIMARY KEY,
@@ -15,6 +19,7 @@ CREATE TABLE "users" (
   "username" text UNIQUE NOT NULL,
   "hashed_password" text NOT NULL,
   "postal_code" integer NOT NULL,
+  "isTeacher" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz(3) default current_timestamp
 );
 

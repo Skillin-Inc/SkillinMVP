@@ -1,5 +1,5 @@
 // src/routes/users.ts
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction, RequestHandler } from "express";
 import {
   createUser,
   NewUser,
@@ -9,6 +9,7 @@ import {
   getUserByEmail,
   verifyUser,
   getAllUsers,
+  deleteUserByEmail,
 } from "../db";
 
 const router = Router();
@@ -132,4 +133,47 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
   return;
 });
 
+// Delete by Email
+const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
+  const { email } = req.params;
+
+  try {
+    const deleted = await deleteUserByEmail(email);
+
+    if (deleted) {
+      res.status(200).json({ message: "User deleted", user: deleted });
+    } else {
+      res.status(404).json({ message: "No user found" });
+    }
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.delete("/:email", deleteByEmailHandler);
+
+// in Toggle Teacher Status
+import { toggleIsTeacherByEmail } from "../db";
+
+const toggleIsTeacherHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
+  const { email } = req.params;
+
+  try {
+    const updated = await toggleIsTeacherByEmail(email);
+
+    if (updated) {
+      res.status(200).json({ message: "isTeacher toggled", user: updated });
+    } else {
+      res.status(404).json({ message: "No user found" });
+    }
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.patch("/:email", toggleIsTeacherHandler);
+
+// ✅ Export AFTER all routes are defined
 export default router;

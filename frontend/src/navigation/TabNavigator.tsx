@@ -3,7 +3,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-import Home from "../screens/Home";
+import Home from "../screens/home";
 import MessagesStack from "./MessagesStack";
 import Profile from "../screens/Profile";
 import Temp from "../screens/Temp";
@@ -35,8 +35,9 @@ export default function TabNavigator() {
             // case "MyLessons":
             //   iconName = "book-outline";
             //   break;
-            // case "Message":
-            //   iconName = "chatbubble-outline";
+
+            // case "Profile":
+            //   iconName = "person-outline";
             //   break;
             case "Temp":
               iconName = "bug-outline";
