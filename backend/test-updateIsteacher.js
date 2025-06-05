@@ -4,7 +4,7 @@
 const axios = require("axios");
 
 async function toggleIsTeacher() {
-  const email = "bob@gmail.com";
+  const email = "demo@email.com";
   const encodedEmail = encodeURIComponent(email);
   const url = `http://localhost:4000/users/${encodedEmail}`; // ✅ matches backend
 

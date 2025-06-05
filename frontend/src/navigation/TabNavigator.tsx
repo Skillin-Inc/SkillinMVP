@@ -36,14 +36,8 @@ export default function TabNavigator() {
             //   iconName = "book-outline";
             //   break;
 
-            // case "Profile":
-            //   iconName = "person-outline";
-            //   break;
             case "Temp":
               iconName = "bug-outline";
-              break;
-            case "Profile":
-              iconName = "person-outline";
               break;
           }
 
@@ -54,7 +48,6 @@ export default function TabNavigator() {
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="MessagesStack" component={MessagesStack} />
       <Tab.Screen name="Temp" component={Temp} />
-      <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );
 }

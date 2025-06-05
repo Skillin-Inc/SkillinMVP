@@ -49,20 +49,10 @@ export async function createUser(data: NewUser) {
 
   const result = await pool.query(
     `INSERT INTO public.users
-      ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "isTeacher")
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-     RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "isTeacher", "created_at"`,
-
-    [
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-      username,
-      password, // need to change when we start using aws
-      postalCode,
-      isTeacher,
-    ]
+    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "is_teacher")
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+   RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "is_teacher", "created_at"`,
+    [firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher]
   );
 
   return result.rows[0];

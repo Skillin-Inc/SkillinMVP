@@ -14,6 +14,7 @@ type StoredUserData = {
   username?: string;
   postalCode?: number;
   createdAt?: string;
+  isTeacher?: boolean;
 
   // backend format
   first_name?: string;
@@ -21,6 +22,7 @@ type StoredUserData = {
   phone_number?: string;
   postal_code?: number;
   created_at?: string;
+  is_teacher?: boolean;
 };
 
 type AuthContextType = {
@@ -71,6 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           username: userObj.username,
           postalCode: userObj.postal_code,
           createdAt: userObj.created_at,
+          isTeacher: userObj.is_teacher ?? false,
         };
       }
 
@@ -93,6 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           username: userObj.username,
           postalCode: userObj.postalCode,
           createdAt: userObj.createdAt,
+          isTeacher: userObj.isTeacher ?? false,
         };
       }
 
@@ -149,7 +153,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const newUser = await apiService.register(registerData);
       setUser(newUser);
-      setIsLoggedIn(true);
+      setIsLoggedIn(false);
       await AsyncStorage.setItem("userData", JSON.stringify(newUser));
     } catch (error) {
       console.error("Registration error:", error);
