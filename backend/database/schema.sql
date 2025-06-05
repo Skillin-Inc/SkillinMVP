@@ -19,7 +19,7 @@ CREATE TABLE "users" (
   "username" text UNIQUE NOT NULL,
   "hashed_password" text NOT NULL,
   "postal_code" integer NOT NULL,
-  "isTeacher" boolean NOT NULL DEFAULT false,
+  "is_teacher" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz(3) default current_timestamp
 );
 

@@ -36,6 +36,7 @@ export interface BackendUser {
   username: string;
   postal_code: number;
   created_at: string;
+  is_teacher: boolean;
 }
 
 export interface LoginResponse {
@@ -80,6 +81,7 @@ class ApiService {
       username: backendUser.username,
       postalCode: backendUser.postal_code,
       createdAt: backendUser.created_at,
+      isTeacher: backendUser.is_teacher,
     };
   }
 
