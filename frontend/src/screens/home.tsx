@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 
-import { COLORS } from "../styles";
+// import { COLORS } from "../styles";
 import { useScreenDimensions } from "../hooks";
 import { RootStackParamList } from "../types";
 import CategoryCard from "../components/CategoryCard";
@@ -37,7 +37,7 @@ export default function Home() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleViewProfile}>
-          <Ionicons name="person-circle-outline" size={40} color="#6a1b9a" />
+          <Ionicons name="person-circle-outline" size={40} color="#414288" />
         </TouchableOpacity>
       </View>
 
@@ -47,7 +47,12 @@ export default function Home() {
       <Text style={styles.sectionTitle}>Topics</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
         {topics.map((cat) => (
-          <CategoryCard key={cat.label} label={cat.label} image={cat.image} />
+          <CategoryCard
+            key={cat.label}
+            label={cat.label}
+            image={cat.image}
+            onPress={() => navigation.navigate("TopicDetail", { topic: cat.label })}
+          />
         ))}
       </ScrollView>
 

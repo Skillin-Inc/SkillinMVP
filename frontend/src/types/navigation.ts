@@ -43,4 +43,5 @@ export type RootStackParamList = {
   TeacherHome: undefined;
   TeacherTabs: undefined;
   Profile: { from: "TeacherHome" | "Home" };
+  TopicDetail: { topic: string };
 };
