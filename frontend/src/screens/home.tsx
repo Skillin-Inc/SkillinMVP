@@ -1,13 +1,28 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 
+import { COLORS } from "../styles";
 import { useScreenDimensions } from "../hooks";
 import { RootStackParamList } from "../types";
+import CategoryCard from "../components/CategoryCard";
+import temp from "../../assets/playingCards.png";
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
+
+const topics = [
+  { label: "Poker", image: temp },
+  { label: "Snowboarding", image: temp },
+  { label: "Finance", image: temp },
+  { label: "Other", image: temp },
+];
+const altCategories = [
+  { label: "Tutors", image: temp },
+  { label: "Lessons", image: temp },
+  { label: "Stand-alone Videos", image: temp },
+];
 
 export default function Home() {
   const navigation = useNavigation<NavigationProp>();
@@ -15,7 +30,7 @@ export default function Home() {
   const styles = getStyles(screenWidth, screenHeight);
 
   const handleViewProfile = () => {
-    navigation.navigate("Profile", { from: "Home" }); // or "Home"
+    navigation.navigate("Profile", { from: "Home" });
   };
 
   return (
@@ -26,7 +41,23 @@ export default function Home() {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.title}>Welcome to the Home Page!</Text>
+      <Text style={styles.title}>Welcome to Skillin!</Text>
+
+      {/* First Category Section */}
+      <Text style={styles.sectionTitle}>Topics</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
+        {topics.map((cat) => (
+          <CategoryCard key={cat.label} label={cat.label} image={cat.image} />
+        ))}
+      </ScrollView>
+
+      {/* Video Lessons Section */}
+      <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Video, Lessons, and Tutors</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
+        {altCategories.map((cat) => (
+          <CategoryCard key={cat.label} label={cat.label} image={cat.image} />
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -36,10 +67,8 @@ function getStyles(width: number, height: number) {
     container: {
       flex: 1,
       backgroundColor: "#f9f9f9",
-      justifyContent: "center",
-      alignItems: "center",
       padding: 20,
-      paddingBottom: height * 0.1, // prevents overlap with bottom tabs
+      paddingTop: height * 0.12,
     },
     header: {
       width: "100%",
@@ -53,6 +82,36 @@ function getStyles(width: number, height: number) {
       fontSize: width > 400 ? 28 : 24,
       fontWeight: "600",
       textAlign: "center",
+      marginBottom: 20,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 10,
+    },
+    cardScroll: {
+      flexGrow: 0,
+      marginBottom: 10,
+    },
+    card: {
+      backgroundColor: "#6a1b9a",
+      opacity: 0.85,
+      borderRadius: 16,
+      marginRight: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowOffset: { width: 0, height: 3 },
+      shadowRadius: 6,
+      elevation: 5,
+    },
+    cardText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "bold",
+      textAlign: "center",
+      paddingHorizontal: 6,
     },
   });
 }
