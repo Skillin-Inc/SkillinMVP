@@ -58,12 +58,10 @@ export default function Messages({ navigation }: Props) {
     fetchUsersWithConversations();
   }, [currentUser]);
 
-  // WebSocket setup for real-time updates
   useEffect(() => {
     if (!currentUser) return;
 
     const handleNewMessage = (socketMessage: SocketMessage) => {
-      // Refresh conversations when a new message arrives
       if (socketMessage.sender_id === currentUser.id || socketMessage.receiver_id === currentUser.id) {
         fetchUsersWithConversations();
       }

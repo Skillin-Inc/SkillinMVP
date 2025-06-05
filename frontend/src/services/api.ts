@@ -69,8 +69,9 @@ export interface NewMessage {
   content: string;
 }
 
-class ApiService {
-  private transformBackendUserToUser(backendUser: BackendUser): User {
+// Functional approach using closures
+function createApiService() {
+  const transformBackendUserToUser = (backendUser: BackendUser): User => {
     return {
       id: backendUser.id,
       firstName: backendUser.first_name,
@@ -80,10 +81,11 @@ class ApiService {
       username: backendUser.username,
       postalCode: backendUser.postal_code,
       createdAt: backendUser.created_at,
+      isTeacher: false, // Default value since it's not in BackendUser
     };
-  }
+  };
 
-  private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const makeRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
 
     const config: RequestInit = {
@@ -109,52 +111,52 @@ class ApiService {
       }
       throw new Error("Network error occurred");
     }
-  }
+  };
 
-  async register(userData: RegisterData): Promise<User> {
-    const backendUser = await this.makeRequest<BackendUser>(API_CONFIG.ENDPOINTS.USERS, {
+  const register = async (userData: RegisterData): Promise<User> => {
+    const backendUser = await makeRequest<BackendUser>(API_CONFIG.ENDPOINTS.USERS, {
       method: "POST",
       body: JSON.stringify(userData),
     });
-    return this.transformBackendUserToUser(backendUser);
-  }
+    return transformBackendUserToUser(backendUser);
+  };
 
-  async login(loginData: LoginData): Promise<LoginResponse> {
-    const response = await this.makeRequest<{ success: boolean; user: BackendUser }>(API_CONFIG.ENDPOINTS.LOGIN, {
+  const login = async (loginData: LoginData): Promise<LoginResponse> => {
+    const response = await makeRequest<{ success: boolean; user: BackendUser }>(API_CONFIG.ENDPOINTS.LOGIN, {
       method: "POST",
       body: JSON.stringify(loginData),
     });
 
     return {
       success: response.success,
-      user: this.transformBackendUserToUser(response.user),
+      user: transformBackendUserToUser(response.user),
     };
-  }
+  };
 
-  async getUserById(id: number): Promise<BackendUser> {
-    return this.makeRequest<BackendUser>(`${API_CONFIG.ENDPOINTS.USERS}/${id}`);
-  }
+  const getUserById = async (id: number): Promise<BackendUser> => {
+    return makeRequest<BackendUser>(`${API_CONFIG.ENDPOINTS.USERS}/${id}`);
+  };
 
-  async getAllUsers(): Promise<BackendUser[]> {
-    return this.makeRequest<BackendUser[]>(API_CONFIG.ENDPOINTS.USERS);
-  }
+  const getAllUsers = async (): Promise<BackendUser[]> => {
+    return makeRequest<BackendUser[]>(API_CONFIG.ENDPOINTS.USERS);
+  };
 
-  async getConversationsForUser(id: number): Promise<Conversation[]> {
-    return this.makeRequest<Conversation[]>(`${API_CONFIG.ENDPOINTS.MESSAGES}/conversations/${id}`);
-  }
+  const getConversationsForUser = async (id: number): Promise<Conversation[]> => {
+    return makeRequest<Conversation[]>(`${API_CONFIG.ENDPOINTS.MESSAGES}/conversations/${id}`);
+  };
 
-  async getMessagesBetweenUsers(id1: number, id2: number): Promise<BackendMessage[]> {
-    return this.makeRequest<BackendMessage[]>(`${API_CONFIG.ENDPOINTS.MESSAGES}/between/${id1}/${id2}`);
-  }
+  const getMessagesBetweenUsers = async (id1: number, id2: number): Promise<BackendMessage[]> => {
+    return makeRequest<BackendMessage[]>(`${API_CONFIG.ENDPOINTS.MESSAGES}/between/${id1}/${id2}`);
+  };
 
-  async createMessage(messageData: NewMessage): Promise<BackendMessage> {
-    return this.makeRequest<BackendMessage>(API_CONFIG.ENDPOINTS.MESSAGES, {
+  const createMessage = async (messageData: NewMessage): Promise<BackendMessage> => {
+    return makeRequest<BackendMessage>(API_CONFIG.ENDPOINTS.MESSAGES, {
       method: "POST",
       body: JSON.stringify(messageData),
     });
-  }
+  };
 
-  async checkBackendConnection(): Promise<{ status: string; message: string; timestamp?: string }> {
+  const checkBackendConnection = async (): Promise<{ status: string; message: string; timestamp?: string }> => {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/`);
       if (response.ok) {
@@ -169,11 +171,30 @@ class ApiService {
     } catch (error) {
       throw new Error(`Backend connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
-  }
+  };
 
-  async checkDatabaseConnection(): Promise<{ status: string; message: string; timestamp?: string; error?: string }> {
-    return this.makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>("/health/db");
-  }
+  const checkDatabaseConnection = async (): Promise<{
+    status: string;
+    message: string;
+    timestamp?: string;
+    error?: string;
+  }> => {
+    return makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>("/health/db");
+  };
+
+  // Return the public API
+  return {
+    register,
+    login,
+    getUserById,
+    getAllUsers,
+    getConversationsForUser,
+    getMessagesBetweenUsers,
+    createMessage,
+    checkBackendConnection,
+    checkDatabaseConnection,
+  };
 }
 
-export const apiService = new ApiService();
+// Create and export a singleton instance
+export const apiService = createApiService();

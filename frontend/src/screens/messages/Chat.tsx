@@ -26,7 +26,7 @@ import { websocketService, SocketMessage } from "../../services/websocket";
 type Props = StackScreenProps<MessagesStackParamList, "Chat">;
 
 export default function Chat({ route, navigation }: Props) {
-  const { id } = route.params; // This is the other user's ID
+  const { id } = route.params;
   const { user: currentUser } = useContext(AuthContext);
   const { screenWidth } = useScreenDimensions();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -64,17 +64,13 @@ export default function Chat({ route, navigation }: Props) {
     fetchData();
   }, [currentUser, id]);
 
-  // WebSocket setup
   useEffect(() => {
     if (!currentUser) return;
 
-    // Connect to WebSocket
     websocketService.connect();
     websocketService.registerUser(currentUser.id);
 
-    // Handle incoming messages
     const handleNewMessage = (socketMessage: SocketMessage) => {
-      // Only add message if it's between current user and the chat partner
       if (
         (socketMessage.sender_id === Number(id) && socketMessage.receiver_id === currentUser.id) ||
         (socketMessage.sender_id === currentUser.id && socketMessage.receiver_id === Number(id))
@@ -90,23 +86,19 @@ export default function Chat({ route, navigation }: Props) {
         };
 
         setMessages((prevMessages) => {
-          // Check if message already exists to avoid duplicates
           const messageExists = prevMessages.some((msg) => msg.id === newMessage.id);
           if (messageExists) return prevMessages;
 
           return [...prevMessages, newMessage];
         });
 
-        // Scroll to bottom for new messages
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
       }
     };
 
-    // Handle message sent confirmation
     const handleMessageSent = (socketMessage: SocketMessage) => {
-      // This handles the confirmation when we send a message
       const newMessage: Message = {
         id: socketMessage.id.toString(),
         text: socketMessage.content,
@@ -118,7 +110,6 @@ export default function Chat({ route, navigation }: Props) {
       };
 
       setMessages((prevMessages) => {
-        // Check if message already exists to avoid duplicates
         const messageExists = prevMessages.some((msg) => msg.id === newMessage.id);
         if (messageExists) return prevMessages;
 
@@ -130,18 +121,15 @@ export default function Chat({ route, navigation }: Props) {
       }, 100);
     };
 
-    // Handle message errors
     const handleMessageError = (error: { error: string }) => {
       console.error("Message error:", error);
-      // You could show a toast or alert here
+      // add alert here
     };
 
-    // Set up event listeners
     websocketService.onNewMessage(handleNewMessage);
     websocketService.onMessageSent(handleMessageSent);
     websocketService.onMessageError(handleMessageError);
 
-    // Cleanup on component unmount
     return () => {
       websocketService.removeAllListeners();
     };
@@ -151,13 +139,12 @@ export default function Chat({ route, navigation }: Props) {
     if (!messageText.trim() || !currentUser) return;
 
     const messageContent = messageText.trim();
-    setMessageText(""); // Clear input immediately for better UX
+    setMessageText("");
 
-    // Send via WebSocket for real-time delivery
     if (websocketService.isConnected()) {
       websocketService.sendMessage(currentUser.id, Number(id), messageContent);
     } else {
-      // Fallback to HTTP if WebSocket is not connected
+      // fallback to http if ws doesnt work
       try {
         const newBackendMessage = await apiService.createMessage({
           sender_id: currentUser.id,
@@ -182,7 +169,6 @@ export default function Chat({ route, navigation }: Props) {
         }, 100);
       } catch (error) {
         console.error("Error sending message:", error);
-        // Restore message text on error
         setMessageText(messageContent);
       }
     }

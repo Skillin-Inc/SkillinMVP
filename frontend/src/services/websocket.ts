@@ -9,53 +9,53 @@ export interface SocketMessage {
   created_at: string;
 }
 
-class WebSocketService {
-  private socket: Socket | null = null;
-  private currentUserId: number | null = null;
+// Functional approach using closures
+function createWebSocketService() {
+  let socket: Socket | null = null;
+  let currentUserId: number | null = null;
 
-  connect(baseUrl: string = WEBSOCKET_CONFIG.baseUrl) {
-    if (this.socket?.connected) {
-      return this.socket;
+  const connect = (baseUrl: string = WEBSOCKET_CONFIG.baseUrl): Socket => {
+    if (socket?.connected) {
+      return socket;
     }
 
-    this.socket = io(baseUrl, WEBSOCKET_CONFIG.options);
+    socket = io(baseUrl, WEBSOCKET_CONFIG.options);
 
-    this.socket.on("connect", () => {
+    socket.on("connect", () => {
       console.log("Connected to WebSocket server");
-      // Register user with socket if we have a current user
-      if (this.currentUserId) {
-        this.registerUser(this.currentUserId);
+      if (currentUserId) {
+        registerUser(currentUserId);
       }
     });
 
-    this.socket.on("disconnect", () => {
+    socket.on("disconnect", () => {
       console.log("Disconnected from WebSocket server");
     });
 
-    this.socket.on("connect_error", (error) => {
+    socket.on("connect_error", (error) => {
       console.error("WebSocket connection error:", error);
     });
 
-    return this.socket;
-  }
+    return socket;
+  };
 
-  disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
+  const disconnect = (): void => {
+    if (socket) {
+      socket.disconnect();
+      socket = null;
     }
-  }
+  };
 
-  registerUser(userId: number) {
-    this.currentUserId = userId;
-    if (this.socket?.connected) {
-      this.socket.emit("register", userId);
+  const registerUser = (userId: number): void => {
+    currentUserId = userId;
+    if (socket?.connected) {
+      socket.emit("register", userId);
     }
-  }
+  };
 
-  sendMessage(senderId: number, receiverId: number, content: string) {
-    if (this.socket?.connected) {
-      this.socket.emit("send_message", {
+  const sendMessage = (senderId: number, receiverId: number, content: string): void => {
+    if (socket?.connected) {
+      socket.emit("send_message", {
         sender_id: senderId,
         receiver_id: receiverId,
         content: content,
@@ -63,37 +63,51 @@ class WebSocketService {
     } else {
       console.error("WebSocket not connected");
     }
-  }
+  };
 
-  onNewMessage(callback: (message: SocketMessage) => void) {
-    if (this.socket) {
-      this.socket.on("new_message", callback);
+  const onNewMessage = (callback: (message: SocketMessage) => void): void => {
+    if (socket) {
+      socket.on("new_message", callback);
     }
-  }
+  };
 
-  onMessageSent(callback: (message: SocketMessage) => void) {
-    if (this.socket) {
-      this.socket.on("message_sent", callback);
+  const onMessageSent = (callback: (message: SocketMessage) => void): void => {
+    if (socket) {
+      socket.on("message_sent", callback);
     }
-  }
+  };
 
-  onMessageError(callback: (error: { error: string }) => void) {
-    if (this.socket) {
-      this.socket.on("message_error", callback);
+  const onMessageError = (callback: (error: { error: string }) => void): void => {
+    if (socket) {
+      socket.on("message_error", callback);
     }
-  }
+  };
 
-  removeAllListeners() {
-    if (this.socket) {
-      this.socket.removeAllListeners("new_message");
-      this.socket.removeAllListeners("message_sent");
-      this.socket.removeAllListeners("message_error");
+  const removeAllListeners = (): void => {
+    if (socket) {
+      socket.removeAllListeners("new_message");
+      socket.removeAllListeners("message_sent");
+      socket.removeAllListeners("message_error");
     }
-  }
+  };
 
-  isConnected(): boolean {
-    return this.socket?.connected ?? false;
-  }
+  const isConnected = (): boolean => {
+    return socket?.connected ?? false;
+  };
+
+  // Return the public API
+  return {
+    connect,
+    disconnect,
+    registerUser,
+    sendMessage,
+    onNewMessage,
+    onMessageSent,
+    onMessageError,
+    removeAllListeners,
+    isConnected,
+  };
 }
 
-export const websocketService = new WebSocketService();
+// Create and export a singleton instance
+export const websocketService = createWebSocketService();

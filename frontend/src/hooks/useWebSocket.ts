@@ -7,15 +7,12 @@ export function useWebSocket() {
 
   useEffect(() => {
     if (user) {
-      // Connect and register user when logged in
       websocketService.connect();
       websocketService.registerUser(user.id);
     } else {
-      // Disconnect when logged out
       websocketService.disconnect();
     }
 
-    // Cleanup on unmount
     return () => {
       if (!user) {
         websocketService.disconnect();
