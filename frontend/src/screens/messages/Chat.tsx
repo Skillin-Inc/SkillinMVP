@@ -21,11 +21,12 @@ import { MessageBubble, Message } from "../../components/MessageBubble";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, BackendMessage, BackendUser } from "../../services/api";
+import { websocketService, SocketMessage } from "../../services/websocket";
 
 type Props = StackScreenProps<MessagesStackParamList, "Chat">;
 
 export default function Chat({ route, navigation }: Props) {
-  const { id } = route.params; // This is the other user's ID
+  const { id } = route.params;
   const { user: currentUser } = useContext(AuthContext);
   const { screenWidth } = useScreenDimensions();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -63,34 +64,113 @@ export default function Chat({ route, navigation }: Props) {
     fetchData();
   }, [currentUser, id]);
 
-  const handleSendMessage = async () => {
-    if (!messageText.trim() || !currentUser) return;
+  useEffect(() => {
+    if (!currentUser) return;
 
-    try {
-      const newBackendMessage = await apiService.createMessage({
-        sender_id: currentUser.id,
-        receiver_id: Number(id),
-        content: messageText.trim(),
-      });
+    websocketService.connect();
+    websocketService.registerUser(currentUser.id);
 
+    const handleNewMessage = (socketMessage: SocketMessage) => {
+      if (
+        (socketMessage.sender_id === Number(id) && socketMessage.receiver_id === currentUser.id) ||
+        (socketMessage.sender_id === currentUser.id && socketMessage.receiver_id === Number(id))
+      ) {
+        const newMessage: Message = {
+          id: socketMessage.id.toString(),
+          text: socketMessage.content,
+          timestamp: new Date(socketMessage.created_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          my: socketMessage.sender_id === currentUser.id,
+        };
+
+        setMessages((prevMessages) => {
+          const messageExists = prevMessages.some((msg) => msg.id === newMessage.id);
+          if (messageExists) return prevMessages;
+
+          return [...prevMessages, newMessage];
+        });
+
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    };
+
+    const handleMessageSent = (socketMessage: SocketMessage) => {
       const newMessage: Message = {
-        id: newBackendMessage.id.toString(),
-        text: newBackendMessage.content,
-        timestamp: new Date(newBackendMessage.created_at).toLocaleTimeString([], {
+        id: socketMessage.id.toString(),
+        text: socketMessage.content,
+        timestamp: new Date(socketMessage.created_at).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         }),
         my: true,
       };
 
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      setMessageText("");
+      setMessages((prevMessages) => {
+        const messageExists = prevMessages.some((msg) => msg.id === newMessage.id);
+        if (messageExists) return prevMessages;
+
+        return [...prevMessages, newMessage];
+      });
 
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
-    } catch (error) {
-      console.error("Error sending message:", error);
+    };
+
+    const handleMessageError = (error: { error: string }) => {
+      console.error("Message error:", error);
+      // add alert here
+    };
+
+    websocketService.onNewMessage(handleNewMessage);
+    websocketService.onMessageSent(handleMessageSent);
+    websocketService.onMessageError(handleMessageError);
+
+    return () => {
+      websocketService.removeAllListeners();
+    };
+  }, [currentUser, id]);
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !currentUser) return;
+
+    const messageContent = messageText.trim();
+    setMessageText("");
+
+    if (websocketService.isConnected()) {
+      websocketService.sendMessage(currentUser.id, Number(id), messageContent);
+    } else {
+      // fallback to http if ws doesnt work
+      try {
+        const newBackendMessage = await apiService.createMessage({
+          sender_id: currentUser.id,
+          receiver_id: Number(id),
+          content: messageContent,
+        });
+
+        const newMessage: Message = {
+          id: newBackendMessage.id.toString(),
+          text: newBackendMessage.content,
+          timestamp: new Date(newBackendMessage.created_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          my: true,
+        };
+
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      } catch (error) {
+        console.error("Error sending message:", error);
+        setMessageText(messageContent);
+      }
     }
   };
 
@@ -123,7 +203,7 @@ export default function Chat({ route, navigation }: Props) {
             <Text style={styles.headerName}>
               {otherUser ? `${otherUser.first_name} ${otherUser.last_name}` : "Unknown User"}
             </Text>
-            <Text style={styles.headerStatus}>Online</Text>
+            <Text style={styles.headerStatus}>{websocketService.isConnected() ? "Online" : "Offline"}</Text>
           </View>
         </View>
 
@@ -215,6 +295,15 @@ function getStyles() {
     messagesContent: {
       padding: 16,
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    loadingText: {
+      fontSize: 16,
+      color: COLORS.gray,
+    },
     inputContainer: {
       backgroundColor: COLORS.white,
       borderTopWidth: 1,
@@ -250,16 +339,6 @@ function getStyles() {
     },
     sendButtonInactive: {
       backgroundColor: "#E5E5EA",
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: COLORS.lightGray,
-    },
-    loadingText: {
-      fontSize: 16,
-      color: COLORS.gray,
     },
   });
 }

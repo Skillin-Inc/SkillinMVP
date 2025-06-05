@@ -4,22 +4,21 @@ import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 import { useFocusEffect } from "@react-navigation/native";
 
-import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
 import UserItem, { ChatUser } from "../../components/UserItem";
 import { MessagesStackParamList } from "../../types";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService } from "../../services/api";
+import { websocketService, SocketMessage } from "../../services/websocket";
 
 type Props = StackScreenProps<MessagesStackParamList, "Messages">;
 
 export default function Messages({ navigation }: Props) {
-  const { screenWidth } = useScreenDimensions();
   const { user: currentUser } = useContext(AuthContext);
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<ChatUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const styles = getStyles(screenWidth);
+  const styles = getStyles();
 
   const fetchUsersWithConversations = async () => {
     if (!currentUser) return;
@@ -57,6 +56,23 @@ export default function Messages({ navigation }: Props) {
 
   useEffect(() => {
     fetchUsersWithConversations();
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const handleNewMessage = (socketMessage: SocketMessage) => {
+      if (socketMessage.sender_id === currentUser.id || socketMessage.receiver_id === currentUser.id) {
+        fetchUsersWithConversations();
+      }
+    };
+
+    websocketService.onNewMessage(handleNewMessage);
+    websocketService.onMessageSent(handleNewMessage);
+
+    return () => {
+      websocketService.removeAllListeners();
+    };
   }, [currentUser]);
 
   useFocusEffect(
@@ -120,6 +136,11 @@ export default function Messages({ navigation }: Props) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Messages</Text>
+        <View style={styles.connectionStatus}>
+          <View
+            style={[styles.statusDot, { backgroundColor: websocketService.isConnected() ? COLORS.green : COLORS.gray }]}
+          />
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
@@ -152,59 +173,66 @@ export default function Messages({ navigation }: Props) {
   );
 }
 
-function getStyles(screenWidth: number) {
+function getStyles() {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: COLORS.lightGray,
+      backgroundColor: COLORS.white,
     },
     header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
       paddingHorizontal: 20,
-      paddingVertical: 16,
-      backgroundColor: COLORS.white,
-      borderBottomWidth: 1,
-      borderBottomColor: "#E5E5EA",
+      paddingTop: 20,
+      paddingBottom: 10,
     },
     headerTitle: {
-      fontSize: screenWidth > 400 ? 32 : 28,
+      fontSize: 28,
       fontWeight: "bold" as const,
       color: COLORS.black,
     },
+    connectionStatus: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    statusDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+    },
     searchContainer: {
       paddingHorizontal: 20,
-      paddingVertical: 12,
-      backgroundColor: COLORS.white,
+      paddingBottom: 10,
     },
     searchBar: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.lightGray,
-      borderRadius: 10,
-      paddingHorizontal: 12,
-      paddingVertical: screenWidth > 400 ? 10 : 8,
+      borderRadius: 25,
+      paddingHorizontal: 15,
+      paddingVertical: 10,
     },
     searchIcon: {
-      marginRight: 8,
+      marginRight: 10,
     },
     searchInput: {
       flex: 1,
-      fontSize: screenWidth > 400 ? 16 : 14,
+      fontSize: 16,
       color: COLORS.black,
     },
     userList: {
       flex: 1,
-      backgroundColor: COLORS.white,
     },
     separator: {
       height: 1,
       backgroundColor: "#E5E5EA",
-      marginLeft: screenWidth > 400 ? 82 : 77,
+      marginLeft: 20,
     },
     loadingContainer: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      backgroundColor: COLORS.white,
     },
     loadingText: {
       fontSize: 16,
