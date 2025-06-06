@@ -4,9 +4,7 @@ import sgMail from "@sendgrid/mail";
 
 const router = express.Router();
 
-sgMail.setApiKey(
-  process.env.SENDGRID_API_KEY || "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"
-);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY || "");
 
 // Define request body structure
 type SendEmailBody = {
