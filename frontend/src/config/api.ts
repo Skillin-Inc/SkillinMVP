@@ -5,6 +5,7 @@ export const API_CONFIG = {
     USERS: "/users",
     LOGIN: "/users/login",
     MESSAGES: "/messages",
+    LESSONS: "/lessons",
   },
   TIMEOUT: 10000,
 };

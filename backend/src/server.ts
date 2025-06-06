@@ -8,20 +8,20 @@ import { Server } from "socket.io";
 import usersRouter from "./routes/users";
 import sendEmailRouter from "./routes/sendEmail";
 import messagesRouter from "./routes/messages";
+import lessonsRouter from "./routes/lessons";
 import { pool } from "./db";
 
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // In production, specify your frontend URL
+    origin: "*", // change to frontend url in prod
     methods: ["GET", "POST"],
   },
 });
 
 const PORT = Number(process.env.PORT) || 4000;
 
-// Store user socket connections
 const userSockets = new Map<number, string>();
 
 app.use(cors());
@@ -58,20 +58,16 @@ app.get("/health/db", async (req: Request, res: Response) => {
   }
 });
 
-// Socket.IO connection handling
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  // Handle user authentication/registration with socket
   socket.on("register", (userId: number) => {
     userSockets.set(userId, socket.id);
     console.log(`User ${userId} registered with socket ${socket.id}`);
   });
 
-  // Handle sending messages
   socket.on("send_message", async (data: { sender_id: number; receiver_id: number; content: string }) => {
     try {
-      // Save message to database (you can reuse existing createMessage function)
       const { createMessage } = await import("./db");
       const newMessage = await createMessage({
         sender_id: data.sender_id,
@@ -79,7 +75,6 @@ io.on("connection", (socket) => {
         content: data.content,
       });
 
-      // Send message to receiver if they're online
       const receiverSocketId = userSockets.get(data.receiver_id);
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("new_message", {
@@ -91,7 +86,6 @@ io.on("connection", (socket) => {
         });
       }
 
-      // Confirm message sent to sender
       socket.emit("message_sent", {
         id: newMessage.id,
         sender_id: newMessage.sender_id,
@@ -105,9 +99,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Handle disconnection
   socket.on("disconnect", () => {
-    // Remove user from active connections
     for (const [userId, socketId] of userSockets.entries()) {
       if (socketId === socket.id) {
         userSockets.delete(userId);
@@ -121,6 +113,7 @@ io.on("connection", (socket) => {
 app.use("/users", usersRouter);
 app.use("/send-email", sendEmailRouter);
 app.use("/messages", messagesRouter);
+app.use("/lessons", lessonsRouter);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });

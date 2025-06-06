@@ -85,6 +85,24 @@ export interface NewMessage {
   content: string;
 }
 
+export interface NewLesson {
+  teacher_id: number;
+  title: string;
+  description: string;
+  video_url: string;
+}
+
+export interface Lesson {
+  id: number;
+  teacher_id: number;
+  title: string;
+  description: string;
+  video_url: string;
+  created_at: string;
+  teacher_first_name?: string;
+  teacher_last_name?: string;
+}
+
 export async function createMessage(data: NewMessage) {
   const { sender_id, receiver_id, content } = data;
 
@@ -97,6 +115,102 @@ export async function createMessage(data: NewMessage) {
   );
 
   return result.rows[0];
+}
+
+export async function createLesson(data: NewLesson) {
+  const { teacher_id, title, description, video_url } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.lessons
+      ("teacher_id", "title", "description", "video_url")
+     VALUES ($1, $2, $3, $4)
+     RETURNING "id", "teacher_id", "title", "description", "video_url", "created_at"`,
+    [teacher_id, title, description, video_url]
+  );
+
+  return result.rows[0];
+}
+
+export async function getAllLessons(): Promise<Lesson[]> {
+  const result = await pool.query(
+    `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.lessons l
+     JOIN public.users u ON l.teacher_id = u."id"
+     ORDER BY l.created_at DESC`
+  );
+
+  return result.rows;
+}
+
+export async function getLessonById(id: number): Promise<Lesson | null> {
+  const result = await pool.query(
+    `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.lessons l
+     JOIN public.users u ON l.teacher_id = u."id"
+     WHERE l."id" = $1`,
+    [id]
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function getLessonsByTeacher(teacherId: number): Promise<Lesson[]> {
+  const result = await pool.query(
+    `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.lessons l
+     JOIN public.users u ON l.teacher_id = u."id"
+     WHERE l.teacher_id = $1
+     ORDER BY l.created_at DESC`,
+    [teacherId]
+  );
+
+  return result.rows;
+}
+
+export async function updateLesson(id: number, data: Partial<NewLesson>): Promise<Lesson | null> {
+  const fields = [];
+  const values = [];
+  let paramCount = 1;
+
+  if (data.title !== undefined) {
+    fields.push(`"title" = $${paramCount}`);
+    values.push(data.title);
+    paramCount++;
+  }
+
+  if (data.description !== undefined) {
+    fields.push(`"description" = $${paramCount}`);
+    values.push(data.description);
+    paramCount++;
+  }
+
+  if (data.video_url !== undefined) {
+    fields.push(`"video_url" = $${paramCount}`);
+    values.push(data.video_url);
+    paramCount++;
+  }
+
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  values.push(id);
+
+  const result = await pool.query(
+    `UPDATE public.lessons 
+     SET ${fields.join(", ")}
+     WHERE "id" = $${paramCount}
+     RETURNING "id", "teacher_id", "title", "description", "video_url", "created_at"`,
+    values
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function deleteLesson(id: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM public.lessons WHERE "id" = $1`, [id]);
+
+  return (result.rowCount ?? 0) > 0;
 }
 
 export async function getMessagesBetweenUsers(userId1: number, userId2: number) {
@@ -144,7 +258,6 @@ export async function getConversationsForUser(userId: number) {
   return result.rows;
 }
 
-// Delete Users
 export async function deleteUserByEmail(email: string) {
   const result = await pool.query(
     `DELETE FROM public.users
