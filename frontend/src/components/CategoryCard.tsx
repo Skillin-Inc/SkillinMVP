@@ -1,12 +1,12 @@
 import React from "react";
-import { Text, StyleSheet, TouchableOpacity, View, Image, Dimensions } from "react-native";
+import { Text, StyleSheet, TouchableOpacity, View, Image, Dimensions, ImageSourcePropType } from "react-native";
 import { COLORS } from "../styles";
 
 const { width, height } = Dimensions.get("window");
 
 type Props = {
   label: string;
-  image: any; // or ImageSourcePropType
+  image: ImageSourcePropType;
   onPress?: () => void;
 };
 

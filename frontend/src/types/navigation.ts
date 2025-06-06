@@ -1,5 +1,6 @@
 // types.ts
 import { NavigatorScreenParams } from "@react-navigation/native";
+import { PersonalInfo, TeachingExperience } from "./index";
 
 // Chat Stack
 export type MessagesStackParamList = {

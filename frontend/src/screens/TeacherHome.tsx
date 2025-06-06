@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 
 import { useScreenDimensions } from "../hooks";
-import { COLORS, TYPOGRAPHY } from "../styles";
+import { COLORS } from "../styles";
 import { RootStackParamList } from "../types";
 type NavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
 
@@ -66,7 +66,7 @@ export default function TeacherHome() {
   );
 }
 
-const getStyles = (width, height) =>
+const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
@@ -80,7 +80,8 @@ const getStyles = (width, height) =>
       margin: 20,
     },
     title: {
-      ...TYPOGRAPHY.title,
+      fontSize: 32,
+      fontWeight: "bold" as const,
       color: COLORS.purple,
     },
     profileIcon: {

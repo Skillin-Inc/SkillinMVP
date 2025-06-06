@@ -1,7 +1,7 @@
 // test-update.js
 // Run using: node test-update.js
 
-const axios = require("axios");
+import axios from "axios";
 
 async function toggleIsTeacher() {
   const email = "demo@email.com";

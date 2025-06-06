@@ -42,7 +42,7 @@ const ReviewSubmitScreen = () => {
           })
         : null;
       const certificationImagesBase64 = await Promise.all(
-        certifications.map(async (uri) =>
+        certifications.map(async (uri: string) =>
           uri ? await FileSystem.readAsStringAsync(uri, { encoding: "base64" }) : null
         )
       );
@@ -70,13 +70,18 @@ const ReviewSubmitScreen = () => {
 
     <h2>📚 Teaching Experience</h2>
     <ul>
-      ${experienceList.map((exp) => `<li>${exp.expertise || "N/A"} (${exp.years || "0"} yrs)</li>`).join("")}
+      ${experienceList
+        .map(
+          (exp: { expertise?: string; years?: string }) =>
+            `<li>${exp.expertise || "N/A"} (${exp.years || "0"} yrs)</li>`
+        )
+        .join("")}
     </ul>
     <p><strong>Portfolio:</strong> ${portfolios.join(", ")}</p>
 
     <h2>📄 Certifications</h2>
     ${certificationImagesBase64
-      .map((base64, idx) =>
+      .map((base64: string | null, idx: number) =>
         base64
           ? `<img src="data:image/jpeg;base64,${base64}" style="width:100%; max-width:300px; margin-bottom:10px;" />`
           : `<p>Missing Certification ${idx + 1}</p>`
@@ -159,23 +164,23 @@ const ReviewSubmitScreen = () => {
 
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>📚 Teaching Experience</Text>
-        {experienceList.map((exp, idx) => (
+        {experienceList?.map((exp: { expertise?: string; years?: string }, idx: number) => (
           <Text key={idx} style={styles.value}>
             • {exp.expertise} ({exp.years} yrs)
           </Text>
         ))}
-        {certifications.length > 0 && (
+        {certifications && certifications.length > 0 && (
           <>
             <Text style={[styles.label, { marginTop: 10 }]}>Certifications:</Text>
-            {certifications.map((uri, idx) => (
+            {certifications.map((uri: string, idx: number) => (
               <Image key={idx} source={{ uri }} style={styles.image} />
             ))}
           </>
         )}
-        {portfolios.length > 0 && (
+        {portfolios && portfolios.length > 0 && (
           <>
             <Text style={styles.label}>Portfolio:</Text>
-            {portfolios.map((link, idx) => (
+            {portfolios.map((link: string, idx: number) => (
               <Text key={idx} style={styles.value}>
                 • {link}
               </Text>

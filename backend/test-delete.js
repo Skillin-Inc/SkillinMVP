@@ -1,6 +1,6 @@
 // test-delete.js
 // Run using: node test-delete.js
-const axios = require("axios");
+import axios from "axios";
 
 async function testDelete() {
   const email = "shovang112233@gmail.com";

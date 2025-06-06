@@ -1,11 +1,11 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useScreenDimensions } from "../hooks";
-import { COLORS, TYPOGRAPHY } from "../styles";
+import { COLORS } from "../styles";
 
 export default function StatsScreen() {
-  const { screenWidth, screenHeight } = useScreenDimensions();
-  const styles = getStyles(screenWidth, screenHeight);
+  const { screenWidth } = useScreenDimensions();
+  const styles = getStyles(screenWidth);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -34,7 +34,7 @@ export default function StatsScreen() {
   );
 }
 
-const getStyles = (width: number, height: number) =>
+const getStyles = (width: number) =>
   StyleSheet.create({
     container: {
       flexGrow: 1,
@@ -43,7 +43,8 @@ const getStyles = (width: number, height: number) =>
       alignItems: "center",
     },
     header: {
-      ...TYPOGRAPHY.title,
+      fontSize: 32,
+      fontWeight: "bold" as const,
       color: COLORS.purple,
       margin: 20,
     },

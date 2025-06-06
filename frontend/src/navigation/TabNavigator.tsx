@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 
 import Home from "../screens/home";
 import MessagesStack from "./MessagesStack";
-import Profile from "../screens/Profile";
 import Temp from "../screens/Temp";
 import { TabNavigatorParamList } from "../types";
 

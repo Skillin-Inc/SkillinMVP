@@ -32,7 +32,8 @@ function createWebSocketService() {
       console.log("Disconnected from WebSocket server");
     });
 
-    socket.on("connect_error", (error) => {
+    socket.on("connect_error", (...args: unknown[]) => {
+      const error = args[0] as Error;
       console.error("WebSocket connection error:", error);
     });
 
@@ -67,19 +68,28 @@ function createWebSocketService() {
 
   const onNewMessage = (callback: (message: SocketMessage) => void): void => {
     if (socket) {
-      socket.on("new_message", callback);
+      socket.on("new_message", (...args: unknown[]) => {
+        const message = args[0] as SocketMessage;
+        callback(message);
+      });
     }
   };
 
   const onMessageSent = (callback: (message: SocketMessage) => void): void => {
     if (socket) {
-      socket.on("message_sent", callback);
+      socket.on("message_sent", (...args: unknown[]) => {
+        const message = args[0] as SocketMessage;
+        callback(message);
+      });
     }
   };
 
   const onMessageError = (callback: (error: { error: string }) => void): void => {
     if (socket) {
-      socket.on("message_error", callback);
+      socket.on("message_error", (...args: unknown[]) => {
+        const error = args[0] as { error: string };
+        callback(error);
+      });
     }
   };
 

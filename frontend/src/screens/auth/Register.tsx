@@ -4,13 +4,17 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar, Alert }
 import { useScreenDimensions, formatDOB, formatPhoneNumber, formatZipCode, isValidEmail } from "../../hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
+import { AuthStackParamList } from "../../types";
+
+type NavigationProp = StackNavigationProp<AuthStackParamList, "Register">;
 
 export default function Register() {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { register } = useContext(AuthContext);
 
   const [firstName, setFirstName] = useState("");

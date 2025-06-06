@@ -25,6 +25,16 @@ export interface User {
   postalCode: number;
   createdAt: string;
   isTeacher: boolean;
+  membershipTier?: string;
+  dOB?: string;
+  hashedPassword?: string;
+  first_name?: string;
+  last_name?: string;
+  phone_number?: string;
+  postal_code?: number;
+  created_at?: string;
+  is_teacher?: boolean;
+  hashed_password?: string;
 }
 
 export interface BackendUser {
