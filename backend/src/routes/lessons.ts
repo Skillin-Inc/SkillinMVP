@@ -14,7 +14,7 @@ const router = Router();
 router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response): Promise<void> => {
   const body = req.body;
 
-  const required: (keyof NewLesson)[] = ["teacher_id", "title", "description", "video_url"];
+  const required: (keyof NewLesson)[] = ["teacher_id", "title", "description"];
 
   for (const key of required) {
     if (body[key] === undefined) {
@@ -28,13 +28,23 @@ router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response)
     return;
   }
 
-  if (!body.title.trim() || !body.description.trim() || !body.video_url.trim()) {
-    res.status(400).json({ error: "Title, description, and video URL cannot be empty" });
+  if (!body.title.trim() || !body.description.trim()) {
+    res.status(400).json({ error: "Title and description cannot be empty" });
     return;
   }
 
+  // video_url is optional for now (will be added via file upload later)
+  const video_url = body.video_url || "";
+
   try {
-    const newLesson = await createLesson(body);
+    const lessonData = {
+      teacher_id: body.teacher_id,
+      title: body.title.trim(),
+      description: body.description.trim(),
+      video_url: video_url,
+    };
+
+    const newLesson = await createLesson(lessonData);
     res.status(201).json(newLesson);
   } catch (error: unknown) {
     console.error(error);
