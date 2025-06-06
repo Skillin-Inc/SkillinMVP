@@ -9,8 +9,7 @@ frontend/.expo/
 frontend/.expo-shared/
 frontend/web-build/
 
-# Lockfiles (ignore per folder)
-package-lock.json
+# Lockfiles (not ignored in root)
 backend/package-lock.json
 frontend/package-lock.json
 backend/yarn.lock
