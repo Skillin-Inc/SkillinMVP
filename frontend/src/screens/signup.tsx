@@ -1,21 +1,8 @@
 import React, { useState } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
-import {
-  useScreenDimensions,
-  formatDOB,
-  formatPhoneNumber,
-  formatZipCode,
-  isValidEmail,
-} from "../hooks";
-import { Colors, ButtonStyles, Typography } from "../styles";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { useScreenDimensions, formatDOB, formatPhoneNumber, formatZipCode } from "../hooks";
+import { Colors } from "../styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
@@ -31,8 +18,6 @@ export default function SignUpScreen() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState(""); // will not save this
-  const [membershipTier, setMembershipTier] = useState(""); // invis to users till inside profile
-  const [paymentInfo, setPaymentInfo] = useState<string[]>([]); // invis to users till inside profile
 
   const navigation = useNavigation();
 

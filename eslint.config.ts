@@ -9,10 +9,15 @@ export default tseslint.config(
   eslintConfigPrettier,
   {
     plugins: {
-      promise: pluginPromise as any,
+      promise: pluginPromise,
     },
   },
   {
+    languageOptions: {
+      globals: {
+        console: "readonly", // Add other globals as needed (e.g., process, window, etc.)
+      },
+    },
     rules: {
       "func-style": ["error", "declaration", { allowArrowFunctions: true }],
       "promise/prefer-await-to-then": "error",

@@ -1,14 +1,10 @@
 // navigation/const TeacherSignupStack.tsx
-import React, { useContext } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { AuthContext } from '../src/features/auth/AuthContext';
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
 
-import ApplicationStartScreen from '../src/screens/teacherSignup/ApplicationStart';
-import PersonalInfoScreen from '../src/screens/teacherSignup/PersonalInfo';
-import TeachingExperienceScreen from '../src/screens/teacherSignup/TeachingExperienceScreen';
-
-
+import ApplicationStartScreen from "../src/screens/teacherSignup/ApplicationStart";
+import PersonalInfoScreen from "../src/screens/teacherSignup/PersonalInfo";
+import TeachingExperienceScreen from "../src/screens/teacherSignup/TeachingExperienceScreen";
 
 const TeacherSignupStack = createStackNavigator();
 

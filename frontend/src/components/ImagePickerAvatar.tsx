@@ -1,8 +1,9 @@
 // src/components/ImagePickerAvatar.tsx
-import React, { useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity, Text, Alert } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from "react";
+import { View, Image, StyleSheet, TouchableOpacity, Text, Alert } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
+import defaultAvatar from "../../assets/icons/Avatar_Placeholder.jpg";
 
 interface Props {
   initialUri?: string;
@@ -11,12 +12,12 @@ interface Props {
 }
 
 const ImagePickerAvatar: React.FC<Props> = ({ initialUri, onChange, size = 140 }) => {
-  const [imageUri, setImageUri] = useState(initialUri || '');
+  const [imageUri, setImageUri] = useState(initialUri || "");
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission required', 'We need access to your media library.');
+    if (status !== "granted") {
+      Alert.alert("Permission required", "We need access to your media library.");
       return;
     }
 
@@ -35,10 +36,10 @@ const ImagePickerAvatar: React.FC<Props> = ({ initialUri, onChange, size = 140 }
   };
 
   return (
-    <View style={{ alignItems: 'center' }}>
+    <View style={{ alignItems: "center" }}>
       <TouchableOpacity onPress={pickImage}>
         <Image
-          source={imageUri ? { uri: imageUri } : require('../../assets/icons/Avatar_Placeholder.jpg')}
+          source={imageUri ? { uri: imageUri } : defaultAvatar}
           style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}
         />
         <View style={styles.editIcon}>
@@ -54,21 +55,21 @@ export default ImagePickerAvatar;
 
 const styles = StyleSheet.create({
   avatar: {
-    resizeMode: 'cover',
+    resizeMode: "cover",
     borderWidth: 2,
-    borderColor: '#6a1b9a',
+    borderColor: "#6a1b9a",
   },
   editIcon: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 5,
     right: 5,
-    backgroundColor: '#6a1b9a',
+    backgroundColor: "#6a1b9a",
     borderRadius: 12,
     padding: 4,
   },
   label: {
     marginTop: 10,
-    color: '#666',
+    color: "#666",
     fontSize: 14,
   },
 });

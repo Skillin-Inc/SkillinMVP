@@ -9,22 +9,17 @@ import { Colors, Typography } from "../styles";
 export default function WelcomeScreen() {
   const navigation = useNavigation();
   const { screenWidth, screenHeight } = useScreenDimensions();
-  const styles = getStyles(screenWidth, screenHeight);
+  const styles = getStyles(screenWidth);
 
   return (
     <View style={[styles.container, { height: screenHeight }]}>
       <Image
         source={SkillinLogo}
-        style={[
-          styles.logo,
-          { width: screenWidth * 0.6, height: screenWidth * 0.6 },
-        ]}
+        style={[styles.logo, { width: screenWidth * 0.6, height: screenWidth * 0.6 }]}
         resizeMode="contain"
       />
 
-      <Text style={styles.title}>
-        Learn a new hobby with a personal teacher
-      </Text>
+      <Text style={styles.title}>Learn a new hobby with a personal teacher</Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -63,7 +58,7 @@ export default function WelcomeScreen() {
   );
 }
 
-function getStyles(width: number, height: number) {
+function getStyles(width: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
