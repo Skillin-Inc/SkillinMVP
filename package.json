@@ -1,0 +1,31 @@
+{
+  "name": "skillinmvp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "expo": "npm run start --prefix frontend",
+    "dev": "npm run dev --prefix backend",
+    "setup-db": "npm run setup-db --prefix backend",
+    "db:import": "sh backend/database/import.sh",
+    "install:frontend": "npm install --prefix frontend",
+    "install:backend": "npm install --prefix backend",
+    "postinstall": "npm-run-all --parallel install:*",
+    "lint": "eslint . --ext .ts,.tsx"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "npm-run-all": "^4.1.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
+    "eslint": "^9.26.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-promise": "^7.2.1",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.0"
+  }
+}
