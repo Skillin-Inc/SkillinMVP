@@ -1,5 +1,5 @@
 // src/routes/users.ts
-import { Router, Request, Response, NextFunction, RequestHandler } from "express";
+import { Router, Request, Response, RequestHandler } from "express";
 import {
   createUser,
   NewUser,

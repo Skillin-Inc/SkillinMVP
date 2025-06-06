@@ -1,5 +1,3 @@
-// @ts-check
-
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier";
@@ -15,9 +13,14 @@ export default tseslint.config(
     },
   },
   {
+    languageOptions: {
+      globals: {
+        console: "readonly", // Add other globals as needed (e.g., process, window, etc.)
+      },
+    },
     rules: {
       "func-style": ["error", "declaration", { allowArrowFunctions: true }],
-      "promise/prefer-await-to-then": ["error"],
+      "promise/prefer-await-to-then": "error",
     },
   }
 );

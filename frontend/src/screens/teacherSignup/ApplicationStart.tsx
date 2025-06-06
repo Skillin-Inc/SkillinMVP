@@ -37,7 +37,7 @@ const ApplicationStartScreen = () => {
         <Text style={styles.headerTitle}>Become a Skillin Instructor</Text>
       </View>
       <Text style={styles.subtext}>
-        As an early ambassador of Skillin, you’ll get white-glove support to help set up your teaching profile and
+        As an early ambassador of Skillin, you'll get white-glove support to help set up your teaching profile and
         curriculum.
       </Text>
 

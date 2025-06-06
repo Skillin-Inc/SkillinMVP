@@ -10,7 +10,8 @@
     "db:import": "sh backend/database/import.sh",
     "install:frontend": "npm install --prefix frontend",
     "install:backend": "npm install --prefix backend",
-    "postinstall": "npm-run-all --parallel install:*"
+    "postinstall": "npm-run-all --parallel install:*",
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "author": "",
   "license": "ISC",
@@ -19,9 +20,12 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-promise": "^7.2.1",
+    "jiti": "^2.4.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.0"
   }
