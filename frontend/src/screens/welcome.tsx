@@ -1,30 +1,34 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 import SkillinLogo from "@assets/icons/skillin-logo.png";
 import { useScreenDimensions } from "../hooks";
 import { Colors, Typography } from "../styles";
 
+type RootStackParamList = {
+  Login: undefined;
+  SignUp: undefined;
+  TeacherSignUp: undefined;
+};
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
+
 export default function WelcomeScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const { screenWidth, screenHeight } = useScreenDimensions();
-  const styles = getStyles(screenWidth, screenHeight);
+  const styles = getStyles(screenWidth);
 
   return (
     <View style={[styles.container, { height: screenHeight }]}>
       <Image
         source={SkillinLogo}
-        style={[
-          styles.logo,
-          { width: screenWidth * 0.6, height: screenWidth * 0.6 },
-        ]}
+        style={[styles.logo, { width: screenWidth * 0.6, height: screenWidth * 0.6 }]}
         resizeMode="contain"
       />
 
-      <Text style={styles.title}>
-        Learn a new hobby with a personal teacher
-      </Text>
+      <Text style={styles.title}>Learn a new hobby with a personal teacher</Text>
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
@@ -46,24 +50,16 @@ export default function WelcomeScreen() {
         <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate("TeacherSignUp")}
-          accessibilityLabel="Sign up for Skillin"
+          accessibilityLabel="Sign up for Skillin as a teacher"
         >
-          <Text style={styles.buttonText}> Teacher Sign Up</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("Preview")}
-          accessibilityLabel="Preview Skillin without an account"
-        >
-          <Text style={styles.buttonText}>Preview Skillin</Text>
+          <Text style={styles.buttonText}>Teacher Sign Up</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
 
-function getStyles(width: number, height: number) {
+function getStyles(width: number) {
   return StyleSheet.create({
     container: {
       flex: 1,

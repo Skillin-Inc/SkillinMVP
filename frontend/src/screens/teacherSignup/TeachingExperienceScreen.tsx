@@ -1,38 +1,39 @@
 //src/screens/teacherSignup/TeachingExperienceScreen';
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { useScreenDimensions } from '../../hooks';
-import { Colors, Typography } from '../../styles';
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { useScreenDimensions } from "../../hooks";
+import { Colors } from "../../styles";
 
 const TeachingExperienceScreen = () => {
   const navigation = useNavigation();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const [experienceList, setExperienceList] = useState([{ expertise: '', years: '' }]);
-  const [certifications, setCertifications] = useState<string[]>(['']);
-  const [portfolios, setPortfolios] = useState<string[]>(['']);
+  const [experienceList, setExperienceList] = useState([{ expertise: "", years: "" }]);
+  const [certifications, setCertifications] = useState<string[]>([""]);
+  const [portfolios, setPortfolios] = useState<string[]>([""]);
 
   const addExperienceField = () => {
-    setExperienceList([...experienceList, { expertise: '', years: '' }]);
+    setExperienceList([...experienceList, { expertise: "", years: "" }]);
   };
 
-  const handleChange = (index: number, key: 'expertise' | 'years', value: string) => {
+  const handleChange = (index: number, key: "expertise" | "years", value: string) => {
     const updated = [...experienceList];
     updated[index][key] = value;
     setExperienceList(updated);
   };
-const removeExperienceField = (index: number) => {
-  if (experienceList.length > 1) {
-    const updated = [...experienceList];
-    updated.splice(index, 1);
-    setExperienceList(updated);
-  }
-};
+  const removeExperienceField = (index: number) => {
+    if (experienceList.length > 1) {
+      const updated = [...experienceList];
+      updated.splice(index, 1);
+      setExperienceList(updated);
+    }
+  };
   const handleNext = () => {
     // navigation.navigate('NextStep');
+    console.log({ experienceList, certifications, portfolios });
   };
 
   return (
@@ -44,33 +45,32 @@ const removeExperienceField = (index: number) => {
         <Text style={styles.headerTitle}>Step 2: Teaching Experience</Text>
       </View>
 
-{experienceList.map((item, index) => (
-  <View key={index} style={styles.rowGroup}>
-    <View style={styles.experienceRow}>
-      <TextInput
-        style={[styles.input, { flex: 1, marginRight: 8 }]}
-        placeholder="Area of Expertise"
-        value={item.expertise}
-        onChangeText={(text) => handleChange(index, 'expertise', text)}
-        placeholderTextColor={Colors.darkGray}
-      />
-      <TextInput
-        style={[styles.input, { flex: 1 }]}
-        placeholder="Years"
-        value={item.years}
-        onChangeText={(text) => handleChange(index, 'years', text)}
-        keyboardType="number-pad"
-        placeholderTextColor={Colors.darkGray}
-      />
-      {experienceList.length > 1 && (
-        <TouchableOpacity onPress={() => removeExperienceField(index)} style={{ marginLeft: 8 }}>
-          <Ionicons name="remove-circle-outline" size={28} color={Colors.purple} />
-        </TouchableOpacity>
-      )}
-    </View>
-  </View>
-))}
-
+      {experienceList.map((item, index) => (
+        <View key={index} style={styles.rowGroup}>
+          <View style={styles.experienceRow}>
+            <TextInput
+              style={[styles.input, { flex: 1, marginRight: 8 }]}
+              placeholder="Area of Expertise"
+              value={item.expertise}
+              onChangeText={(text) => handleChange(index, "expertise", text)}
+              placeholderTextColor={Colors.darkGray}
+            />
+            <TextInput
+              style={[styles.input, { flex: 1 }]}
+              placeholder="Years"
+              value={item.years}
+              onChangeText={(text) => handleChange(index, "years", text)}
+              keyboardType="number-pad"
+              placeholderTextColor={Colors.darkGray}
+            />
+            {experienceList.length > 1 && (
+              <TouchableOpacity onPress={() => removeExperienceField(index)} style={{ marginLeft: 8 }}>
+                <Ionicons name="remove-circle-outline" size={28} color={Colors.purple} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      ))}
 
       <TouchableOpacity onPress={addExperienceField}>
         <Text style={styles.addField}>+ Add Another Expertise</Text>
@@ -108,18 +108,18 @@ const getStyles = (width: number, height: number) =>
       paddingTop: height * 0.08,
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: height * 0.03,
     },
     headerTitle: {
       marginLeft: 15,
       fontSize: width > 400 ? 24 : 22,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: Colors.purple,
     },
     input: {
-      width: '100%',
+      width: "100%",
       height: height * 0.07,
       borderColor: Colors.darkGray,
       borderWidth: 1,
@@ -130,27 +130,27 @@ const getStyles = (width: number, height: number) =>
       color: Colors.black,
     },
     experienceRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 10,
-},
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 10,
+    },
     rowGroup: {
       marginBottom: 10,
     },
     addField: {
       color: Colors.purple,
-      fontWeight: '600',
+      fontWeight: "600",
       marginBottom: height * 0.04,
     },
     nextButton: {
       backgroundColor: Colors.springGreen,
       paddingVertical: height * 0.02,
       borderRadius: 8,
-      alignItems: 'center',
+      alignItems: "center",
     },
     nextButtonText: {
       color: Colors.white,
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: "bold",
     },
   });

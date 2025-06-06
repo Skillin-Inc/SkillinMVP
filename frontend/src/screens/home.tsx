@@ -5,8 +5,12 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useScreenDimensions } from "../hooks";
 
+type RootStackParamList = {
+  ViewUserProfile: undefined;
+};
+
 export default function HomeScreen() {
-  const navigation = useNavigation<NavigationProp<any>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 

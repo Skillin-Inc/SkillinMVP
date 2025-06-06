@@ -1,19 +1,11 @@
 import React, { useState, useContext } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useScreenDimensions } from "../hooks";
-import { Colors, Typography } from "../styles";
+import { Colors } from "../styles";
 import { AuthContext } from "../../src/features/auth/AuthContext"; // ✅ import your context
 
 export default function LoginScreen() {

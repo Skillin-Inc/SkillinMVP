@@ -1,16 +1,9 @@
 import React, { useContext, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useScreenDimensions } from "../hooks";
 import { Colors, Typography } from "../styles";
 import { Ionicons } from "@expo/vector-icons";
-import Avatar from "@components/Avatar";
 import Avatar_Placeholder from "../../assets/icons/Avatar_Placeholder.jpg";
 import { AuthContext } from "../../src/features/auth/AuthContext";
 import { ImagePickerAvatar } from "../components";
@@ -50,10 +43,7 @@ export default function ViewUserProfileScreen() {
   return (
     <View style={styles.container}>
       {/* Top bar */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={28} color={Colors.purple} />
       </TouchableOpacity>
 
@@ -62,7 +52,7 @@ export default function ViewUserProfileScreen() {
       </TouchableOpacity>
 
       <ImagePickerAvatar
-        initialUri={null} // or a URI string if you have one
+        initialUri={undefined} // or a URI string if you have one
         onChange={(uri) => console.log("New avatar URI:", uri)}
         size={140}
       />
@@ -73,9 +63,7 @@ export default function ViewUserProfileScreen() {
         height={screenWidth * 0.4}
         style={styles.avatar}
       /> */}
-      <Text
-        style={styles.name}
-      >{`${mockUser.firstName} ${mockUser.lastName}`}</Text>
+      <Text style={styles.name}>{`${mockUser.firstName} ${mockUser.lastName}`}</Text>
 
       <View style={styles.infoBox}>
         <Text style={styles.label}>DOB: {mockUser.dOB}</Text>
@@ -112,10 +100,7 @@ export default function ViewUserProfileScreen() {
                 </TouchableOpacity>
               </>
             ) : (
-              <TouchableOpacity
-                style={styles.revealButton}
-                onPress={() => setVerifyStep(true)}
-              >
+              <TouchableOpacity style={styles.revealButton} onPress={() => setVerifyStep(true)}>
                 <Text style={styles.revealText}>Reveal Sensitive Info</Text>
               </TouchableOpacity>
             )}
@@ -123,9 +108,7 @@ export default function ViewUserProfileScreen() {
         ) : (
           <>
             <Text style={styles.label}>Password: {mockUser.password}</Text>
-            <Text style={styles.label}>
-              Membership: {mockUser.membershipTier}
-            </Text>
+            <Text style={styles.label}>Membership: {mockUser.membershipTier}</Text>
             <Text style={styles.label}>Payment Info:</Text>
             {mockUser.paymentInfo.map((item, index) => (
               <Text key={index} style={styles.subLabel}>

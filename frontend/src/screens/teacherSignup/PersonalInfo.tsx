@@ -1,24 +1,11 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { StackNavigationProp } from '@react-navigation/stack';
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
+import { StackNavigationProp } from "@react-navigation/stack";
 
-
-import {
-  useScreenDimensions,
-  formatPhoneNumber,
-  formatZipCode,
-  isValidEmail,
-} from '../../hooks';
-import { Colors, Typography } from '../../styles';
+import { useScreenDimensions, formatPhoneNumber, formatZipCode } from "../../hooks";
+import { Colors } from "../../styles";
 
 type TeacherStackParamList = {
   ApplicationStart: undefined;
@@ -26,20 +13,19 @@ type TeacherStackParamList = {
   TeachingExperience: undefined;
 };
 
-
 const PersonalInfoScreen = () => {
   const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [zipCode, setZipCode] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [zipCode, setZipCode] = useState("");
 
   const handleNext = () => {
-    navigation.navigate('TeachingExperience');
+    navigation.navigate("TeachingExperience");
   };
 
   return (
@@ -91,9 +77,7 @@ const PersonalInfoScreen = () => {
       />
 
       <TouchableOpacity style={styles.uploadButton}>
-        <Text style={styles.uploadButtonText}>
-          Upload Profile Photo (optional)
-        </Text>
+        <Text style={styles.uploadButtonText}>Upload Profile Photo (optional)</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
@@ -105,7 +89,6 @@ const PersonalInfoScreen = () => {
 
 export default PersonalInfoScreen;
 
-
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
@@ -115,18 +98,18 @@ const getStyles = (width: number, height: number) =>
       paddingTop: height * 0.08,
     },
     header: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: height * 0.03,
     },
     headerTitle: {
       marginLeft: 15,
       fontSize: width > 400 ? 24 : 22,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: Colors.purple,
     },
     input: {
-      width: '100%',
+      width: "100%",
       height: height * 0.07,
       borderColor: Colors.darkGray,
       borderWidth: 1,
@@ -141,23 +124,23 @@ const getStyles = (width: number, height: number) =>
       borderWidth: 1,
       borderRadius: 8,
       paddingVertical: 10,
-      alignItems: 'center',
+      alignItems: "center",
       marginBottom: height * 0.04,
     },
     uploadButtonText: {
       color: Colors.purple,
       fontSize: 16,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     nextButton: {
       backgroundColor: Colors.springGreen,
       paddingVertical: height * 0.02,
       borderRadius: 8,
-      alignItems: 'center',
+      alignItems: "center",
     },
     nextButtonText: {
       color: Colors.white,
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: "bold",
     },
   });

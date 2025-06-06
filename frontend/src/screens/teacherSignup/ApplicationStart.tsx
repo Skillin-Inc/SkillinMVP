@@ -1,10 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useScreenDimensions } from '../../hooks';
-import { Colors, Typography } from '../../styles';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { useScreenDimensions } from "../../hooks";
+import { Colors } from "../../styles";
+import { Ionicons } from "@expo/vector-icons";
 
 type TeacherStackParamList = {
   ApplicationStart: undefined;
@@ -17,16 +17,10 @@ const ApplicationStartScreen = () => {
   const styles = getStyles(screenWidth, screenHeight);
 
   const handleStart = () => {
-    navigation.navigate('PersonalInfo');
+    navigation.navigate("PersonalInfo");
   };
 
-  const steps = [
-    'Personal Info',
-    'Experience',
-    'Curriculum',
-    'Verification',
-    'Review & Submit',
-  ];
+  const steps = ["Personal Info", "Experience", "Curriculum", "Verification", "Review & Submit"];
 
   return (
     <View style={styles.container}>
@@ -37,7 +31,8 @@ const ApplicationStartScreen = () => {
         <Text style={styles.headerTitle}>Become a Skillin Instructor</Text>
       </View>
       <Text style={styles.subtext}>
-        As an early ambassador of Skillin, you’ll get white-glove support to help set up your teaching profile and curriculum.
+        As an early ambassador of Skillin, you'll get white-glove support to help set up your teaching profile and
+        curriculum.
       </Text>
 
       <Text style={styles.sectionHeader}>Application Steps:</Text>
@@ -69,20 +64,20 @@ const getStyles = (width: number, height: number) =>
       padding: width * 0.06,
       paddingTop: height * 0.1,
     },
-        header: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: height * 0.03,
     },
     headerTitle: {
       marginLeft: 15,
       fontSize: width > 400 ? 24 : 22,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: Colors.purple,
     },
     title: {
       fontSize: width > 400 ? 28 : 24,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: Colors.purple,
       marginBottom: height * 0.02,
     },
@@ -93,13 +88,13 @@ const getStyles = (width: number, height: number) =>
     },
     sectionHeader: {
       fontSize: 18,
-      fontWeight: '600',
+      fontWeight: "600",
       marginBottom: height * 0.02,
       color: Colors.black,
     },
     stepRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       marginBottom: height * 0.015,
     },
     bullet: {
@@ -118,11 +113,11 @@ const getStyles = (width: number, height: number) =>
       backgroundColor: Colors.springGreen,
       paddingVertical: height * 0.018,
       borderRadius: 8,
-      alignItems: 'center',
+      alignItems: "center",
     },
     buttonText: {
       color: Colors.white,
       fontSize: 18,
-      fontWeight: 'bold',
+      fontWeight: "bold",
     },
   });
