@@ -70,7 +70,24 @@ export interface NewMessage {
   content: string;
 }
 
-// Functional approach using closures
+export interface NewLesson {
+  teacher_id: number;
+  title: string;
+  description: string;
+  video_url: string;
+}
+
+export interface Lesson {
+  id: number;
+  teacher_id: number;
+  title: string;
+  description: string;
+  video_url: string;
+  created_at: string;
+  teacher_first_name?: string;
+  teacher_last_name?: string;
+}
+
 function createApiService() {
   const transformBackendUserToUser = (backendUser: BackendUser): User => {
     return {
@@ -157,6 +174,38 @@ function createApiService() {
     });
   };
 
+  const createLesson = async (lessonData: NewLesson): Promise<Lesson> => {
+    return makeRequest<Lesson>(API_CONFIG.ENDPOINTS.LESSONS, {
+      method: "POST",
+      body: JSON.stringify(lessonData),
+    });
+  };
+
+  const getAllLessons = async (): Promise<Lesson[]> => {
+    return makeRequest<Lesson[]>(API_CONFIG.ENDPOINTS.LESSONS);
+  };
+
+  const getLessonById = async (id: number): Promise<Lesson> => {
+    return makeRequest<Lesson>(`${API_CONFIG.ENDPOINTS.LESSONS}/${id}`);
+  };
+
+  const getLessonsByTeacher = async (teacherId: number): Promise<Lesson[]> => {
+    return makeRequest<Lesson[]>(`${API_CONFIG.ENDPOINTS.LESSONS}/teacher/${teacherId}`);
+  };
+
+  const updateLesson = async (id: number, updateData: Partial<NewLesson>): Promise<Lesson> => {
+    return makeRequest<Lesson>(`${API_CONFIG.ENDPOINTS.LESSONS}/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(updateData),
+    });
+  };
+
+  const deleteLesson = async (id: number): Promise<{ success: boolean; message: string }> => {
+    return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.LESSONS}/${id}`, {
+      method: "DELETE",
+    });
+  };
+
   const checkBackendConnection = async (): Promise<{ status: string; message: string; timestamp?: string }> => {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/`);
@@ -183,7 +232,6 @@ function createApiService() {
     return makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>("/health/db");
   };
 
-  // Return the public API
   return {
     register,
     login,
@@ -192,10 +240,15 @@ function createApiService() {
     getConversationsForUser,
     getMessagesBetweenUsers,
     createMessage,
+    createLesson,
+    getAllLessons,
+    getLessonById,
+    getLessonsByTeacher,
+    updateLesson,
+    deleteLesson,
     checkBackendConnection,
     checkDatabaseConnection,
   };
 }
 
-// Create and export a singleton instance
 export const apiService = createApiService();
