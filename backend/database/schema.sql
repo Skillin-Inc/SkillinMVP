@@ -36,6 +36,6 @@ CREATE TABLE "lessons" (
   "teacher_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
   "title" text NOT NULL,
   "description" text NOT NULL,
-  "video_url" text NOT NULL,
+  "video_url" text,
   "created_at" timestamptz(3) default current_timestamp
 );
