@@ -9,7 +9,6 @@ export interface SocketMessage {
   created_at: string;
 }
 
-// Functional approach using closures
 function createWebSocketService() {
   let socket: Socket | null = null;
   let currentUserId: number | null = null;
@@ -105,7 +104,6 @@ function createWebSocketService() {
     return socket?.connected ?? false;
   };
 
-  // Return the public API
   return {
     connect,
     disconnect,
@@ -119,5 +117,4 @@ function createWebSocketService() {
   };
 }
 
-// Create and export a singleton instance
 export const websocketService = createWebSocketService();

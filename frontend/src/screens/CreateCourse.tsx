@@ -109,7 +109,6 @@ export default function CreateCourse() {
         {
           text: "OK",
           onPress: () => {
-            // Reset form
             setFormData({
               title: "",
               description: "",
@@ -474,7 +473,7 @@ function getStyles() {
       color: COLORS.black,
     },
     headerSpacer: {
-      width: 40, // Same width as back button to center the title
+      width: 40,
     },
   });
 }
