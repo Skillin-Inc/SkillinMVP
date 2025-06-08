@@ -485,7 +485,6 @@ export async function deleteUserByEmail(email: string) {
   return result.rows[0] ?? null;
 }
 
-// in Toggle Teacher Status
 export async function toggleIsTeacherByEmail(email: string) {
   const current = await pool.query(`SELECT "is_teacher" FROM public.users WHERE email = $1`, [email]);
 

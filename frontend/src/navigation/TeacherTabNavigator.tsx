@@ -28,7 +28,7 @@ export default function TeacherTabNavigator() {
             case "CreateLesson":
               iconName = "add-circle-outline";
               break;
-            case "Messages":
+            case "MessagesStack":
               iconName = "chatbubble-ellipses-outline";
               break;
             case "Stats":
@@ -42,7 +42,7 @@ export default function TeacherTabNavigator() {
     >
       <Tab.Screen name="TeacherHome" component={TeacherHome} options={{ title: "Home" }} />
       <Tab.Screen name="CreateLesson" component={CreateLesson} options={{ title: "Create" }} />
-      <Tab.Screen name="Messages" component={MessagesStack} />
+      <Tab.Screen name="MessagesStack" component={MessagesStack} />
       <Tab.Screen name="Stats" component={StatsScreen} />
     </Tab.Navigator>
   );

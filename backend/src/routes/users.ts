@@ -133,7 +133,6 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
   return;
 });
 
-// Delete by Email
 const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
   const { email } = req.params;
 
@@ -153,7 +152,6 @@ const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res,
 
 router.delete("/:email", deleteByEmailHandler);
 
-// in Toggle Teacher Status
 import { toggleIsTeacherByEmail } from "../db";
 
 const toggleIsTeacherHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
@@ -175,5 +173,4 @@ const toggleIsTeacherHandler: RequestHandler<{ email: string }> = async (req, re
 
 router.patch("/:email", toggleIsTeacherHandler);
 
-// ✅ Export AFTER all routes are defined
 export default router;
