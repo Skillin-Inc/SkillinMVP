@@ -85,8 +85,36 @@ export interface NewMessage {
   content: string;
 }
 
+export interface NewCategory {
+  title: string;
+}
+
+export interface Category {
+  id: number;
+  title: string;
+}
+
+export interface NewCourse {
+  teacher_id: number;
+  category_id: number;
+  title: string;
+  description: string;
+}
+
+export interface Course {
+  id: number;
+  teacher_id: number;
+  category_id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  teacher_first_name?: string;
+  teacher_last_name?: string;
+}
+
 export interface NewLesson {
   teacher_id: number;
+  course_id: number;
   title: string;
   description: string;
   video_url: string;
@@ -95,6 +123,7 @@ export interface NewLesson {
 export interface Lesson {
   id: number;
   teacher_id: number;
+  course_id: number;
   title: string;
   description: string;
   video_url: string;
@@ -117,15 +146,184 @@ export async function createMessage(data: NewMessage) {
   return result.rows[0];
 }
 
+export async function createCategory(data: NewCategory) {
+  const { title } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.categories
+      ("title")
+     VALUES ($1)
+     RETURNING "id", "title"`,
+    [title]
+  );
+
+  return result.rows[0];
+}
+
+export async function getAllCategories(): Promise<Category[]> {
+  const result = await pool.query(`SELECT * FROM public.categories ORDER BY title ASC`);
+
+  return result.rows;
+}
+
+export async function getCategoryById(id: number): Promise<Category | null> {
+  const result = await pool.query(`SELECT * FROM public.categories WHERE "id" = $1`, [id]);
+
+  return result.rows[0] || null;
+}
+
+export async function updateCategory(id: number, data: Partial<NewCategory>): Promise<Category | null> {
+  const fields = [];
+  const values = [];
+  let paramCount = 1;
+
+  if (data.title !== undefined) {
+    fields.push(`"title" = $${paramCount}`);
+    values.push(data.title);
+    paramCount++;
+  }
+
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  values.push(id);
+
+  const result = await pool.query(
+    `UPDATE public.categories 
+     SET ${fields.join(", ")}
+     WHERE "id" = $${paramCount}
+     RETURNING "id", "title"`,
+    values
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function deleteCategory(id: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM public.categories WHERE "id" = $1`, [id]);
+
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function createCourse(data: NewCourse) {
+  const { teacher_id, category_id, title, description } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.courses
+      ("teacher_id", "category_id", "title", "description")
+     VALUES ($1, $2, $3, $4)
+     RETURNING "id", "teacher_id", "category_id", "title", "description", "created_at"`,
+    [teacher_id, category_id, title, description]
+  );
+
+  return result.rows[0];
+}
+
+export async function getAllCourses(): Promise<Course[]> {
+  const result = await pool.query(
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.courses c
+     JOIN public.users u ON c.teacher_id = u."id"
+     ORDER BY c.created_at DESC`
+  );
+
+  return result.rows;
+}
+
+export async function getCourseById(id: number): Promise<Course | null> {
+  const result = await pool.query(
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.courses c
+     JOIN public.users u ON c.teacher_id = u."id"
+     WHERE c."id" = $1`,
+    [id]
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function getCoursesByTeacher(teacherId: number): Promise<Course[]> {
+  const result = await pool.query(
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.courses c
+     JOIN public.users u ON c.teacher_id = u."id"
+     WHERE c.teacher_id = $1
+     ORDER BY c.created_at DESC`,
+    [teacherId]
+  );
+
+  return result.rows;
+}
+
+export async function getCoursesByCategory(categoryId: number): Promise<Course[]> {
+  const result = await pool.query(
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.courses c
+     JOIN public.users u ON c.teacher_id = u."id"
+     WHERE c.category_id = $1
+     ORDER BY c.created_at DESC`,
+    [categoryId]
+  );
+
+  return result.rows;
+}
+
+export async function updateCourse(id: number, data: Partial<NewCourse>): Promise<Course | null> {
+  const fields = [];
+  const values = [];
+  let paramCount = 1;
+
+  if (data.category_id !== undefined) {
+    fields.push(`"category_id" = $${paramCount}`);
+    values.push(data.category_id);
+    paramCount++;
+  }
+
+  if (data.title !== undefined) {
+    fields.push(`"title" = $${paramCount}`);
+    values.push(data.title);
+    paramCount++;
+  }
+
+  if (data.description !== undefined) {
+    fields.push(`"description" = $${paramCount}`);
+    values.push(data.description);
+    paramCount++;
+  }
+
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  values.push(id);
+
+  const result = await pool.query(
+    `UPDATE public.courses 
+     SET ${fields.join(", ")}
+     WHERE "id" = $${paramCount}
+     RETURNING "id", "teacher_id", "category_id", "title", "description", "created_at"`,
+    values
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function deleteCourse(id: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM public.courses WHERE "id" = $1`, [id]);
+
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function createLesson(data: NewLesson) {
-  const { teacher_id, title, description, video_url } = data;
+  const { teacher_id, course_id, title, description, video_url } = data;
 
   const result = await pool.query(
     `INSERT INTO public.lessons
-      ("teacher_id", "title", "description", "video_url")
-     VALUES ($1, $2, $3, $4)
-     RETURNING "id", "teacher_id", "title", "description", "video_url", "created_at"`,
-    [teacher_id, title, description, video_url]
+      ("teacher_id", "course_id", "title", "description", "video_url")
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING "id", "teacher_id", "course_id", "title", "description", "video_url", "created_at"`,
+    [teacher_id, course_id, title, description, video_url]
   );
 
   return result.rows[0];
@@ -167,10 +365,29 @@ export async function getLessonsByTeacher(teacherId: number): Promise<Lesson[]> 
   return result.rows;
 }
 
+export async function getLessonsByCourse(courseId: number): Promise<Lesson[]> {
+  const result = await pool.query(
+    `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.lessons l
+     JOIN public.users u ON l.teacher_id = u."id"
+     WHERE l.course_id = $1
+     ORDER BY l.created_at DESC`,
+    [courseId]
+  );
+
+  return result.rows;
+}
+
 export async function updateLesson(id: number, data: Partial<NewLesson>): Promise<Lesson | null> {
   const fields = [];
   const values = [];
   let paramCount = 1;
+
+  if (data.course_id !== undefined) {
+    fields.push(`"course_id" = $${paramCount}`);
+    values.push(data.course_id);
+    paramCount++;
+  }
 
   if (data.title !== undefined) {
     fields.push(`"title" = $${paramCount}`);
@@ -200,7 +417,7 @@ export async function updateLesson(id: number, data: Partial<NewLesson>): Promis
     `UPDATE public.lessons 
      SET ${fields.join(", ")}
      WHERE "id" = $${paramCount}
-     RETURNING "id", "teacher_id", "title", "description", "video_url", "created_at"`,
+     RETURNING "id", "teacher_id", "course_id", "title", "description", "video_url", "created_at"`,
     values
   );
 

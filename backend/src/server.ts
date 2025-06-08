@@ -9,6 +9,8 @@ import usersRouter from "./routes/users";
 import sendEmailRouter from "./routes/sendEmail";
 import messagesRouter from "./routes/messages";
 import lessonsRouter from "./routes/lessons";
+import coursesRouter from "./routes/courses";
+import categoriesRouter from "./routes/categories";
 import { pool } from "./db";
 
 const app = express();
@@ -114,6 +116,8 @@ app.use("/users", usersRouter);
 app.use("/send-email", sendEmailRouter);
 app.use("/messages", messagesRouter);
 app.use("/lessons", lessonsRouter);
+app.use("/courses", coursesRouter);
+app.use("/categories", categoriesRouter);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });

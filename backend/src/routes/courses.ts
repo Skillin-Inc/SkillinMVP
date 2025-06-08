@@ -1,21 +1,21 @@
 import { Router, Request, Response } from "express";
 import {
-  createLesson,
-  getAllLessons,
-  getLessonById,
-  getLessonsByTeacher,
-  getLessonsByCourse,
-  updateLesson,
-  deleteLesson,
-  NewLesson,
+  createCourse,
+  getAllCourses,
+  getCourseById,
+  getCoursesByTeacher,
+  getCoursesByCategory,
+  updateCourse,
+  deleteCourse,
+  NewCourse,
 } from "../db";
 
 const router = Router();
 
-router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response): Promise<void> => {
+router.post("/", async (req: Request<object, unknown, NewCourse>, res: Response): Promise<void> => {
   const body = req.body;
 
-  const required: (keyof NewLesson)[] = ["teacher_id", "course_id", "title", "description"];
+  const required: (keyof NewCourse)[] = ["teacher_id", "category_id", "title", "description"];
 
   for (const key of required) {
     if (body[key] === undefined) {
@@ -29,8 +29,8 @@ router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response)
     return;
   }
 
-  if (typeof body.course_id !== "number") {
-    res.status(400).json({ error: "course_id must be a number" });
+  if (typeof body.category_id !== "number") {
+    res.status(400).json({ error: "category_id must be a number" });
     return;
   }
 
@@ -39,20 +39,16 @@ router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response)
     return;
   }
 
-  // video_url is optional for now (will be added via file upload later)
-  const video_url = body.video_url || "";
-
   try {
-    const lessonData = {
+    const courseData = {
       teacher_id: body.teacher_id,
-      course_id: body.course_id,
+      category_id: body.category_id,
       title: body.title.trim(),
       description: body.description.trim(),
-      video_url: video_url,
     };
 
-    const newLesson = await createLesson(lessonData);
-    res.status(201).json(newLesson);
+    const newCourse = await createCourse(courseData);
+    res.status(201).json(newCourse);
   } catch (error: unknown) {
     console.error(error);
     if (error instanceof Error) {
@@ -65,8 +61,8 @@ router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response)
 
 router.get("/", async (req, res) => {
   try {
-    const lessons = await getAllLessons();
-    res.json(lessons);
+    const courses = await getAllCourses();
+    res.json(courses);
   } catch (error: unknown) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -77,17 +73,17 @@ router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
   if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid lesson ID" });
+    res.status(400).json({ error: "Invalid course ID" });
     return;
   }
 
   try {
-    const lesson = await getLessonById(id);
-    if (!lesson) {
-      res.status(404).json({ error: "Lesson not found" });
+    const course = await getCourseById(id);
+    if (!course) {
+      res.status(404).json({ error: "Course not found" });
       return;
     }
-    res.json(lesson);
+    res.json(course);
   } catch (error: unknown) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -103,25 +99,25 @@ router.get("/teacher/:teacherId", async (req, res) => {
   }
 
   try {
-    const lessons = await getLessonsByTeacher(teacherId);
-    res.json(lessons);
+    const courses = await getCoursesByTeacher(teacherId);
+    res.json(courses);
   } catch (error: unknown) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-router.get("/course/:courseId", async (req, res) => {
-  const courseId = Number(req.params.courseId);
+router.get("/category/:categoryId", async (req, res) => {
+  const categoryId = Number(req.params.categoryId);
 
-  if (isNaN(courseId)) {
-    res.status(400).json({ error: "Invalid course ID" });
+  if (isNaN(categoryId)) {
+    res.status(400).json({ error: "Invalid category ID" });
     return;
   }
 
   try {
-    const lessons = await getLessonsByCourse(courseId);
-    res.json(lessons);
+    const courses = await getCoursesByCategory(categoryId);
+    res.json(courses);
   } catch (error: unknown) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });
@@ -133,27 +129,25 @@ router.put("/:id", async (req, res) => {
   const updateData = req.body;
 
   if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid lesson ID" });
+    res.status(400).json({ error: "Invalid course ID" });
     return;
   }
 
-  const allowedFields = ["course_id", "title", "description", "video_url"];
+  const allowedFields = ["category_id", "title", "description"];
   const providedFields = Object.keys(updateData).filter((key) => allowedFields.includes(key));
 
   if (providedFields.length === 0) {
-    res
-      .status(400)
-      .json({ error: "At least one field (course_id, title, description, video_url) must be provided for update" });
+    res.status(400).json({ error: "At least one field (category_id, title, description) must be provided for update" });
     return;
   }
 
   try {
-    const updatedLesson = await updateLesson(id, updateData);
-    if (!updatedLesson) {
-      res.status(404).json({ error: "Lesson not found" });
+    const updatedCourse = await updateCourse(id, updateData);
+    if (!updatedCourse) {
+      res.status(404).json({ error: "Course not found" });
       return;
     }
-    res.json(updatedLesson);
+    res.json(updatedCourse);
   } catch (error: unknown) {
     console.error(error);
     if (error instanceof Error) {
@@ -168,17 +162,17 @@ router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
 
   if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid lesson ID" });
+    res.status(400).json({ error: "Invalid course ID" });
     return;
   }
 
   try {
-    const deleted = await deleteLesson(id);
+    const deleted = await deleteCourse(id);
     if (!deleted) {
-      res.status(404).json({ error: "Lesson not found" });
+      res.status(404).json({ error: "Course not found" });
       return;
     }
-    res.json({ success: true, message: "Lesson deleted successfully" });
+    res.json({ success: true, message: "Course deleted successfully" });
   } catch (error: unknown) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });

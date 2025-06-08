@@ -31,7 +31,7 @@ export default function TeacherHome() {
         <TouchableOpacity style={styles.smallCard}>
           <Text style={styles.smallCardText}>📚 My Courses</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.smallCard}>
+        <TouchableOpacity style={styles.smallCard} onPress={() => navigation.navigate("CreateCourse")}>
           <Text style={styles.smallCardText}>➕ Create Course</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.smallCard}>
