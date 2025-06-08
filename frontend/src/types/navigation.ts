@@ -45,4 +45,5 @@ export type RootStackParamList = {
   TeacherTabs: undefined;
   Profile: { from: "TeacherHome" | "Home" };
   TopicDetail: { topic: string };
+  CreateCourse: undefined;
 };

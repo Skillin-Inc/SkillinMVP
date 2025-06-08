@@ -31,9 +31,24 @@ CREATE TABLE "messages" (
   "created_at" timestamptz(3) default current_timestamp
 );
 
+CREATE TABLE "categories" (
+  "id" serial PRIMARY KEY,
+  "title" text NOT NULL
+);
+
+CREATE TABLE "courses" (
+  "id" serial PRIMARY KEY,
+  "teacher_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "category_id" integer NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE,
+  "title" text NOT NULL,
+  "description" text NOT NULL,
+  "created_at" timestamptz(3) default current_timestamp
+);
+
 CREATE TABLE "lessons" (
   "id" serial PRIMARY KEY,
   "teacher_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "course_id" integer NOT NULL REFERENCES "courses"("id") ON DELETE CASCADE,
   "title" text NOT NULL,
   "description" text NOT NULL,
   "video_url" text,

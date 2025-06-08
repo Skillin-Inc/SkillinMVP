@@ -10,6 +10,7 @@ import TeacherTabNavigator from "./TeacherTabNavigator"; // adjust the path as n
 
 import TopicDetail from "../screens/TopicDetail"; // adjust path if needed
 import Profile from "../screens/Profile"; // adjust path if needed
+import CreateCourse from "../screens/CreateCourse"; // adjust path if needed
 import { RootStackParamList } from "src/types";
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -27,6 +28,7 @@ export default function AppNavigator() {
           <RootStack.Screen name="TopicDetail" component={TopicDetail} />
           <RootStack.Screen name="TeacherTabs" component={TeacherTabNavigator} />
           <RootStack.Screen name="Profile" component={Profile} />
+          <RootStack.Screen name="CreateCourse" component={CreateCourse} />
         </RootStack.Navigator>
       ) : (
         <AuthStack />

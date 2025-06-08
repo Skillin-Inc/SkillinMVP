@@ -1,16 +1,32 @@
 import React, { useContext } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 import { useScreenDimensions } from "../hooks";
 import { AuthContext } from "../hooks/AuthContext";
 import { apiService } from "../services/api";
 import { COLORS } from "../styles";
+import { RootStackParamList } from "../types";
+
+type TempScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 export default function Temp() {
   const { screenWidth } = useScreenDimensions();
   const { user: currentUser } = useContext(AuthContext);
+  const navigation = useNavigation<TempScreenNavigationProp>();
   const styles = getStyles(screenWidth);
+
+  const handleSwitchToUserStack = () => {
+    navigation.navigate("UserTabs");
+    Alert.alert("Navigation", "Switched to User Stack");
+  };
+
+  const handleSwitchToTeacherStack = () => {
+    navigation.navigate("TeacherTabs");
+    Alert.alert("Navigation", "Switched to Teacher Stack");
+  };
 
   const handleLogAllUsers = async () => {
     try {
@@ -84,29 +100,49 @@ export default function Temp() {
 
       <View style={styles.content}>
         <Text style={styles.description}>
-          This screen contains buttons to log different data to the console and test system connections. Check the
-          console output after pressing each button.
+          This screen contains buttons to log different data to the console, test system connections, and switch between
+          navigation stacks.
         </Text>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogAllUsers}>
-          <Ionicons name="people-outline" size={24} color={COLORS.white} />
-          <Text style={styles.buttonText}>Log All Users</Text>
-        </TouchableOpacity>
+        {/* Navigation Stack Switcher Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Navigation Stack Switcher</Text>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogCurrentUserMessages}>
-          <Ionicons name="person-circle-outline" size={24} color={COLORS.white} />
-          <Text style={styles.buttonText}>Log Current User Messages</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.userStackButton]} onPress={handleSwitchToUserStack}>
+            <Ionicons name="person-outline" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>Switch to User Stack</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button} onPress={handleTestBackendConnection}>
-          <Ionicons name="server-outline" size={24} color={COLORS.white} />
-          <Text style={styles.buttonText}>Test Backend Connection</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.teacherStackButton]} onPress={handleSwitchToTeacherStack}>
+            <Ionicons name="school-outline" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>Switch to Teacher Stack</Text>
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleTestDatabaseConnection}>
-          <Ionicons name="disc-outline" size={24} color={COLORS.white} />
-          <Text style={styles.buttonText}>Test Database Connection</Text>
-        </TouchableOpacity>
+        {/* Debugging Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Debug Tools</Text>
+
+          <TouchableOpacity style={styles.button} onPress={handleLogAllUsers}>
+            <Ionicons name="people-outline" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>Log All Users</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={handleLogCurrentUserMessages}>
+            <Ionicons name="person-circle-outline" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>Log Current User Messages</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={handleTestBackendConnection}>
+            <Ionicons name="server-outline" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>Test Backend Connection</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button} onPress={handleTestDatabaseConnection}>
+            <Ionicons name="disc-outline" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>Test Database Connection</Text>
+          </TouchableOpacity>
+        </View>
 
         {currentUser && (
           <View style={styles.userInfo}>
@@ -139,14 +175,23 @@ function getStyles(screenWidth: number) {
     content: {
       flex: 1,
       padding: 20,
-      justifyContent: "center",
     },
     description: {
       fontSize: screenWidth > 400 ? 16 : 14,
       color: COLORS.gray,
       textAlign: "center",
-      marginBottom: 40,
+      marginBottom: 30,
       lineHeight: 22,
+    },
+    sectionContainer: {
+      marginBottom: 30,
+    },
+    sectionTitle: {
+      fontSize: screenWidth > 400 ? 18 : 16,
+      fontWeight: "bold",
+      color: COLORS.black,
+      marginBottom: 15,
+      textAlign: "center",
     },
     button: {
       backgroundColor: COLORS.purple,
@@ -155,7 +200,7 @@ function getStyles(screenWidth: number) {
       justifyContent: "center",
       padding: 16,
       borderRadius: 12,
-      marginBottom: 16,
+      marginBottom: 12,
       elevation: 2,
       shadowColor: "#000",
       shadowOffset: {
@@ -165,6 +210,12 @@ function getStyles(screenWidth: number) {
       shadowOpacity: 0.1,
       shadowRadius: 4,
     },
+    userStackButton: {
+      backgroundColor: "#007AFF", // Blue for user stack
+    },
+    teacherStackButton: {
+      backgroundColor: "#34C759", // Green for teacher stack
+    },
     buttonText: {
       color: COLORS.white,
       fontSize: screenWidth > 400 ? 18 : 16,
@@ -172,7 +223,7 @@ function getStyles(screenWidth: number) {
       marginLeft: 12,
     },
     userInfo: {
-      marginTop: 40,
+      marginTop: 20,
       padding: 16,
       backgroundColor: COLORS.lightGray,
       borderRadius: 8,

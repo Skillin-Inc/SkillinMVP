@@ -80,8 +80,36 @@ export interface NewMessage {
   content: string;
 }
 
+export interface NewCategory {
+  title: string;
+}
+
+export interface Category {
+  id: number;
+  title: string;
+}
+
+export interface NewCourse {
+  teacher_id: number;
+  category_id: number;
+  title: string;
+  description: string;
+}
+
+export interface Course {
+  id: number;
+  teacher_id: number;
+  category_id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  teacher_first_name?: string;
+  teacher_last_name?: string;
+}
+
 export interface NewLesson {
   teacher_id: number;
+  course_id: number;
   title: string;
   description: string;
   video_url: string;
@@ -90,6 +118,7 @@ export interface NewLesson {
 export interface Lesson {
   id: number;
   teacher_id: number;
+  course_id: number;
   title: string;
   description: string;
   video_url: string;
@@ -216,6 +245,74 @@ function createApiService() {
     });
   };
 
+  const getLessonsByCourse = async (courseId: number): Promise<Lesson[]> => {
+    return makeRequest<Lesson[]>(`${API_CONFIG.ENDPOINTS.LESSONS}/course/${courseId}`);
+  };
+
+  const createCourse = async (courseData: NewCourse): Promise<Course> => {
+    return makeRequest<Course>(API_CONFIG.ENDPOINTS.COURSES, {
+      method: "POST",
+      body: JSON.stringify(courseData),
+    });
+  };
+
+  const getAllCourses = async (): Promise<Course[]> => {
+    return makeRequest<Course[]>(API_CONFIG.ENDPOINTS.COURSES);
+  };
+
+  const getCourseById = async (id: number): Promise<Course> => {
+    return makeRequest<Course>(`${API_CONFIG.ENDPOINTS.COURSES}/${id}`);
+  };
+
+  const getCoursesByTeacher = async (teacherId: number): Promise<Course[]> => {
+    return makeRequest<Course[]>(`${API_CONFIG.ENDPOINTS.COURSES}/teacher/${teacherId}`);
+  };
+
+  const updateCourse = async (id: number, updateData: Partial<NewCourse>): Promise<Course> => {
+    return makeRequest<Course>(`${API_CONFIG.ENDPOINTS.COURSES}/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(updateData),
+    });
+  };
+
+  const deleteCourse = async (id: number): Promise<{ success: boolean; message: string }> => {
+    return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.COURSES}/${id}`, {
+      method: "DELETE",
+    });
+  };
+
+  const getCoursesByCategory = async (categoryId: number): Promise<Course[]> => {
+    return makeRequest<Course[]>(`${API_CONFIG.ENDPOINTS.COURSES}/category/${categoryId}`);
+  };
+
+  const createCategory = async (categoryData: NewCategory): Promise<Category> => {
+    return makeRequest<Category>(API_CONFIG.ENDPOINTS.CATEGORIES, {
+      method: "POST",
+      body: JSON.stringify(categoryData),
+    });
+  };
+
+  const getAllCategories = async (): Promise<Category[]> => {
+    return makeRequest<Category[]>(API_CONFIG.ENDPOINTS.CATEGORIES);
+  };
+
+  const getCategoryById = async (id: number): Promise<Category> => {
+    return makeRequest<Category>(`${API_CONFIG.ENDPOINTS.CATEGORIES}/${id}`);
+  };
+
+  const updateCategory = async (id: number, updateData: Partial<NewCategory>): Promise<Category> => {
+    return makeRequest<Category>(`${API_CONFIG.ENDPOINTS.CATEGORIES}/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(updateData),
+    });
+  };
+
+  const deleteCategory = async (id: number): Promise<{ success: boolean; message: string }> => {
+    return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.CATEGORIES}/${id}`, {
+      method: "DELETE",
+    });
+  };
+
   const checkBackendConnection = async (): Promise<{ status: string; message: string; timestamp?: string }> => {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/`);
@@ -254,8 +351,21 @@ function createApiService() {
     getAllLessons,
     getLessonById,
     getLessonsByTeacher,
+    getLessonsByCourse,
     updateLesson,
     deleteLesson,
+    createCourse,
+    getAllCourses,
+    getCourseById,
+    getCoursesByTeacher,
+    getCoursesByCategory,
+    updateCourse,
+    deleteCourse,
+    createCategory,
+    getAllCategories,
+    getCategoryById,
+    updateCategory,
+    deleteCategory,
     checkBackendConnection,
     checkDatabaseConnection,
   };

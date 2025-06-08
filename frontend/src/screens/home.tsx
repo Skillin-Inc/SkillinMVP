@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -8,16 +8,11 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { useScreenDimensions } from "../hooks";
 import { RootStackParamList } from "../types";
 import CategoryCard from "../components/CategoryCard";
+import { apiService, Category } from "../services/api";
 import temp from "../../assets/playingCards.png";
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
 
-const topics = [
-  { label: "Poker", image: temp },
-  { label: "Snowboarding", image: temp },
-  { label: "Finance", image: temp },
-  { label: "Other", image: temp },
-];
 const altCategories = [
   { label: "Tutors", image: temp },
   { label: "Lessons", image: temp },
@@ -28,6 +23,25 @@ export default function Home() {
   const navigation = useNavigation<NavigationProp>();
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const categoriesData = await apiService.getAllCategories();
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error("Error loading categories:", error);
+      Alert.alert("Error", "Failed to load categories. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleViewProfile = () => {
     navigation.navigate("Profile", { from: "Home" });
@@ -43,18 +57,29 @@ export default function Home() {
 
       <Text style={styles.title}>Welcome to Skillin!</Text>
 
-      {/* First Category Section */}
+      {/* Topics Section */}
       <Text style={styles.sectionTitle}>Topics</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
-        {topics.map((cat) => (
-          <CategoryCard
-            key={cat.label}
-            label={cat.label}
-            image={cat.image}
-            onPress={() => navigation.navigate("TopicDetail", { topic: cat.label })}
-          />
-        ))}
-      </ScrollView>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator color="#414288" size="small" />
+          <Text style={styles.loadingText}>Loading topics...</Text>
+        </View>
+      ) : categories.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No topics available</Text>
+        </View>
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
+          {categories.map((category) => (
+            <CategoryCard
+              key={category.id}
+              label={category.title}
+              image={temp}
+              onPress={() => navigation.navigate("TopicDetail", { topic: category.title })}
+            />
+          ))}
+        </ScrollView>
+      )}
 
       {/* Video Lessons Section */}
       <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Video, Lessons, and Tutors</Text>
@@ -117,6 +142,27 @@ function getStyles(width: number, height: number) {
       fontWeight: "bold",
       textAlign: "center",
       paddingHorizontal: 6,
+    },
+    loadingContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+    },
+    loadingText: {
+      marginLeft: 8,
+      fontSize: 16,
+      color: "#666",
+    },
+    emptyContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: "#666",
+      textAlign: "center",
     },
   });
 }

@@ -25,6 +25,13 @@ async function setupDatabase() {
     await pool.query(schema);
     console.log("Successfully set up db schema");
 
+    const dataPath = path.join(__dirname, "database", "data.sql");
+    const data = fs.readFileSync(dataPath, "utf8");
+
+    console.log("Inserting sample data...");
+    await pool.query(data);
+    console.log("Successfully inserted sample data");
+
     console.log("Db setup complete");
   } catch (error) {
     console.error("Db setup failed:");
