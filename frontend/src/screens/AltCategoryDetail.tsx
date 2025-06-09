@@ -5,7 +5,7 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 
 import { RootStackParamList } from "../types";
-import { Course, apiService } from "../services/api";
+import { apiService, Course, Lesson } from "../services/api";
 
 type AltCategoryDetailRouteProp = RouteProp<RootStackParamList, "AltCategoryDetail">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -13,9 +13,10 @@ type NavigationProp = StackNavigationProp<RootStackParamList>;
 export default function AltCategoryDetail() {
   const route = useRoute<AltCategoryDetailRouteProp>();
   const navigation = useNavigation<NavigationProp>();
-  const { category } = route.params;
+  const { topic: category } = route.params;
 
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [content, setContent] = useState<Course[] | Lesson[]>([]);
+  const [isLessonMode, setIsLessonMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -26,9 +27,28 @@ export default function AltCategoryDetail() {
   const fetchAltCategoryContent = async () => {
     try {
       setLoading(true);
-      const allCourses = await apiService.getAllCourses(); // You can replace this with a category-specific fetch if available
-      const filtered = allCourses.filter((c) => c.tags?.some((tag) => tag.toLowerCase() === category.toLowerCase()));
-      setCourses(filtered);
+
+      if (category.toLowerCase() === "lessons") {
+        const lessons = await apiService.getAllLessons();
+        setContent(lessons);
+        setIsLessonMode(true);
+        return;
+      }
+
+      const categories = await apiService.getAllCategories();
+      const matchedCategory = categories.find((cat) => cat.title.toLowerCase() === category.toLowerCase());
+
+      if (!matchedCategory) {
+        Alert.alert("Error", `No matching category found for "${category}"`);
+        setContent([]);
+        return;
+      }
+
+      const allCourses = await apiService.getAllCourses();
+      const filtered = allCourses.filter((course) => course.category_id === matchedCategory.id);
+
+      setContent(filtered);
+      setIsLessonMode(false);
     } catch (error) {
       console.error("Failed to load data:", error);
       Alert.alert("Error", "Unable to fetch content for this category.");
@@ -37,17 +57,17 @@ export default function AltCategoryDetail() {
     }
   };
 
-  const filteredCourses = courses.filter(
-    (course) =>
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredContent = content.filter(
+    (item) =>
+      ("title" in item && item.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      ("description" in item && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const handleCoursePress = (course: Course) => {
-    Alert.alert("Selected", `You selected: ${course.title}`);
+  const handleCoursePress = (item: Course | Lesson) => {
+    Alert.alert("Selected", `You selected: ${item.title}`);
   };
 
-  const renderItem = ({ item }: { item: Course }) => (
+  const renderItem = ({ item }: { item: Course | Lesson }) => (
     <TouchableOpacity style={styles.card} onPress={() => handleCoursePress(item)}>
       <Text style={styles.cardTitle}>{item.title}</Text>
       <Text style={styles.cardDesc} numberOfLines={3}>
@@ -65,7 +85,6 @@ export default function AltCategoryDetail() {
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back" size={28} color="#414288" />
       </TouchableOpacity>
@@ -74,12 +93,11 @@ export default function AltCategoryDetail() {
         <Text style={styles.title}>{category}</Text>
         {!loading && (
           <Text style={styles.subtitle}>
-            {filteredCourses.length} item{filteredCourses.length !== 1 ? "s" : ""}
+            {filteredContent.length} item{filteredContent.length !== 1 ? "s" : ""}
           </Text>
         )}
       </View>
 
-      {/* Search */}
       {!loading && (
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#666" />
@@ -105,11 +123,12 @@ export default function AltCategoryDetail() {
         </View>
       ) : (
         <FlatList
-          data={filteredCourses}
+          data={filteredContent}
           renderItem={renderItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => ("id" in item ? item.id.toString() : Math.random().toString())}
           ListEmptyComponent={renderEmpty}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
         />
       )}
     </View>
@@ -204,39 +223,3 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 });
-
-// idk what this is someone wrote it but it broke stuff inside of home so i changed it.
-// Topics Section
-// <Text style={styles.sectionTitle}>Topics</Text>
-// {loading ? (
-// <View style={styles.loadingContainer}>
-// <ActivityIndicator color="#414288" size="small" />
-// <Text style={styles.loadingText}>Loading topics...</Text>
-// </View>
-// ) : categories.length === 0 ? (
-// <View style={styles.emptyContainer}>
-// <Text style={styles.emptyText}>No topics available</Text>
-// </View>
-// ) : (
-// <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
-// {categories.map((category) => (
-// <CategoryCard
-// key={category.id}
-// label={category.title}
-// image={temp}
-// onPress={() => navigation.navigate("TopicDetail", { topic: category.title })}
-// />
-// ))}
-// </ScrollView>
-// )}
-
-// {/* Video Lessons Section */}
-// <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Video, Lessons, and Tutors</Text>
-// <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
-// {altCategories.map((cat) => (
-// <CategoryCard key={cat.label} label={cat.label} image={cat.image} />
-// ))}
-// </ScrollView>
-// </View>
-// );
-// }
