@@ -3,15 +3,15 @@ import React, { useState } from "react";
 import { View, Image, StyleSheet, TouchableOpacity, Text, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import defaultAvatar from "../../assets/icons/Avatar_Placeholder.jpg";
+import AvatarPlaceholder from "../../assets/icons/Avatar_Placeholder.png";
 
-interface Props {
-  initialUri?: string;
+type Props = {
+  initialUri?: string | undefined;
   onChange?: (uri: string) => void;
   size?: number;
-}
+};
 
-const ImagePickerAvatar: React.FC<Props> = ({ initialUri, onChange, size = 140 }) => {
+export default function ImagePickerAvatar({ initialUri, onChange, size = 140 }: Props) {
   const [imageUri, setImageUri] = useState(initialUri || "");
 
   const pickImage = async () => {
@@ -39,7 +39,7 @@ const ImagePickerAvatar: React.FC<Props> = ({ initialUri, onChange, size = 140 }
     <View style={{ alignItems: "center" }}>
       <TouchableOpacity onPress={pickImage}>
         <Image
-          source={imageUri ? { uri: imageUri } : defaultAvatar}
+          source={imageUri ? { uri: imageUri } : AvatarPlaceholder}
           style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}
         />
         <View style={styles.editIcon}>
@@ -49,9 +49,7 @@ const ImagePickerAvatar: React.FC<Props> = ({ initialUri, onChange, size = 140 }
       <Text style={styles.label}>Tap to change avatar</Text>
     </View>
   );
-};
-
-export default ImagePickerAvatar;
+}
 
 const styles = StyleSheet.create({
   avatar: {

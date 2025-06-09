@@ -1,10 +1,30 @@
 // src/routes/users.ts
-import { Router, Request, Response } from "express";
-import { createUser, NewUser, getUserById, getUserByAccount, getUserByPhone, getUserByEmail } from "../db";
+import { Router, Request, Response, RequestHandler } from "express";
+import {
+  createUser,
+  NewUser,
+  getUserById,
+  getUserByUsername,
+  getUserByPhone,
+  getUserByEmail,
+  verifyUser,
+  getAllUsers,
+  deleteUserByEmail,
+} from "../db";
 
 const router = Router();
 
-// GET /users/:id
+router.get("/", async (req, res) => {
+  try {
+    const users = await getAllUsers();
+    res.json(users);
+  } catch (error: unknown) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+  return;
+});
+
 router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
   const user = await getUserById(id);
@@ -18,10 +38,9 @@ router.get("/:id", async (req, res) => {
   return;
 });
 
-// GET /users/:account_name
-router.get("/by-account/:account", async (req, res) => {
-  const account = String(req.params.account);
-  const user = await getUserByAccount(account);
+router.get("/by-username/:username", async (req, res) => {
+  const username = String(req.params.username);
+  const user = await getUserByUsername(username);
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
@@ -31,10 +50,9 @@ router.get("/by-account/:account", async (req, res) => {
   return;
 });
 
-// GET /users/:phone_name
 router.get("/by-phone/:phone", async (req, res) => {
-  const phone_number = String(req.params.phone);
-  const user = await getUserByPhone(phone_number);
+  const phoneNumber = String(req.params.phone);
+  const user = await getUserByPhone(phoneNumber);
   if (!user) {
     res.status(404).json({ error: "User not found" });
     return;
@@ -44,7 +62,6 @@ router.get("/by-phone/:phone", async (req, res) => {
   return;
 });
 
-// GET /users/:email
 router.get("/by-email/:email", async (req, res) => {
   const email = String(req.params.email);
   const user = await getUserByEmail(email);
@@ -58,39 +75,102 @@ router.get("/by-email/:email", async (req, res) => {
 });
 
 router.post(
-  "/",
-  // 1st generic: params (none → object)
-  // 2nd generic: response body (unknown)
-  // 3rd generic: request body (NewUser)
-  async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
-    const body = req.body;
+  "/login",
+  async (req: Request<object, unknown, { emailOrPhone: string; password: string }>, res: Response): Promise<void> => {
+    const { emailOrPhone, password } = req.body;
 
-    const required: (keyof NewUser)[] = [
-      "firstname",
-      "lastname",
-      "email",
-      "phone_number",
-      "account_name",
-      "password",
-      "postal_code",
-    ];
-
-    for (const key of required) {
-      if (body[key] === undefined) {
-        res.status(400).json({ error: `Missing field: ${key}` });
-        return;
-      }
+    if (!emailOrPhone || !password) {
+      res.status(400).json({ error: "Email/phone and password are required" });
+      return;
     }
 
     try {
-      const newUser = await createUser(body);
-      res.status(201).json(newUser);
-    } catch (err: unknown) {
-      console.error(err);
-      res.status(500).json({ error: err instanceof Error ? err.message : "Unknown error" });
+      const user = await verifyUser(emailOrPhone, password);
+      if (!user) {
+        res.status(401).json({ error: "Invalid credentials" });
+        return;
+      }
+
+      res.json({ success: true, user });
+    } catch (error: unknown) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
     }
-    return;
   }
 );
+
+router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
+  const body = req.body;
+
+  const required: (keyof NewUser)[] = [
+    "firstName",
+    "lastName",
+    "email",
+    "phoneNumber",
+    "username",
+    "password",
+    "postalCode",
+  ];
+
+  for (const key of required) {
+    if (body[key] === undefined) {
+      res.status(400).json({ error: `Missing field: ${key}` });
+      return;
+    }
+  }
+
+  try {
+    const newUser = await createUser(body);
+    res.status(201).json(newUser);
+  } catch (error: unknown) {
+    console.error(error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error occurred" });
+    }
+  }
+  return;
+});
+
+const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
+  const { email } = req.params;
+
+  try {
+    const deleted = await deleteUserByEmail(email);
+
+    if (deleted) {
+      res.status(200).json({ message: "User deleted", user: deleted });
+    } else {
+      res.status(404).json({ message: "No user found" });
+    }
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.delete("/:email", deleteByEmailHandler);
+
+import { toggleIsTeacherByEmail } from "../db";
+
+const toggleIsTeacherHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
+  const { email } = req.params;
+
+  try {
+    const updated = await toggleIsTeacherByEmail(email);
+
+    if (updated) {
+      res.status(200).json({ message: "isTeacher toggled", user: updated });
+    } else {
+      res.status(404).json({ message: "No user found" });
+    }
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.patch("/:email", toggleIsTeacherHandler);
 
 export default router;

@@ -2,7 +2,6 @@ name: Validate Code
 
 on:
   pull_request:
-    branches: [main]
 
 jobs:
   validate:

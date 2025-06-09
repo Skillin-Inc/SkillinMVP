@@ -8,6 +8,7 @@
     "dev": "npm run dev --prefix backend",
     "setup-db": "npm run setup-db --prefix backend",
     "db:import": "sh backend/database/import.sh",
+    "pgweb": "pgweb --listen=8082",
     "install:frontend": "npm install --prefix frontend",
     "install:backend": "npm install --prefix backend",
     "postinstall": "npm-run-all --parallel install:*",

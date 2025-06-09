@@ -1,79 +1,504 @@
 // src/db.ts
 import { Pool } from "pg";
-import dotenv from "dotenv";
-dotenv.config();
+import "dotenv/config";
 
 export const pool = new Pool({
-  host:     process.env.PG_HOST,
-  port:     Number(process.env.PG_PORT) || 5432,
-  user:     process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
-  database: process.env.PG_DATABASE,
+  connectionString: process.env.DATABASE_URL,
 });
 
 export async function getUserById(id: number) {
-  const result = await pool.query(
-    "SELECT * FROM public.users WHERE id = $1",
-    [id]
-  );
+  const result = await pool.query('SELECT * FROM public.users WHERE "id" = $1', [id]);
   return result.rows[0] ?? null;
 }
 
-export async function getUserByAccount(account_name: string) {
-  const result = await pool.query(
-    "SELECT * FROM public.users WHERE account_name = $1",
-    [account_name]
-  );
+export async function getUserByUsername(username: string) {
+  const result = await pool.query("SELECT * FROM public.users WHERE username = $1", [username]);
   return result.rows[0] ?? null;
 }
 
-export async function getUserByPhone(phone_number: string) {
-  const result = await pool.query(
-    "SELECT * FROM public.users WHERE phone_number = $1",
-    [phone_number]
-  );
+export async function getUserByPhone(phoneNumber: string) {
+  const result = await pool.query('SELECT * FROM public.users WHERE "phone_number" = $1', [phoneNumber]);
   return result.rows[0] ?? null;
 }
 
 export async function getUserByEmail(email: string) {
+  const result = await pool.query("SELECT * FROM public.users WHERE email = $1", [email]);
+  return result.rows[0] ?? null;
+}
+
+export async function getAllUsers() {
   const result = await pool.query(
-    "SELECT * FROM public.users WHERE email = $1",
+    'SELECT "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "created_at" FROM public.users ORDER BY "created_at" DESC'
+  );
+  return result.rows;
+}
+
+export interface NewUser {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  username: string;
+  password: string;
+  postalCode: number;
+  isTeacher: boolean;
+}
+
+export async function createUser(data: NewUser) {
+  const { firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher = false } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.users
+    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "is_teacher")
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+   RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "is_teacher", "created_at"`,
+    [firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher]
+  );
+
+  return result.rows[0];
+}
+
+export async function verifyUser(emailOrPhone: string, password: string) {
+  let user;
+
+  if (emailOrPhone.includes("@")) {
+    user = await getUserByEmail(emailOrPhone);
+  } else {
+    user = await getUserByPhone(emailOrPhone);
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  if (user.hashed_password !== password) {
+    return null;
+  }
+
+  delete user.hashed_password;
+  return user;
+}
+
+export interface NewMessage {
+  sender_id: number;
+  receiver_id: number;
+  content: string;
+}
+
+export interface NewCategory {
+  title: string;
+}
+
+export interface Category {
+  id: number;
+  title: string;
+}
+
+export interface NewCourse {
+  teacher_id: number;
+  category_id: number;
+  title: string;
+  description: string;
+}
+
+export interface Course {
+  id: number;
+  teacher_id: number;
+  category_id: number;
+  title: string;
+  description: string;
+  created_at: string;
+  teacher_first_name?: string;
+  teacher_last_name?: string;
+}
+
+export interface NewLesson {
+  teacher_id: number;
+  course_id: number;
+  title: string;
+  description: string;
+  video_url: string;
+}
+
+export interface Lesson {
+  id: number;
+  teacher_id: number;
+  course_id: number;
+  title: string;
+  description: string;
+  video_url: string;
+  created_at: string;
+  teacher_first_name?: string;
+  teacher_last_name?: string;
+}
+
+export async function createMessage(data: NewMessage) {
+  const { sender_id, receiver_id, content } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.messages
+      ("sender_id", "receiver_id", "content")
+     VALUES ($1, $2, $3)
+     RETURNING "id", "sender_id", "receiver_id", "content", "created_at"`,
+    [sender_id, receiver_id, content]
+  );
+
+  return result.rows[0];
+}
+
+export async function createCategory(data: NewCategory) {
+  const { title } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.categories
+      ("title")
+     VALUES ($1)
+     RETURNING "id", "title"`,
+    [title]
+  );
+
+  return result.rows[0];
+}
+
+export async function getAllCategories(): Promise<Category[]> {
+  const result = await pool.query(`SELECT * FROM public.categories ORDER BY title ASC`);
+
+  return result.rows;
+}
+
+export async function getCategoryById(id: number): Promise<Category | null> {
+  const result = await pool.query(`SELECT * FROM public.categories WHERE "id" = $1`, [id]);
+
+  return result.rows[0] || null;
+}
+
+export async function updateCategory(id: number, data: Partial<NewCategory>): Promise<Category | null> {
+  const fields = [];
+  const values = [];
+  let paramCount = 1;
+
+  if (data.title !== undefined) {
+    fields.push(`"title" = $${paramCount}`);
+    values.push(data.title);
+    paramCount++;
+  }
+
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  values.push(id);
+
+  const result = await pool.query(
+    `UPDATE public.categories 
+     SET ${fields.join(", ")}
+     WHERE "id" = $${paramCount}
+     RETURNING "id", "title"`,
+    values
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function deleteCategory(id: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM public.categories WHERE "id" = $1`, [id]);
+
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function createCourse(data: NewCourse) {
+  const { teacher_id, category_id, title, description } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.courses
+      ("teacher_id", "category_id", "title", "description")
+     VALUES ($1, $2, $3, $4)
+     RETURNING "id", "teacher_id", "category_id", "title", "description", "created_at"`,
+    [teacher_id, category_id, title, description]
+  );
+
+  return result.rows[0];
+}
+
+export async function getAllCourses(): Promise<Course[]> {
+  const result = await pool.query(
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.courses c
+     JOIN public.users u ON c.teacher_id = u."id"
+     ORDER BY c.created_at DESC`
+  );
+
+  return result.rows;
+}
+
+export async function getCourseById(id: number): Promise<Course | null> {
+  const result = await pool.query(
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.courses c
+     JOIN public.users u ON c.teacher_id = u."id"
+     WHERE c."id" = $1`,
+    [id]
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function getCoursesByTeacher(teacherId: number): Promise<Course[]> {
+  const result = await pool.query(
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.courses c
+     JOIN public.users u ON c.teacher_id = u."id"
+     WHERE c.teacher_id = $1
+     ORDER BY c.created_at DESC`,
+    [teacherId]
+  );
+
+  return result.rows;
+}
+
+export async function getCoursesByCategory(categoryId: number): Promise<Course[]> {
+  const result = await pool.query(
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.courses c
+     JOIN public.users u ON c.teacher_id = u."id"
+     WHERE c.category_id = $1
+     ORDER BY c.created_at DESC`,
+    [categoryId]
+  );
+
+  return result.rows;
+}
+
+export async function updateCourse(id: number, data: Partial<NewCourse>): Promise<Course | null> {
+  const fields = [];
+  const values = [];
+  let paramCount = 1;
+
+  if (data.category_id !== undefined) {
+    fields.push(`"category_id" = $${paramCount}`);
+    values.push(data.category_id);
+    paramCount++;
+  }
+
+  if (data.title !== undefined) {
+    fields.push(`"title" = $${paramCount}`);
+    values.push(data.title);
+    paramCount++;
+  }
+
+  if (data.description !== undefined) {
+    fields.push(`"description" = $${paramCount}`);
+    values.push(data.description);
+    paramCount++;
+  }
+
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  values.push(id);
+
+  const result = await pool.query(
+    `UPDATE public.courses 
+     SET ${fields.join(", ")}
+     WHERE "id" = $${paramCount}
+     RETURNING "id", "teacher_id", "category_id", "title", "description", "created_at"`,
+    values
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function deleteCourse(id: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM public.courses WHERE "id" = $1`, [id]);
+
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function createLesson(data: NewLesson) {
+  const { teacher_id, course_id, title, description, video_url } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.lessons
+      ("teacher_id", "course_id", "title", "description", "video_url")
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING "id", "teacher_id", "course_id", "title", "description", "video_url", "created_at"`,
+    [teacher_id, course_id, title, description, video_url]
+  );
+
+  return result.rows[0];
+}
+
+export async function getAllLessons(): Promise<Lesson[]> {
+  const result = await pool.query(
+    `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.lessons l
+     JOIN public.users u ON l.teacher_id = u."id"
+     ORDER BY l.created_at DESC`
+  );
+
+  return result.rows;
+}
+
+export async function getLessonById(id: number): Promise<Lesson | null> {
+  const result = await pool.query(
+    `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.lessons l
+     JOIN public.users u ON l.teacher_id = u."id"
+     WHERE l."id" = $1`,
+    [id]
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function getLessonsByTeacher(teacherId: number): Promise<Lesson[]> {
+  const result = await pool.query(
+    `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.lessons l
+     JOIN public.users u ON l.teacher_id = u."id"
+     WHERE l.teacher_id = $1
+     ORDER BY l.created_at DESC`,
+    [teacherId]
+  );
+
+  return result.rows;
+}
+
+export async function getLessonsByCourse(courseId: number): Promise<Lesson[]> {
+  const result = await pool.query(
+    `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+     FROM public.lessons l
+     JOIN public.users u ON l.teacher_id = u."id"
+     WHERE l.course_id = $1
+     ORDER BY l.created_at DESC`,
+    [courseId]
+  );
+
+  return result.rows;
+}
+
+export async function updateLesson(id: number, data: Partial<NewLesson>): Promise<Lesson | null> {
+  const fields = [];
+  const values = [];
+  let paramCount = 1;
+
+  if (data.course_id !== undefined) {
+    fields.push(`"course_id" = $${paramCount}`);
+    values.push(data.course_id);
+    paramCount++;
+  }
+
+  if (data.title !== undefined) {
+    fields.push(`"title" = $${paramCount}`);
+    values.push(data.title);
+    paramCount++;
+  }
+
+  if (data.description !== undefined) {
+    fields.push(`"description" = $${paramCount}`);
+    values.push(data.description);
+    paramCount++;
+  }
+
+  if (data.video_url !== undefined) {
+    fields.push(`"video_url" = $${paramCount}`);
+    values.push(data.video_url);
+    paramCount++;
+  }
+
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  values.push(id);
+
+  const result = await pool.query(
+    `UPDATE public.lessons 
+     SET ${fields.join(", ")}
+     WHERE "id" = $${paramCount}
+     RETURNING "id", "teacher_id", "course_id", "title", "description", "video_url", "created_at"`,
+    values
+  );
+
+  return result.rows[0] || null;
+}
+
+export async function deleteLesson(id: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM public.lessons WHERE "id" = $1`, [id]);
+
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function getMessagesBetweenUsers(userId1: number, userId2: number) {
+  const result = await pool.query(
+    `SELECT m.*, 
+            u1."first_name" as sender_first_name, u1."last_name" as sender_last_name,
+            u2."first_name" as receiver_first_name, u2."last_name" as receiver_last_name
+     FROM public.messages m
+     JOIN public.users u1 ON m.sender_id = u1."id"
+     JOIN public.users u2 ON m.receiver_id = u2."id"
+     WHERE (m.sender_id = $1 AND m.receiver_id = $2) 
+        OR (m.sender_id = $2 AND m.receiver_id = $1)
+     ORDER BY m.created_at ASC`,
+    [userId1, userId2]
+  );
+
+  return result.rows;
+}
+
+export async function getConversationsForUser(userId: number) {
+  const result = await pool.query(
+    `SELECT DISTINCT 
+            CASE 
+                WHEN m.sender_id = $1 THEN m.receiver_id 
+                ELSE m.sender_id 
+            END as other_user_id,
+            CASE 
+                WHEN m.sender_id = $1 THEN u2."first_name" 
+                ELSE u1."first_name" 
+            END as other_user_first_name,
+            CASE 
+                WHEN m.sender_id = $1 THEN u2."last_name" 
+                ELSE u1."last_name" 
+            END as other_user_last_name,
+            m.content as last_message,
+            m.created_at as last_message_time
+     FROM public.messages m
+     JOIN public.users u1 ON m.sender_id = u1."id"
+     JOIN public.users u2 ON m.receiver_id = u2."id"
+     WHERE m.sender_id = $1 OR m.receiver_id = $1
+     ORDER BY m.created_at DESC`,
+    [userId]
+  );
+
+  return result.rows;
+}
+
+export async function deleteUserByEmail(email: string) {
+  const result = await pool.query(
+    `DELETE FROM public.users
+     WHERE email = $1
+     RETURNING *`,
     [email]
   );
   return result.rows[0] ?? null;
 }
 
+export async function toggleIsTeacherByEmail(email: string) {
+  const current = await pool.query(`SELECT "is_teacher" FROM public.users WHERE email = $1`, [email]);
 
-export interface NewUser {
-  firstname:    string;
-  lastname:     string;
-  email:        string;
-  phone_number: number;
-  account_name: string;
-  password:     string;
-  postal_code:  number;
-}
+  if (current.rows.length === 0) return null;
 
-// Create new user
-export async function createUser(data: NewUser) {
-  const {
-    firstname,
-    lastname,
-    email,
-    phone_number,
-    account_name,
-    password,
-    postal_code,
-  } = data;
+  const flipped = !current.rows[0].is_teacher;
 
   const result = await pool.query(
-    `INSERT INTO public.users
-      (firstname, lastname, email, phone_number, account_name, password, postal_code)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `UPDATE public.users
+     SET "is_teacher" = $1
+     WHERE email = $2
      RETURNING *`,
-    [firstname, lastname, email, phone_number, account_name, password, postal_code]
+    [flipped, email]
   );
 
-  
   return result.rows[0];
 }

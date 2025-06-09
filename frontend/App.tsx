@@ -1,12 +1,18 @@
 // App.tsx
-import Navigation from "./navigation/Navigation";
+import AppNavigator from "./src/navigation/AppNavigator";
+import { AuthProvider } from "./src/hooks/AuthContext";
+import { useWebSocket } from "./src/hooks/useWebSocket";
 
-import { AuthProvider } from ".//src/features/auth/AuthContext";
+function AppContent() {
+  useWebSocket();
+
+  return <AppNavigator />;
+}
 
 export default function App() {
   return (
     <AuthProvider>
-      <Navigation />
+      <AppContent />
     </AuthProvider>
   );
 }
