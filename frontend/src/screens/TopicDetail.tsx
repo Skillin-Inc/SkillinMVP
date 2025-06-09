@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, FlatList } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, FlatList, TextInput } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../types";
@@ -42,6 +42,7 @@ export default function TopicDetail() {
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     loadCoursesForTopic();
@@ -77,11 +78,22 @@ export default function TopicDetail() {
     Alert.alert("Course Selected", `You selected: ${course.title}`);
   };
 
+  // Filter courses based on search query
+  const filteredCourses = courses.filter(
+    (course) =>
+      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Ionicons name="school-outline" size={64} color="#ccc" />
-      <Text style={styles.emptyTitle}>No Courses Available</Text>
-      <Text style={styles.emptySubtitle}>There are no courses available for {topic} yet.</Text>
+      <Text style={styles.emptyTitle}>{searchQuery ? "No Matching Courses" : "No Courses Available"}</Text>
+      <Text style={styles.emptySubtitle}>
+        {searchQuery
+          ? `No courses match "${searchQuery}" in ${topic}.`
+          : `There are no courses available for ${topic} yet.`}
+      </Text>
     </View>
   );
 
@@ -98,20 +110,44 @@ export default function TopicDetail() {
       <View style={styles.header}>
         <Text style={styles.title}>{topic}</Text>
         <Text style={styles.subtitle}>
-          {loading ? "Loading courses..." : `${courses.length} course${courses.length !== 1 ? "s" : ""} available`}
+          {loading
+            ? "Loading courses..."
+            : `${filteredCourses.length} course${filteredCourses.length !== 1 ? "s" : ""} ${
+                searchQuery ? "found" : "available"
+              }`}
         </Text>
       </View>
+
+      {!loading && (
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search courses..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor="#999"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery("")} style={styles.clearButton}>
+                <Ionicons name="close-circle" size={20} color="#666" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#414288" />
           <Text style={styles.loadingText}>Loading courses...</Text>
         </View>
-      ) : courses.length === 0 ? (
+      ) : filteredCourses.length === 0 ? (
         renderEmptyState()
       ) : (
         <FlatList
-          data={courses}
+          data={filteredCourses}
           renderItem={renderCourseItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.coursesList}
@@ -151,6 +187,36 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: "#666",
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e5e5e5",
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+    padding: 0,
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
   },
   loadingContainer: {
     flex: 1,
