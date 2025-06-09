@@ -86,7 +86,12 @@ export default function Home() {
       <Text style={[styles.sectionTitle, { marginTop: 30 }]}>Video, Lessons, and Tutors</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.cardScroll}>
         {altCategories.map((cat) => (
-          <CategoryCard key={cat.label} label={cat.label} image={cat.image} />
+          <CategoryCard
+            key={cat.label}
+            label={cat.label}
+            image={cat.image}
+            onPress={() => navigation.navigate("AltCategoryDetail", { topic: cat.label })}
+          />
         ))}
       </ScrollView>
     </View>
