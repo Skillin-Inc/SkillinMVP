@@ -36,6 +36,13 @@ CREATE TABLE "categories" (
   "title" text NOT NULL
 );
 
+-- TEACHERS (REQUIRES users AND categories)
+CREATE TABLE "teachers" (
+  "id" serial PRIMARY KEY,
+  "user_id" integer UNIQUE NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "category_id" integer NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE
+);
+
 CREATE TABLE "courses" (
   "id" serial PRIMARY KEY,
   "teacher_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,

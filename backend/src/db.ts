@@ -486,21 +486,51 @@ export async function deleteUserByEmail(email: string) {
 }
 
 export async function toggleIsTeacherByEmail(email: string) {
-  const current = await pool.query(`SELECT "is_teacher" FROM public.users WHERE email = $1`, [email]);
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
 
-  if (current.rows.length === 0) return null;
+    const current = await client.query(`SELECT id AS user_id, is_teacher FROM public.users WHERE email = $1`, [email]);
 
-  const flipped = !current.rows[0].is_teacher;
+    if (current.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return null;
+    }
 
-  const result = await pool.query(
-    `UPDATE public.users
-     SET "is_teacher" = $1
-     WHERE email = $2
-     RETURNING *`,
-    [flipped, email]
-  );
+    const { user_id, is_teacher } = current.rows[0];
+    const flipped = !is_teacher;
 
-  return result.rows[0];
+    const result = await client.query(
+      `UPDATE public.users
+       SET is_teacher = $1
+       WHERE email = $2
+       RETURNING *`,
+      [flipped, email]
+    );
+
+    if (flipped) {
+      // Promote: Add to teachers table
+      await client.query(
+        `INSERT INTO public.teachers (user_id, category_id)
+         SELECT $1, 1
+         WHERE NOT EXISTS (
+           SELECT 1 FROM public.teachers WHERE user_id = $1
+         )`,
+        [user_id]
+      );
+    } else {
+      // Demote: Remove from teachers table
+      await client.query(`DELETE FROM public.teachers WHERE user_id = $1`, [user_id]);
+    }
+
+    await client.query("COMMIT");
+    return result.rows[0];
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export interface NewProgress {

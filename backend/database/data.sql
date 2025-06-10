@@ -1,6 +1,18 @@
 -- Use SQL insert statements to add any
 -- starting/dummy data to your database tables
 
+-- STEP 1: Categories must come before teachers
+INSERT INTO "categories" ("id", "title") VALUES 
+  (1, 'Basketball'),
+  (2, 'Skiing'),
+  (3, 'Soccer'),
+  (4, 'Tennis'),
+  (5, 'Baseball'),
+  (6, 'Snowboarding'),
+  (7, 'Poker'),
+  (8, 'Football');
+
+-- STEP 2: Insert users (student and teacher)
 INSERT INTO "users" (
   "first_name", "last_name", "email", "phone_number", "username", 
   "hashed_password", "postal_code", "is_teacher"
@@ -8,15 +20,10 @@ INSERT INTO "users" (
   ('Demo', 'Student', 'student@email.com', '1231231234', 'studentdemo', 'Password', 99999, false),
   ('Demo', 'Teacher', 'teacher@email.com', '5551234567', 'teacherdemo', 'Password', 99999, true);
 
-INSERT INTO "categories" ("title") VALUES 
-  ('Basketball'),
-  ('Skiing'),
-  ('Soccer'),
-  ('Tennis'),
-  ('Baseball'),
-  ('Snowboarding'),
-  ('Poker'),
-  ('Football');
+-- STEP 3: Insert teacher row (after user and categories exist)
+INSERT INTO "teachers" ("user_id", "category_id")
+SELECT id, 1 FROM "users" WHERE email = 'teacher@email.com';
+
 
 -- Insert dummy courses
 INSERT INTO "courses" ("teacher_id", "category_id", "title", "description") VALUES
