@@ -126,6 +126,15 @@ export interface Lesson {
   teacher_first_name?: string;
   teacher_last_name?: string;
 }
+export interface Tutor {
+  teacher_id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  category: string;
+}
 
 function createApiService() {
   const transformBackendUserToUser = (backendUser: BackendUser): User => {
@@ -338,6 +347,9 @@ function createApiService() {
   }> => {
     return makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>("/health/db");
   };
+  const getAllTutors = async (): Promise<Tutor[]> => {
+    return makeRequest<Tutor[]>("/teachers");
+  };
 
   return {
     register,
@@ -368,6 +380,7 @@ function createApiService() {
     deleteCategory,
     checkBackendConnection,
     checkDatabaseConnection,
+    getAllTutors,
   };
 }
 
