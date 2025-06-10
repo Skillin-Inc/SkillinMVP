@@ -54,3 +54,11 @@ CREATE TABLE "lessons" (
   "video_url" text,
   "created_at" timestamptz(3) default current_timestamp
 );
+
+CREATE TABLE "progress" (
+  "id" serial PRIMARY KEY,
+  "user_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "lesson_id" integer NOT NULL REFERENCES "lessons"("id") ON DELETE CASCADE,
+  "created_at" timestamptz(3) default current_timestamp,
+  UNIQUE("user_id", "lesson_id")
+);

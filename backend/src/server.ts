@@ -11,6 +11,7 @@ import messagesRouter from "./routes/messages";
 import lessonsRouter from "./routes/lessons";
 import coursesRouter from "./routes/courses";
 import categoriesRouter from "./routes/categories";
+import progressRouter from "./routes/progress";
 import { pool } from "./db";
 
 const app = express();
@@ -118,6 +119,7 @@ app.use("/messages", messagesRouter);
 app.use("/lessons", lessonsRouter);
 app.use("/courses", coursesRouter);
 app.use("/categories", categoriesRouter);
+app.use("/progress", progressRouter);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });
