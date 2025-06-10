@@ -16,7 +16,7 @@ export default function AltCategoryDetail() {
   const { topic: category } = route.params;
 
   const [content, setContent] = useState<Course[] | Lesson[]>([]);
-  const [isLessonMode, setIsLessonMode] = useState(false);
+  // const [isLessonMode, setIsLessonMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -31,7 +31,7 @@ export default function AltCategoryDetail() {
       if (category.toLowerCase() === "lessons") {
         const lessons = await apiService.getAllLessons();
         setContent(lessons);
-        setIsLessonMode(true);
+        // setIsLessonMode(true);
         return;
       }
 
@@ -48,7 +48,7 @@ export default function AltCategoryDetail() {
       const filtered = allCourses.filter((course) => course.category_id === matchedCategory.id);
 
       setContent(filtered);
-      setIsLessonMode(false);
+      // setIsLessonMode(false);
     } catch (error) {
       console.error("Failed to load data:", error);
       Alert.alert("Error", "Unable to fetch content for this category.");

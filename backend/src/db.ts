@@ -502,3 +502,95 @@ export async function toggleIsTeacherByEmail(email: string) {
 
   return result.rows[0];
 }
+
+export interface NewProgress {
+  user_id: number;
+  lesson_id: number;
+}
+
+export interface Progress {
+  id: number;
+  user_id: number;
+  lesson_id: number;
+  created_at: string;
+}
+
+export interface ProgressWithLessonDetails {
+  id: number;
+  user_id: number;
+  lesson_id: number;
+  created_at: string;
+  lesson_title: string;
+  lesson_description: string;
+  lesson_video_url: string;
+  course_id: number;
+  course_title: string;
+  teacher_first_name: string;
+  teacher_last_name: string;
+}
+
+export async function createProgress(data: NewProgress): Promise<Progress> {
+  const { user_id, lesson_id } = data;
+
+  const result = await pool.query(
+    `INSERT INTO public.progress ("user_id", "lesson_id")
+     VALUES ($1, $2)
+     ON CONFLICT ("user_id", "lesson_id") DO NOTHING
+     RETURNING "id", "user_id", "lesson_id", "created_at"`,
+    [user_id, lesson_id]
+  );
+
+  return result.rows[0];
+}
+
+export async function getProgressByUser(userId: number): Promise<ProgressWithLessonDetails[]> {
+  const result = await pool.query(
+    `SELECT p.*, 
+            l.title as lesson_title, 
+            l.description as lesson_description, 
+            l.video_url as lesson_video_url,
+            c.id as course_id,
+            c.title as course_title,
+            u.first_name as teacher_first_name, 
+            u.last_name as teacher_last_name
+     FROM public.progress p
+     JOIN public.lessons l ON p.lesson_id = l.id
+     JOIN public.courses c ON l.course_id = c.id
+     JOIN public.users u ON l.teacher_id = u.id
+     WHERE p.user_id = $1
+     ORDER BY p.created_at DESC`,
+    [userId]
+  );
+
+  return result.rows;
+}
+
+export async function getProgressById(id: number): Promise<Progress | null> {
+  const result = await pool.query(`SELECT * FROM public.progress WHERE "id" = $1`, [id]);
+
+  return result.rows[0] || null;
+}
+
+export async function getProgressByUserAndLesson(userId: number, lessonId: number): Promise<Progress | null> {
+  const result = await pool.query(`SELECT * FROM public.progress WHERE "user_id" = $1 AND "lesson_id" = $2`, [
+    userId,
+    lessonId,
+  ]);
+
+  return result.rows[0] || null;
+}
+
+export async function deleteProgress(id: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM public.progress WHERE "id" = $1`, [id]);
+
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function deleteProgressByUserAndLesson(userId: number, lessonId: number): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM public.progress WHERE "user_id" = $1 AND "lesson_id" = $2`, [
+    userId,
+    lessonId,
+  ]);
+
+  return (result.rowCount ?? 0) > 0;
+}
