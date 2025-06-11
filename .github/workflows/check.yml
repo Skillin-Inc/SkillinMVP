@@ -3,10 +3,13 @@ name: Validate Code
 on:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   validate:
+    if: github.base_ref != 'main'
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v4
@@ -17,3 +20,52 @@ jobs:
       - run: npm run lint
       - run: npx tsc --noEmit -p frontend
       - run: npx tsc --noEmit -p backend
+      - run: npm audit --audit-level=high
+      - run: npm install --package-lock-only --ignore-scripts
+      - run: git diff --exit-code
+
+  lint:
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm run lint
+
+  typecheck:
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npx tsc --noEmit -p frontend
+      - run: npx tsc --noEmit -p backend
+
+  audit:
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm audit --audit-level=high
+
+  lockfile-check:
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm install --package-lock-only --ignore-scripts
+      - run: git diff --exit-code
