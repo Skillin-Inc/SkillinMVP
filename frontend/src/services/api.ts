@@ -32,6 +32,10 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface PaidStatusResponse {
+  isPaid: boolean;
+}
+
 class ApiService {
   private async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
@@ -78,6 +82,13 @@ class ApiService {
   async getUserById(userId: number): Promise<User> {
     return this.makeRequest<User>(`${API_CONFIG.ENDPOINTS.USERS}/${userId}`);
   }
+
+  async checkPaidStatus(email: string): Promise<boolean> {
+  const { isPaid } = await this.makeRequest<PaidStatusResponse>(
+    `${API_CONFIG.ENDPOINTS.PAID_STATUS}?email=${encodeURIComponent(email)}`
+  );
+  return isPaid;
+}
 }
 
 export const apiService = new ApiService();

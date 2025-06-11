@@ -29,12 +29,12 @@ async function testCreateUser() {
     console.log("Response body:", body);
 
     if (response.ok) {
-      console.log("✅ successful new user ID =", body.id);
+      console.log(" successful new user ID =", body.id);
     } else {
-      console.error("❌ failed error msg =", body.error || body);
+      console.error(" failed error msg =", body.error || body);
     }
   } catch (err) {
-    console.error("🔥 abnormal", err);
+    console.error(" abnormal", err);
   }
 }
 

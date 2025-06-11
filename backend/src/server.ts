@@ -6,6 +6,9 @@ import "dotenv/config";
 import usersRouter from "./routes/users"; // ← Import the users router
 import sendEmailRouter from "./routes/sendEmail";
 
+import { paidStatusRouter } from "./routes/paidStatus";
+
+
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 
@@ -20,6 +23,9 @@ app.get("/", (req: Request, res: Response) => {
 // Mount all /users routes
 app.use("/users", usersRouter);
 app.use("/send-email", sendEmailRouter); // Mounts POST /send-pdf
+
+app.use("/paid-status", paidStatusRouter);
+
 
 
 // Catch-all 404 for any unmatched routes

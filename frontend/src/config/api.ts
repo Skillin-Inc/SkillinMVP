@@ -4,6 +4,7 @@ export const API_CONFIG = {
   ENDPOINTS: {
     USERS: "/users",
     LOGIN: "/users/login",
+    PAID_STATUS: "/paid-status",
   },
   TIMEOUT: 10000,
 };
