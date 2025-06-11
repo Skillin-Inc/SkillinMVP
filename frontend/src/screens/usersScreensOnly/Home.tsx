@@ -5,11 +5,11 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 
 // import { COLORS } from "../styles";
-import { useScreenDimensions } from "../hooks";
-import { RootStackParamList } from "../types";
-import CategoryCard from "../components/CategoryCard";
-import { apiService, Category } from "../services/api";
-import temp from "../../assets/playingCards.png";
+import { useScreenDimensions } from "../../hooks";
+import { RootStackParamList } from "../../types";
+import CategoryCard from "../../components/CategoryCard";
+import { apiService, Category } from "../../services/api";
+import temp from "../../../assets/playingCards.png";
 
 type NavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
 

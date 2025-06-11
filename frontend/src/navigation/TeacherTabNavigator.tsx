@@ -2,10 +2,10 @@ import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 
-import TeacherHome from "../screens/TeacherHome";
+import TeacherHome from "../screens/teacherScreensOnly/TeacherHome";
 import MessagesStack from "./MessagesStack";
-import StatsScreen from "../screens/Stats"; // Placeholder screen
-import CreateLesson from "../screens/CreateLesson";
+import StatsScreen from "../screens/teacherScreensOnly/Stats"; // Placeholder screen
+import CreateLesson from "../screens/teacherScreensOnly/CreateLesson";
 import { COLORS } from "../styles";
 
 const Tab = createBottomTabNavigator();

@@ -7,11 +7,19 @@ const router = Router();
 router.get("/", async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT t.*, u.first_name, u.last_name, u.email, c.title AS category_title
-      FROM public.teachers t
-      JOIN public.users u ON t.user_id = u.id
-      JOIN public.categories c ON t.category_id = c.id
-    `);
+  SELECT 
+    t.*, 
+    u.first_name, 
+    u.last_name, 
+    u.email, 
+    u.username,
+    u.phone_number,
+    c.title AS category_title
+  FROM public.teachers t
+  JOIN public.users u ON t.user_id = u.id
+  JOIN public.categories c ON t.category_id = c.id
+`);
+
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -19,12 +27,13 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /teachers/:id
+// GET /teachers/:id - Single teacher object
 router.get("/:id", async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   try {
     const result = await pool.query(
-      `SELECT t.*, u.first_name, u.last_name, u.email, c.title AS category_title
+      `SELECT t.*, u.first_name, u.last_name, u.username, u.email, c.title AS category_title
+
        FROM public.teachers t
        JOIN public.users u ON t.user_id = u.id
        JOIN public.categories c ON t.category_id = c.id

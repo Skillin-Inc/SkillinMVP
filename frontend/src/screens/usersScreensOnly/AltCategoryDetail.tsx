@@ -4,8 +4,8 @@ import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 
-import { RootStackParamList } from "../types";
-import { apiService, Course, Lesson, Tutor } from "../services/api";
+import { RootStackParamList } from "../../types";
+import { apiService, Course, Lesson, Tutor } from "../../services/api";
 
 type AltCategoryDetailRouteProp = RouteProp<RootStackParamList, "AltCategoryDetail">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -79,18 +79,32 @@ export default function AltCategoryDetail() {
     if ("title" in item) {
       Alert.alert("Selected", `You selected: ${item.title}`);
     } else {
-      Alert.alert("Selected", `You selected tutor: ${item.first_name} ${item.last_name}`);
+      Alert.alert("Selected", `You selected tutor: ${item.username ?? `${item.first_name} ${item.last_name}`}`);
     }
   };
 
-  const renderItem = ({ item }: { item: Course | Lesson | Tutor }) => (
-    <TouchableOpacity style={styles.card} onPress={() => handleItemPress(item)}>
-      <Text style={styles.cardTitle}>{"title" in item ? item.title : `${item.first_name} ${item.last_name}`}</Text>
-      <Text style={styles.cardDesc} numberOfLines={3}>
-        {"description" in item ? item.description : `Teaches ${item.category}`}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: Course | Lesson | Tutor }) => {
+    if ("first_name" in item && "last_name" in item && "email" in item) {
+      // It's a Tutor
+      return (
+        <TouchableOpacity style={styles.card} onPress={() => handleItemPress(item)}>
+          <Text style={styles.cardTitle}>{`${item.first_name} ${item.last_name}`}</Text>
+          <Text style={styles.cardDesc}>Username: {item.username}</Text>
+          <Text style={styles.cardDesc}>Teaches: {item.category}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    // Otherwise, it's a Course or Lesson
+    return (
+      <TouchableOpacity style={styles.card} onPress={() => handleItemPress(item)}>
+        <Text style={styles.cardTitle}>{item.title}</Text>
+        <Text style={styles.cardDesc} numberOfLines={3}>
+          {item.description}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
@@ -142,7 +156,7 @@ export default function AltCategoryDetail() {
           data={filteredContent}
           renderItem={renderItem}
           keyExtractor={(item) =>
-            "id" in item ? item.id.toString() : `${item.first_name}-${item.last_name}-${item.teacher_id}`
+            "username" in item ? item.username : "id" in item ? item.id.toString() : Math.random().toString()
           }
           ListEmptyComponent={renderEmpty}
           contentContainerStyle={styles.list}

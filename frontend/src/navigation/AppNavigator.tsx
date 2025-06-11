@@ -8,10 +8,10 @@ import AuthStack from "./AuthStack";
 import TabNavigator from "./TabNavigator";
 import TeacherTabNavigator from "./TeacherTabNavigator"; // adjust the path as needed
 
-import TopicDetail from "../screens/TopicDetail"; // adjust path if needed
-import AltCategoryDetail from "../screens/AltCategoryDetail"; // adjust path if needed
+import TopicDetail from "../screens/usersScreensOnly/TopicDetail"; // adjust path if needed
+import AltCategoryDetail from "../screens/usersScreensOnly/AltCategoryDetail"; // adjust path if needed
 import Profile from "../screens/Profile"; // adjust path if needed
-import CreateCourse from "../screens/CreateCourse"; // adjust path if needed
+import CreateCourse from "../screens/teacherScreensOnly/CreateCourse"; // adjust path if needed
 
 import { RootStackParamList } from "src/types";
 
