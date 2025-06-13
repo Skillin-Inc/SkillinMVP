@@ -74,8 +74,15 @@ router.get("/by-email/:email", async (req, res) => {
   return;
 });
 
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: "Too many login attempts from this IP, please try again later.",
+});
+
 router.post(
   "/login",
+  loginRateLimiter,
   async (req: Request<object, unknown, { emailOrPhone: string; password: string }>, res: Response): Promise<void> => {
     const { emailOrPhone, password } = req.body;
 
@@ -153,6 +160,7 @@ const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res,
 router.delete("/:email", deleteByEmailHandler);
 
 import { toggleIsTeacherByEmail } from "../db";
+import rateLimit from "express-rate-limit";
 
 const toggleIsTeacherHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
   const { email } = req.params;

@@ -79,19 +79,6 @@ export default function Temp() {
     }
   };
 
-  const handleTestDatabaseConnection = async () => {
-    try {
-      const result = await apiService.checkDatabaseConnection();
-      console.log("Database Connection Test:", result);
-      Alert.alert("Database Connection", `Status: ${result.status}\n${result.message}`, [{ text: "OK" }]);
-    } catch (error) {
-      console.error("Database connection test failed:", error);
-      Alert.alert("Database Connection Failed", error instanceof Error ? error.message : "Unknown error occurred", [
-        { text: "OK" },
-      ]);
-    }
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -136,11 +123,6 @@ export default function Temp() {
           <TouchableOpacity style={styles.button} onPress={handleTestBackendConnection}>
             <Ionicons name="server-outline" size={24} color={COLORS.white} />
             <Text style={styles.buttonText}>Test Backend Connection</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button} onPress={handleTestDatabaseConnection}>
-            <Ionicons name="disc-outline" size={24} color={COLORS.white} />
-            <Text style={styles.buttonText}>Test Database Connection</Text>
           </TouchableOpacity>
         </View>
 
