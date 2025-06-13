@@ -330,15 +330,6 @@ function createApiService() {
     }
   };
 
-  const checkDatabaseConnection = async (): Promise<{
-    status: string;
-    message: string;
-    timestamp?: string;
-    error?: string;
-  }> => {
-    return makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>("/health/db");
-  };
-
   return {
     register,
     login,
@@ -367,7 +358,6 @@ function createApiService() {
     updateCategory,
     deleteCategory,
     checkBackendConnection,
-    checkDatabaseConnection,
   };
 }
 
