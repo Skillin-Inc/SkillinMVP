@@ -11,6 +11,7 @@ import {
   getAllUsers,
   deleteUserByEmail,
 } from "../db";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
 
@@ -160,7 +161,6 @@ const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res,
 router.delete("/:email", deleteByEmailHandler);
 
 import { toggleIsTeacherByEmail } from "../db";
-import rateLimit from "express-rate-limit";
 
 const toggleIsTeacherHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
   const { email } = req.params;

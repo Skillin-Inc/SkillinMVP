@@ -381,6 +381,7 @@ function createApiService() {
     deleteCategory,
     checkBackendConnection,
     checkDatabaseConnection,
+    getAllTutors,
   };
 }
 
