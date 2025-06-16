@@ -4,9 +4,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 
-import { useScreenDimensions } from "../hooks";
-import { COLORS } from "../styles";
-import { RootStackParamList } from "../types";
+import { useScreenDimensions } from "../../hooks";
+import { COLORS } from "../../styles";
+import { RootStackParamList } from "../../types";
 type NavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
 
 export default function TeacherHome() {

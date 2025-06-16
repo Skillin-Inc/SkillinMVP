@@ -12,6 +12,9 @@ import lessonsRouter from "./routes/lessons";
 import coursesRouter from "./routes/courses";
 import categoriesRouter from "./routes/categories";
 import progressRouter from "./routes/progress";
+import teacherRoutes from "./routes/teachers";
+
+import { pool } from "./db";
 
 const app = express();
 const server = createServer(app);
@@ -93,6 +96,7 @@ app.use("/lessons", lessonsRouter);
 app.use("/courses", coursesRouter);
 app.use("/categories", categoriesRouter);
 app.use("/progress", progressRouter);
+app.use("/teachers", teacherRoutes);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });

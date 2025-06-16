@@ -4,8 +4,8 @@ import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 
-import { RootStackParamList } from "../types";
-import { apiService, Course, Lesson } from "../services/api";
+import { RootStackParamList } from "../../types";
+import { apiService, Course, Lesson, Tutor } from "../../services/api";
 
 type AltCategoryDetailRouteProp = RouteProp<RootStackParamList, "AltCategoryDetail">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;
@@ -15,8 +15,7 @@ export default function AltCategoryDetail() {
   const navigation = useNavigation<NavigationProp>();
   const { topic: category } = route.params;
 
-  const [content, setContent] = useState<Course[] | Lesson[]>([]);
-  // const [isLessonMode, setIsLessonMode] = useState(false);
+  const [content, setContent] = useState<(Course | Lesson | Tutor)[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -31,7 +30,12 @@ export default function AltCategoryDetail() {
       if (category.toLowerCase() === "lessons") {
         const lessons = await apiService.getAllLessons();
         setContent(lessons);
-        // setIsLessonMode(true);
+        return;
+      }
+
+      if (category.toLowerCase() === "tutors") {
+        const tutors = await apiService.getAllTutors();
+        setContent(tutors);
         return;
       }
 
@@ -46,9 +50,7 @@ export default function AltCategoryDetail() {
 
       const allCourses = await apiService.getAllCourses();
       const filtered = allCourses.filter((course) => course.category_id === matchedCategory.id);
-
       setContent(filtered);
-      // setIsLessonMode(false);
     } catch (error) {
       console.error("Failed to load data:", error);
       Alert.alert("Error", "Unable to fetch content for this category.");
@@ -57,24 +59,52 @@ export default function AltCategoryDetail() {
     }
   };
 
-  const filteredContent = content.filter(
-    (item) =>
-      ("title" in item && item.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      ("description" in item && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredContent = content.filter((item) => {
+    if ("title" in item) {
+      return (
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    if ("first_name" in item && "last_name" in item) {
+      const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
+      return (
+        fullName.includes(searchQuery.toLowerCase()) || item.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    return false;
+  });
 
-  const handleCoursePress = (item: Course | Lesson) => {
-    Alert.alert("Selected", `You selected: ${item.title}`);
+  const handleItemPress = (item: Course | Lesson | Tutor) => {
+    if ("title" in item) {
+      Alert.alert("Selected", `You selected: ${item.title}`);
+    } else {
+      Alert.alert("Selected", `You selected tutor: ${item.username ?? `${item.first_name} ${item.last_name}`}`);
+    }
   };
 
-  const renderItem = ({ item }: { item: Course | Lesson }) => (
-    <TouchableOpacity style={styles.card} onPress={() => handleCoursePress(item)}>
-      <Text style={styles.cardTitle}>{item.title}</Text>
-      <Text style={styles.cardDesc} numberOfLines={3}>
-        {item.description}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: Course | Lesson | Tutor }) => {
+    if ("first_name" in item && "last_name" in item && "email" in item) {
+      // It's a Tutor
+      return (
+        <TouchableOpacity style={styles.card} onPress={() => handleItemPress(item)}>
+          <Text style={styles.cardTitle}>{`${item.first_name} ${item.last_name}`}</Text>
+          <Text style={styles.cardDesc}>Username: {item.username}</Text>
+          <Text style={styles.cardDesc}>Teaches: {item.category}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    // Otherwise, it's a Course or Lesson
+    return (
+      <TouchableOpacity style={styles.card} onPress={() => handleItemPress(item)}>
+        <Text style={styles.cardTitle}>{item.title}</Text>
+        <Text style={styles.cardDesc} numberOfLines={3}>
+          {item.description}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
@@ -125,7 +155,9 @@ export default function AltCategoryDetail() {
         <FlatList
           data={filteredContent}
           renderItem={renderItem}
-          keyExtractor={(item) => ("id" in item ? item.id.toString() : Math.random().toString())}
+          keyExtractor={(item) =>
+            "username" in item ? item.username : "id" in item ? item.id.toString() : Math.random().toString()
+          }
           ListEmptyComponent={renderEmpty}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}

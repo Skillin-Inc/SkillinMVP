@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, FlatList, TextInput } from "react-native";
 import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { RootStackParamList } from "../types";
+import { RootStackParamList } from "../../types";
 import { StackNavigationProp } from "@react-navigation/stack";
-import { apiService, Course, Category } from "../services/api";
+import { apiService, Course, Category } from "../../services/api";
 
 type TopicDetailRouteProp = RouteProp<RootStackParamList, "TopicDetail">;
 type NavigationProp = StackNavigationProp<RootStackParamList>;

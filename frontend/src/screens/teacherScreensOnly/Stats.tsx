@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
-import { useScreenDimensions } from "../hooks";
-import { COLORS } from "../styles";
+import { useScreenDimensions } from "../../hooks";
+import { COLORS } from "../../styles";
 
 export default function StatsScreen() {
   const { screenWidth } = useScreenDimensions();

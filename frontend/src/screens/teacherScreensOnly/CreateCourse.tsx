@@ -16,48 +16,47 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 
-import { COLORS } from "../styles";
-import { AuthContext } from "../hooks/AuthContext";
-import { apiService, NewLesson, Course } from "../services/api";
+import { COLORS } from "../../styles";
+import { AuthContext } from "../../hooks/AuthContext";
+import { apiService, NewCourse, Category } from "../../services/api";
+import { RootStackParamList } from "../../types";
 
-type CreateLessonNavigationProp = StackNavigationProp<Record<string, object | undefined>>;
+type CreateCourseNavigationProp = StackNavigationProp<RootStackParamList, "CreateCourse">;
 
-export default function CreateLesson() {
+export default function CreateCourse() {
   const { user } = useContext(AuthContext);
-  const navigation = useNavigation<CreateLessonNavigationProp>();
+  const navigation = useNavigation<CreateCourseNavigationProp>();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    courseId: "",
+    categoryId: "",
   });
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingCourses, setLoadingCourses] = useState(true);
-  const [showCourseModal, setShowCourseModal] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [errors, setErrors] = useState({
     title: "",
     description: "",
-    courseId: "",
+    categoryId: "",
   });
 
   const styles = getStyles();
 
   useEffect(() => {
-    loadCourses();
+    loadCategories();
   }, []);
 
-  const loadCourses = async () => {
-    if (!user || !user.isTeacher) return;
-
+  const loadCategories = async () => {
     try {
-      const coursesData = await apiService.getCoursesByTeacher(user.id);
-      setCourses(coursesData);
+      const categoriesData = await apiService.getAllCategories();
+      setCategories(categoriesData);
     } catch (error) {
-      console.error("Error loading courses:", error);
-      Alert.alert("Error", "Failed to load courses. Please try again.");
+      console.error("Error loading categories:", error);
+      Alert.alert("Error", "Failed to load categories. Please try again.");
     } finally {
-      setLoadingCourses(false);
+      setLoadingCategories(false);
     }
   };
 
@@ -65,7 +64,7 @@ export default function CreateLesson() {
     const newErrors = {
       title: "",
       description: "",
-      courseId: "",
+      categoryId: "",
     };
 
     if (!formData.title.trim()) {
@@ -76,8 +75,8 @@ export default function CreateLesson() {
       newErrors.description = "Description is required";
     }
 
-    if (!formData.courseId) {
-      newErrors.courseId = "Course is required";
+    if (!formData.categoryId) {
+      newErrors.categoryId = "Category is required";
     }
 
     setErrors(newErrors);
@@ -86,7 +85,7 @@ export default function CreateLesson() {
 
   const handleSubmit = async () => {
     if (!user || !user.isTeacher) {
-      Alert.alert("Error", "Only teachers can create lessons");
+      Alert.alert("Error", "Only teachers can create courses");
       return;
     }
 
@@ -97,38 +96,35 @@ export default function CreateLesson() {
     setLoading(true);
 
     try {
-      const lessonData: NewLesson = {
+      const courseData: NewCourse = {
         teacher_id: user.id,
-        course_id: parseInt(formData.courseId),
+        category_id: parseInt(formData.categoryId),
         title: formData.title.trim(),
         description: formData.description.trim(),
-        video_url: "", // Empty for now, will be added via file upload later
       };
 
-      await apiService.createLesson(lessonData);
+      await apiService.createCourse(courseData);
 
-      Alert.alert("Success", "Lesson created successfully!", [
+      Alert.alert("Success", "Course created successfully!", [
         {
           text: "OK",
           onPress: () => {
-            // Reset form
             setFormData({
               title: "",
               description: "",
-              courseId: "",
+              categoryId: "",
             });
-            setSelectedCourse(null);
             setErrors({
               title: "",
               description: "",
-              courseId: "",
+              categoryId: "",
             });
           },
         },
       ]);
     } catch (error) {
-      console.error("Error creating lesson:", error);
-      Alert.alert("Error", error instanceof Error ? error.message : "Failed to create lesson. Please try again.");
+      console.error("Error creating course:", error);
+      Alert.alert("Error", error instanceof Error ? error.message : "Failed to create course. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -154,7 +150,7 @@ export default function CreateLesson() {
         <View style={styles.errorContainer}>
           <Ionicons name="warning-outline" size={64} color={COLORS.error} />
           <Text style={styles.errorTitle}>Access Denied</Text>
-          <Text style={styles.errorText}>Only teachers can create lessons.</Text>
+          <Text style={styles.errorText}>Only teachers can create courses.</Text>
         </View>
       </SafeAreaView>
     );
@@ -167,24 +163,24 @@ export default function CreateLesson() {
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitleText}>Create Lesson</Text>
+          <Text style={styles.headerTitleText}>Create Course</Text>
         </View>
         <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Ionicons name="book-outline" size={32} color={COLORS.purple} />
-          <Text style={styles.headerTitle}>Create New Lesson</Text>
-          <Text style={styles.headerSubtitle}>Create lesson content (video upload coming soon)</Text>
+          <Ionicons name="school-outline" size={32} color={COLORS.purple} />
+          <Text style={styles.headerTitle}>Create New Course</Text>
+          <Text style={styles.headerSubtitle}>Create a course to organize your lessons</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Lesson Title *</Text>
+            <Text style={styles.label}>Course Title *</Text>
             <TextInput
               style={[styles.input, errors.title ? styles.inputError : null]}
-              placeholder="Enter lesson title..."
+              placeholder="Enter course title..."
               value={formData.title}
               onChangeText={(value) => updateFormData("title", value)}
               maxLength={100}
@@ -194,53 +190,51 @@ export default function CreateLesson() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Course *</Text>
-            {loadingCourses ? (
+            <Text style={styles.label}>Category *</Text>
+            {loadingCategories ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator color={COLORS.purple} />
-                <Text style={styles.loadingText}>Loading courses...</Text>
-              </View>
-            ) : courses.length === 0 ? (
-              <View style={styles.noCourseContainer}>
-                <Text style={styles.noCourseText}>No courses found. Please create a course first.</Text>
+                <Text style={styles.loadingText}>Loading categories...</Text>
               </View>
             ) : (
               <TouchableOpacity
-                style={[styles.pickerContainer, errors.courseId ? styles.inputError : null]}
-                onPress={() => setShowCourseModal(true)}
+                style={[styles.pickerContainer, errors.categoryId ? styles.inputError : null]}
+                onPress={() => setShowCategoryModal(true)}
               >
-                <Text style={[styles.pickerText, !selectedCourse && styles.placeholderText]}>
-                  {selectedCourse ? selectedCourse.title : "Select a course..."}
+                <Text style={[styles.pickerText, !selectedCategory && styles.placeholderText]}>
+                  {selectedCategory ? selectedCategory.title : "Select a category..."}
                 </Text>
                 <Ionicons name="chevron-down" size={20} color={COLORS.gray} />
               </TouchableOpacity>
             )}
-            {errors.courseId ? <Text style={styles.errorText}>{errors.courseId}</Text> : null}
+            {errors.categoryId ? <Text style={styles.errorText}>{errors.categoryId}</Text> : null}
           </View>
 
-          <Modal visible={showCourseModal} transparent animationType="slide">
+          <Modal visible={showCategoryModal} transparent animationType="slide">
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select Course</Text>
-                  <TouchableOpacity onPress={() => setShowCourseModal(false)}>
+                  <Text style={styles.modalTitle}>Select Category</Text>
+                  <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
                     <Ionicons name="close" size={24} color={COLORS.black} />
                   </TouchableOpacity>
                 </View>
                 <FlatList
-                  data={courses}
+                  data={categories}
                   keyExtractor={(item) => item.id.toString()}
                   renderItem={({ item }) => (
                     <TouchableOpacity
-                      style={styles.courseItem}
+                      style={styles.categoryItem}
                       onPress={() => {
-                        setSelectedCourse(item);
-                        updateFormData("courseId", item.id.toString());
-                        setShowCourseModal(false);
+                        setSelectedCategory(item);
+                        updateFormData("categoryId", item.id.toString());
+                        setShowCategoryModal(false);
                       }}
                     >
-                      <Text style={styles.courseItemText}>{item.title}</Text>
-                      {selectedCourse?.id === item.id && <Ionicons name="checkmark" size={20} color={COLORS.purple} />}
+                      <Text style={styles.categoryItemText}>{item.title}</Text>
+                      {selectedCategory?.id === item.id && (
+                        <Ionicons name="checkmark" size={20} color={COLORS.purple} />
+                      )}
                     </TouchableOpacity>
                   )}
                 />
@@ -252,7 +246,7 @@ export default function CreateLesson() {
             <Text style={styles.label}>Description *</Text>
             <TextInput
               style={[styles.textArea, errors.description ? styles.inputError : null]}
-              placeholder="Describe what students will learn in this lesson..."
+              placeholder="Describe what this course will cover..."
               value={formData.description}
               onChangeText={(value) => updateFormData("description", value)}
               multiline
@@ -274,7 +268,7 @@ export default function CreateLesson() {
             ) : (
               <>
                 <Ionicons name="add-circle-outline" size={20} color={COLORS.white} />
-                <Text style={styles.submitButtonText}>Create Lesson</Text>
+                <Text style={styles.submitButtonText}>Create Course</Text>
               </>
             )}
           </TouchableOpacity>
@@ -304,7 +298,6 @@ function getStyles() {
       fontWeight: "bold",
       color: COLORS.black,
       marginTop: 12,
-      textAlign: "center",
     },
     headerSubtitle: {
       fontSize: 16,
@@ -326,75 +319,35 @@ function getStyles() {
     },
     input: {
       borderWidth: 1,
-      borderColor: "#E5E5EA",
+      borderColor: COLORS.lightGray,
       borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      padding: 16,
       fontSize: 16,
       color: COLORS.black,
       backgroundColor: COLORS.white,
     },
     textArea: {
       borderWidth: 1,
-      borderColor: "#E5E5EA",
+      borderColor: COLORS.lightGray,
       borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      padding: 16,
       fontSize: 16,
       color: COLORS.black,
       backgroundColor: COLORS.white,
-      minHeight: 100,
+      minHeight: 120,
       textAlignVertical: "top",
     },
-    inputError: {
-      borderColor: COLORS.error,
-    },
-    errorText: {
-      color: COLORS.error,
-      fontSize: 14,
-      marginTop: 4,
-    },
-    characterCount: {
-      fontSize: 12,
-      color: COLORS.gray,
-      textAlign: "right",
-      marginTop: 4,
-    },
-    helperText: {
-      fontSize: 12,
-      color: COLORS.gray,
-      marginTop: 4,
-    },
-    submitButton: {
-      backgroundColor: COLORS.purple,
+    pickerContainer: {
+      borderWidth: 1,
+      borderColor: COLORS.lightGray,
       borderRadius: 12,
-      paddingVertical: 16,
+      backgroundColor: COLORS.white,
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
-      marginTop: 20,
+      paddingRight: 16,
     },
-    submitButtonDisabled: {
-      backgroundColor: COLORS.gray,
-    },
-    submitButtonText: {
-      color: COLORS.white,
-      fontSize: 16,
-      fontWeight: "600",
-      marginLeft: 8,
-    },
-    errorContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 20,
-    },
-    errorTitle: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: COLORS.black,
-      marginTop: 16,
-      marginBottom: 8,
+    picker: {
+      height: 50,
     },
     loadingContainer: {
       flexDirection: "row",
@@ -408,26 +361,50 @@ function getStyles() {
       fontSize: 16,
       color: COLORS.gray,
     },
-    noCourseContainer: {
+    inputError: {
+      borderColor: COLORS.error,
+    },
+    errorText: {
+      fontSize: 14,
+      color: COLORS.error,
+      marginTop: 4,
+    },
+    characterCount: {
+      fontSize: 12,
+      color: COLORS.gray,
+      textAlign: "right",
+      marginTop: 4,
+    },
+    submitButton: {
+      backgroundColor: COLORS.purple,
       padding: 16,
-      backgroundColor: "#FFF3CD",
       borderRadius: 12,
-      borderWidth: 1,
-      borderColor: "#FFEAA7",
-    },
-    noCourseText: {
-      fontSize: 16,
-      color: "#856404",
-      textAlign: "center",
-    },
-    pickerContainer: {
-      borderWidth: 1,
-      borderColor: "#E5E5EA",
-      borderRadius: 12,
-      backgroundColor: COLORS.white,
       flexDirection: "row",
       alignItems: "center",
-      paddingRight: 16,
+      justifyContent: "center",
+      marginTop: 20,
+    },
+    submitButtonDisabled: {
+      backgroundColor: COLORS.gray,
+    },
+    submitButtonText: {
+      color: COLORS.white,
+      fontSize: 18,
+      fontWeight: "600",
+      marginLeft: 8,
+    },
+    errorContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+    },
+    errorTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: COLORS.error,
+      marginTop: 16,
+      marginBottom: 8,
     },
     pickerText: {
       fontSize: 16,
@@ -462,7 +439,7 @@ function getStyles() {
       fontWeight: "600",
       color: COLORS.black,
     },
-    courseItem: {
+    categoryItem: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
@@ -470,7 +447,7 @@ function getStyles() {
       borderBottomWidth: 1,
       borderBottomColor: COLORS.lightGray,
     },
-    courseItemText: {
+    categoryItemText: {
       fontSize: 16,
       color: COLORS.black,
     },
@@ -496,7 +473,7 @@ function getStyles() {
       color: COLORS.black,
     },
     headerSpacer: {
-      width: 40, // Same width as back button to center the title
+      width: 40,
     },
   });
 }

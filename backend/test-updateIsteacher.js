@@ -1,12 +1,11 @@
-// test-update.js
-// Run using: node test-update.js
+// node test-updateIsteacher.js
 
-import axios from "axios";
+const axios = require("axios");
 
 async function toggleIsTeacher() {
-  const email = "demo@email.com";
+  const email = "student@email.com";
   const encodedEmail = encodeURIComponent(email);
-  const url = `http://localhost:4000/users/${encodedEmail}`; // ✅ matches backend
+  const url = `http://localhost:4000/users/${encodedEmail}`;
 
   try {
     const res = await axios.patch(url);
