@@ -17,6 +17,7 @@ const altCategories = [
   { label: "Tutors", image: temp },
   { label: "Lessons", image: temp },
   { label: "Stand-alone Videos", image: temp },
+  { label: "Coaching", image: temp },
   { label: "Current", image: temp },
 ];
 
