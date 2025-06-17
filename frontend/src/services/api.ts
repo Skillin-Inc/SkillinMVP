@@ -8,7 +8,7 @@ export interface RegisterData {
   username: string;
   password: string;
   postalCode: number;
-  userType: "student" | "teacher" | "admin";
+  userType?: "student" | "teacher" | "admin";
 }
 
 export interface LoginData {

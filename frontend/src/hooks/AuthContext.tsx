@@ -29,7 +29,7 @@ type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
   user: User | null;
-  login: (loginData: LoginData) => Promise<void>;
+  login: (loginData: LoginData) => Promise<User>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -38,7 +38,7 @@ export const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
   loading: true,
   user: null,
-  login: async () => {},
+  login: async () => ({} as User),
   register: async () => {},
   logout: async () => {},
 });
@@ -137,12 +137,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadLoginState();
   }, []);
 
-  const login = async (loginData: LoginData) => {
+  const login = async (loginData: LoginData): Promise<User> => {
     try {
       const response = await apiService.login(loginData);
       setUser(response.user);
       setIsLoggedIn(true);
       await AsyncStorage.setItem("userData", JSON.stringify(response.user));
+      return response.user;
     } catch (error) {
       console.error("Login error:", error);
       throw error;

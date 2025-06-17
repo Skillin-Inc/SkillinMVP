@@ -12,14 +12,14 @@ INSERT INTO "categories" ("id", "title") VALUES
   (7, 'Poker'),
   (8, 'Football');
 
--- STEP 2: Insert users (student and teacher)
+-- STEP 2: Insert users (student, teacher, and admin)
 INSERT INTO "users" (
   "first_name", "last_name", "email", "phone_number", "username", 
   "hashed_password", "postal_code", "user_type"
 ) VALUES
   ('Demo', 'Student', 'student@email.com', '1231231234', 'studentdemo', 'Password', 99999, 'student'),
   ('Demo', 'Teacher', 'teacher@email.com', '5551234567', 'teacherdemo', 'Password', 99999, 'teacher'),
-  ('Demo', 'Admin', 'admin@email.com', '3037201016', 'admin', 'AdminPassword', 99999, 'admin');
+  ('Demo', 'Admin', 'admin@email.com', '9998887777', 'admindemo', 'Password', 99999, 'admin');
 
 
 -- STEP 3: Insert teacher row (after user and categories exist)

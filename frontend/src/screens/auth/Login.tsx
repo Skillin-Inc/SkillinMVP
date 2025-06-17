@@ -28,10 +28,30 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      await login({
+      const response = await login({
         emailOrPhone: emailOrPhone.trim(),
         password,
       });
+
+      // Show success message based on user type
+      const userType = response.userType;
+      let message = "";
+      let title = "Login Successful";
+
+      switch (userType) {
+        case "admin":
+          message = "Welcome Administrator! You have been logged into the admin dashboard.";
+          break;
+        case "teacher":
+          message = "Welcome Teacher! You have been logged into the teacher dashboard.";
+          break;
+        case "student":
+        default:
+          message = "Welcome! You have been logged into the student dashboard.";
+          break;
+      }
+
+      Alert.alert(title, message, [{ text: "OK" }]);
     } catch (error) {
       console.error("Login error", error);
       Alert.alert("Login Failed", error instanceof Error ? error.message : "Invalid credentials. Please try again.");
