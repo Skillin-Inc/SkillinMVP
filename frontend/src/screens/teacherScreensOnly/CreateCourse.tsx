@@ -84,7 +84,8 @@ export default function CreateCourse() {
   };
 
   const handleSubmit = async () => {
-    if (!user || !user.isTeacher) {
+    // if (!user || !user.isTeacher) {
+    if (!user || user.userType !== "teacher") {
       Alert.alert("Error", "Only teachers can create courses");
       return;
     }
@@ -143,8 +144,8 @@ export default function CreateCourse() {
       }));
     }
   };
-
-  if (!user || !user.isTeacher) {
+  // if (!user || !user.isTeacher) {
+  if (!user || user.userType !== "teacher") {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>

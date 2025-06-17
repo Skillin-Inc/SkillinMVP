@@ -14,7 +14,7 @@ type StoredUserData = {
   username?: string;
   postalCode?: number;
   createdAt?: string;
-  isTeacher?: boolean;
+  userType?: "student" | "teacher" | "admin";
 
   // backend format
   first_name?: string;
@@ -22,7 +22,7 @@ type StoredUserData = {
   phone_number?: string;
   postal_code?: number;
   created_at?: string;
-  is_teacher?: boolean;
+  user_type?: "student" | "teacher" | "admin";
 };
 
 type AuthContextType = {
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           username: userObj.username,
           postalCode: userObj.postal_code,
           createdAt: userObj.created_at,
-          isTeacher: userObj.is_teacher ?? false,
+          userType: userObj.user_type ?? "student",
         };
       }
 
@@ -96,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           username: userObj.username,
           postalCode: userObj.postalCode,
           createdAt: userObj.createdAt,
-          isTeacher: userObj.isTeacher ?? false,
+          userType: userObj.userType ?? "student",
         };
       }
 

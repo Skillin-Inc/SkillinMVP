@@ -219,20 +219,20 @@ export default function Profile({ navigation, route }: Props) {
           <TouchableOpacity
             style={[
               styles.actionButton,
-              !user?.isTeacher && { backgroundColor: COLORS.gray }, // visually disable
+              user?.userType !== "teacher" && { backgroundColor: COLORS.gray }, // visually disable
             ]}
             onPress={() => {
-              if (user?.isTeacher) {
+              if (user?.userType === "teacher") {
                 handleSwitchMode();
               } else {
                 alert("Only teachers can access this feature.");
               }
             }}
-            disabled={!user?.isTeacher}
+            disabled={user?.userType !== "teacher"}
           >
             <Ionicons name="school-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
             <Text style={styles.actionButtonText}>
-              {user?.isTeacher
+              {user?.userType === "teacher"
                 ? isFromTeacher
                   ? "Switch to Student Mode"
                   : "Switch to Teacher Mode"

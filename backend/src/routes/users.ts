@@ -10,6 +10,7 @@ import {
   verifyUser,
   getAllUsers,
   deleteUserByEmail,
+  updateUserTypeByEmail,
 } from "../db";
 import rateLimit from "express-rate-limit";
 
@@ -160,18 +161,26 @@ const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res,
 
 router.delete("/:email", deleteByEmailHandler);
 
-import { toggleIsTeacherByEmail } from "../db";
-
-const toggleIsTeacherHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
+const updateUserTypeHandler: RequestHandler<
+  { email: string },
+  unknown,
+  { userType: "student" | "teacher" | "admin" }
+> = async (req, res, next) => {
   const { email } = req.params;
+  const { userType } = req.body;
+
+  if (!userType || !["student", "teacher", "admin"].includes(userType)) {
+    res.status(400).json({ error: "Invalid user type. Must be 'student', 'teacher', or 'admin'" });
+    return;
+  }
 
   try {
-    const updated = await toggleIsTeacherByEmail(email);
+    const updated = await updateUserTypeByEmail(email, userType);
 
     if (updated) {
-      res.status(200).json({ message: "isTeacher toggled", user: updated });
+      res.status(200).json({ message: "User type updated", user: updated });
     } else {
-      res.status(404).json({ message: "No user found" });
+      res.status(404).json({ message: "No user found or no change made" });
     }
     return;
   } catch (err) {
@@ -179,6 +188,6 @@ const toggleIsTeacherHandler: RequestHandler<{ email: string }> = async (req, re
   }
 };
 
-router.patch("/:email", toggleIsTeacherHandler);
+router.patch("/:email/user-type", updateUserTypeHandler);
 
 export default router;

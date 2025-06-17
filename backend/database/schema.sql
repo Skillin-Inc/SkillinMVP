@@ -10,6 +10,9 @@ CREATE SCHEMA "public";
 --CREATE TYPE membership_tier AS ENUM ('bronze', 'silver', 'gold');
 --"membershipTier" membership_tier NOT NULL DEFAULT 'bronze';
 
+-- Create the user_type ENUM
+CREATE TYPE user_type AS ENUM ('student', 'teacher', 'admin');
+
 CREATE TABLE "users" (
   "id" serial PRIMARY KEY,
   "first_name" text NOT NULL,
@@ -19,7 +22,7 @@ CREATE TABLE "users" (
   "username" text UNIQUE NOT NULL,
   "hashed_password" text NOT NULL,
   "postal_code" integer NOT NULL,
-  "is_teacher" boolean NOT NULL DEFAULT false,
+  "user_type" user_type NOT NULL DEFAULT 'student',
   "created_at" timestamptz(3) default current_timestamp
 );
 

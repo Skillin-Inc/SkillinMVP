@@ -41,18 +41,18 @@ export interface NewUser {
   username: string;
   password: string;
   postalCode: number;
-  isTeacher: boolean;
+  userType: "student" | "teacher" | "admin";
 }
 
 export async function createUser(data: NewUser) {
-  const { firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher = false } = data;
+  const { firstName, lastName, email, phoneNumber, username, password, postalCode, userType = "student" } = data;
 
   const result = await pool.query(
     `INSERT INTO public.users
-    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "is_teacher")
+    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "user_type")
    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-   RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "is_teacher", "created_at"`,
-    [firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher]
+   RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "user_type", "created_at"`,
+    [firstName, lastName, email, phoneNumber, username, password, postalCode, userType]
   );
 
   return result.rows[0];
@@ -485,31 +485,37 @@ export async function deleteUserByEmail(email: string) {
   return result.rows[0] ?? null;
 }
 
-export async function toggleIsTeacherByEmail(email: string) {
+export async function updateUserTypeByEmail(email: string, newUserType: "student" | "teacher" | "admin") {
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
 
-    const current = await client.query(`SELECT id AS user_id, is_teacher FROM public.users WHERE email = $1`, [email]);
+    const current = await client.query(`SELECT id AS user_id, user_type FROM public.users WHERE email = $1`, [email]);
 
     if (current.rows.length === 0) {
       await client.query("ROLLBACK");
       return null;
     }
 
-    const { user_id, is_teacher } = current.rows[0];
-    const flipped = !is_teacher;
+    const { user_id, user_type: currentUserType } = current.rows[0];
+
+    // If the user type is already the same, no need to update
+    if (currentUserType === newUserType) {
+      await client.query("ROLLBACK");
+      return null;
+    }
 
     const result = await client.query(
       `UPDATE public.users
-       SET is_teacher = $1
+       SET user_type = $1
        WHERE email = $2
        RETURNING *`,
-      [flipped, email]
+      [newUserType, email]
     );
 
-    if (flipped) {
-      // Promote: Add to teachers table
+    // Handle teachers table updates
+    if (newUserType === "teacher") {
+      // Promote: Add to teachers table if not already there
       await client.query(
         `INSERT INTO public.teachers (user_id, category_id)
          SELECT $1, 1
@@ -518,8 +524,8 @@ export async function toggleIsTeacherByEmail(email: string) {
          )`,
         [user_id]
       );
-    } else {
-      // Demote: Remove from teachers table
+    } else if (currentUserType === "teacher") {
+      // Demote: Remove from teachers table if they were a teacher
       await client.query(`DELETE FROM public.teachers WHERE user_id = $1`, [user_id]);
     }
 
