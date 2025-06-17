@@ -1,8 +1,8 @@
 import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import Messages from "../screens/messages/Messages";
-import Chat from "../screens/messages/Chat";
+import Messages from "../screens/shared/Messages";
+import Chat from "../screens/shared/Chat";
 import { MessagesStackParamList } from "../types";
 
 const Stack = createStackNavigator<MessagesStackParamList>();

@@ -1,10 +1,10 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
   ScrollView,
   SafeAreaView,
   Alert,
@@ -13,18 +13,16 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, NewLesson, Course } from "../../services/api";
 
-type CreateLessonNavigationProp = StackNavigationProp<Record<string, object | undefined>>;
+type Props = StackScreenProps<Record<string, object | undefined>, "CreateLesson">;
 
-export default function CreateLesson() {
+export default function CreateLesson({ navigation }: Props) {
   const { user } = useContext(AuthContext);
-  const navigation = useNavigation<CreateLessonNavigationProp>();
   const [formData, setFormData] = useState({
     title: "",
     description: "",

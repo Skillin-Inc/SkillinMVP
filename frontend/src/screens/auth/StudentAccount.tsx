@@ -1,42 +1,70 @@
 import React, { useState, useContext } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, StatusBar } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar, Alert } from "react-native";
+import { useScreenDimensions } from "../../hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
-
-import { useScreenDimensions } from "../../hooks";
-import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
+import { AuthContext } from "../../hooks/AuthContext";
 import { AuthStackParamList } from "../../types";
 
-type Props = StackScreenProps<AuthStackParamList, "Login">;
+type Props = StackScreenProps<AuthStackParamList, "StudentAccount">;
 
-export default function Login({ navigation }: Props) {
-  const { login } = useContext(AuthContext);
+export default function StudentAccount({ navigation, route }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
+  const { register } = useContext(AuthContext);
 
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
+  const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleLogin() {
-    if (!emailOrPhone.trim() || !password.trim()) {
+  const { firstName, lastName, email, phoneNumber, postalCode } = route.params;
+
+  async function handleSignUp() {
+    if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
       Alert.alert("Missing Fields", "Please fill out all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Password Mismatch", "Passwords do not match.");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert("Weak Password", "Password must be at least 6 characters long.");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      await login({
-        emailOrPhone: emailOrPhone.trim(),
+      await register({
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        username: username.trim(),
         password,
+        postalCode,
       });
+
+      Alert.alert("Success", "Account created successfully! You are now logged in.", [
+        {
+          text: "OK",
+          onPress: () => navigation.navigate("RegisterPayment"),
+        },
+      ]);
     } catch (error) {
-      console.error("Login error", error);
-      Alert.alert("Login Failed", error instanceof Error ? error.message : "Invalid credentials. Please try again.");
+      console.error("Registration error:", error);
+      Alert.alert(
+        "Registration Failed",
+        error instanceof Error ? error.message : "An unexpected error occurred. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -50,26 +78,25 @@ export default function Login({ navigation }: Props) {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color={COLORS.purple} />
         </TouchableOpacity>
-        <Text style={styles.title}>Log In</Text>
+        <Text style={styles.headerTitle}>Create Account</Text>
       </View>
 
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
-          <Ionicons name="mail-outline" size={22} color={COLORS.darkGray} style={styles.inputIcon} />
+          <Ionicons name="person-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder="Username"
             placeholderTextColor={COLORS.gray}
-            value={emailOrPhone}
-            onChangeText={setEmailOrPhone}
             autoCapitalize="none"
-            keyboardType="email-address"
+            value={username}
+            onChangeText={setUsername}
             editable={!isLoading}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Ionicons name="lock-closed-outline" size={22} color={COLORS.darkGray} style={styles.inputIcon} />
+          <Ionicons name="lock-closed-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -80,27 +107,43 @@ export default function Login({ navigation }: Props) {
             editable={!isLoading}
           />
           <TouchableOpacity style={styles.passwordToggle} onPress={() => setHidePassword(!hidePassword)}>
-            <Ionicons name={hidePassword ? "eye-outline" : "eye-off-outline"} size={22} color={COLORS.darkGray} />
+            <Ionicons name={hidePassword ? "eye-outline" : "eye-off-outline"} size={20} color={COLORS.darkGray} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotText}>Forgot Password?</Text>
-        </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Ionicons name="lock-closed-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            placeholderTextColor={COLORS.gray}
+            secureTextEntry={hideConfirmPassword}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            editable={!isLoading}
+          />
+          <TouchableOpacity style={styles.passwordToggle} onPress={() => setHideConfirmPassword(!hideConfirmPassword)}>
+            <Ionicons
+              name={hideConfirmPassword ? "eye-outline" : "eye-off-outline"}
+              size={20}
+              color={COLORS.darkGray}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <TouchableOpacity
         style={[styles.button, isLoading && styles.buttonDisabled]}
-        onPress={handleLogin}
+        onPress={handleSignUp}
         disabled={isLoading}
       >
-        <Text style={styles.buttonText}>{isLoading ? "Signing In..." : "Sign In"}</Text>
+        <Text style={styles.buttonText}>{isLoading ? "Creating Account..." : "Create Account"}</Text>
       </TouchableOpacity>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Don't have an account? </Text>
-        <TouchableOpacity onPress={() => !isLoading && navigation.navigate("StudentInfo")}>
-          <Text style={styles.signupText}>Sign Up</Text>
+        <Text style={styles.footerText}>Already have an account? </Text>
+        <TouchableOpacity onPress={() => !isLoading && navigation.navigate("Login")}>
+          <Text style={styles.loginText}>Sign In</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>
@@ -118,8 +161,8 @@ function getStyles(width: number, height: number) {
       width: "100%",
       flexDirection: "row",
       alignItems: "center",
-      marginTop: height * 0.06,
-      marginBottom: height * 0.04,
+      marginTop: height * 0.05,
+      marginBottom: height * 0.03,
     },
     backButton: {
       width: 40,
@@ -127,27 +170,25 @@ function getStyles(width: number, height: number) {
       justifyContent: "center",
       alignItems: "flex-start",
     },
-    title: {
-      fontSize: width > 400 ? 32 : 28,
+    headerTitle: {
+      fontSize: width > 400 ? 28 : 24,
       fontWeight: "bold",
       color: COLORS.purple,
-      marginTop: height * 0.02,
-      marginBottom: height * 0.02,
+      marginLeft: 10,
     },
     formContainer: {
       width: "100%",
-      marginTop: height * 0.02,
+      marginTop: height * 0.01,
     },
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
-      width: "100%",
       height: height * 0.075,
       borderColor: COLORS.gray,
       borderWidth: 1,
       borderRadius: 12,
       paddingHorizontal: 15,
-      marginBottom: height * 0.025,
+      marginBottom: height * 0.015,
       backgroundColor: COLORS.lightGray,
     },
     inputIcon: {
@@ -156,7 +197,7 @@ function getStyles(width: number, height: number) {
     },
     input: {
       flex: 1,
-      fontSize: width > 400 ? 16 : 15,
+      fontSize: width > 400 ? 16 : 14,
       color: COLORS.black,
       height: "100%",
       paddingVertical: 10,
@@ -167,22 +208,13 @@ function getStyles(width: number, height: number) {
       justifyContent: "center",
       paddingHorizontal: 10,
     },
-    forgotPassword: {
-      alignSelf: "flex-end",
-      marginBottom: height * 0.02,
-    },
-    forgotText: {
-      color: COLORS.purple,
-      fontSize: 14,
-      fontWeight: "500",
-    },
     button: {
       width: "100%",
       backgroundColor: COLORS.green,
       paddingVertical: height * 0.02,
       borderRadius: 12,
       alignItems: "center",
-      marginTop: height * 0.04,
+      marginTop: height * 0.02,
       shadowColor: COLORS.black,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.2,
@@ -199,13 +231,14 @@ function getStyles(width: number, height: number) {
       flexDirection: "row",
       justifyContent: "center",
       alignItems: "center",
-      marginTop: height * 0.04,
+      marginTop: height * 0.03,
+      marginBottom: height * 0.02,
     },
     footerText: {
       color: COLORS.darkGray,
       fontSize: 14,
     },
-    signupText: {
+    loginText: {
       color: COLORS.purple,
       fontSize: 14,
       fontWeight: "bold",

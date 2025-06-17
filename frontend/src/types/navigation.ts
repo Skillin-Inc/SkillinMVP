@@ -18,12 +18,11 @@ export type TabNavigatorParamList = {
 
 // Teacher Signup Flow
 export type TeacherStackParamList = {
-  ApplicationStart: undefined;
-  PersonalInfo: undefined;
-  PayoutsInfo: undefined;
-  TeachingExperience: PersonalInfo;
-  Verification: PersonalInfo & TeachingExperience;
-  ReviewSubmit: PersonalInfo &
+  TeacherStart: undefined;
+  TeacherInfo: undefined;
+  TeacherPayouts: undefined;
+  TeacherExperience: PersonalInfo;
+  TeacherSubmit: PersonalInfo &
     TeachingExperience & {
       idFront: string | null;
       idBack: string | null;
@@ -35,7 +34,16 @@ export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
   RegisterPayment: undefined;
-  Register: undefined;
+  StudentInfo: undefined;
+  StudentAccount: {
+    firstName: string;
+    lastName: string;
+    dOB: string;
+    zipCode: string;
+    email: string;
+    phoneNumber: string;
+    postalCode: number;
+  };
   TeacherNavigator: NavigatorScreenParams<TeacherStackParamList>;
 };
 // App Root

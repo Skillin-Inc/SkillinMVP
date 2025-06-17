@@ -3,9 +3,9 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
-import Home from "../screens/usersScreensOnly/Home";
+import Home from "../screens/students/Home";
 import MessagesStack from "./MessagesStack";
-import Temp from "../screens/Temp";
+import Temp from "../screens/shared/Temp";
 import { TabNavigatorParamList } from "../types";
 
 const Tab = createBottomTabNavigator<TabNavigatorParamList>();

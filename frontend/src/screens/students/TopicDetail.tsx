@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, FlatList, TextInput } from "react-native";
-import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../../types";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 import { apiService, Course, Category } from "../../services/api";
 
-type TopicDetailRouteProp = RouteProp<RootStackParamList, "TopicDetail">;
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+type Props = StackScreenProps<RootStackParamList, "TopicDetail">;
 
 interface CourseCardProps {
   course: Course;
@@ -35,9 +33,7 @@ const CourseCard = ({ course, onPress }: CourseCardProps) => (
   </TouchableOpacity>
 );
 
-export default function TopicDetail() {
-  const route = useRoute<TopicDetailRouteProp>();
-  const navigation = useNavigation<NavigationProp>();
+export default function TopicDetail({ navigation, route }: Props) {
   const { topic } = route.params;
 
   const [courses, setCourses] = useState<Course[]>([]);

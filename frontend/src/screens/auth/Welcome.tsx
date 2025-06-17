@@ -26,8 +26,24 @@ export default function WelcomeScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.contentContainer}>
+        <Text style={styles.welcomeText}>Welcome to Skillin</Text>
         <Text style={styles.title}>Learn a new hobby with a personal teacher</Text>
         <Text style={styles.subtitle}>Connect with experts and master new skills at your own pace</Text>
+
+        <View style={styles.featuresContainer}>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>🎯</Text>
+            <Text style={styles.featureText}>Personalized Learning</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>👨‍🏫</Text>
+            <Text style={styles.featureText}>Expert Teachers</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureIcon}>⏰</Text>
+            <Text style={styles.featureText}>Learn at Your Pace</Text>
+          </View>
+        </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
@@ -40,7 +56,7 @@ export default function WelcomeScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={[styles.button, styles.primaryButton]}
-            onPress={() => navigation.navigate("Register")}
+            onPress={() => navigation.navigate("StudentInfo")}
             accessibilityLabel="Sign up for Skillin"
           >
             <Text style={styles.buttonText}>Register</Text>
@@ -51,10 +67,10 @@ export default function WelcomeScreen({ navigation }: Props) {
           </TouchableOpacity>
 
           {/* removing this feature till we have email situaton handled also till we know if more people want to be teachers. */}
-          {/* 
-          <TouchableOpacity
+
+          {/* <TouchableOpacity
             style={[styles.button, styles.secondaryButton]}
-            onPress={() => navigation.navigate("TeacherNavigator", { screen: "ApplicationStart" })}
+            onPress={() => navigation.navigate("TeacherNavigator", { screen: "TeacherStart" })}
             accessibilityLabel="Teacher sign up for Skillin"
           >
             <Text style={styles.secondaryButtonText}>Sign up to be a teacher</Text>
@@ -90,20 +106,53 @@ function getStyles(width: number, height: number) {
       width: "100%",
       marginBottom: height * 0.05,
     },
+    welcomeText: {
+      color: COLORS.white,
+      textAlign: "center",
+      marginBottom: 8,
+      fontSize: width > 400 ? 20 : 18,
+      fontWeight: "600",
+      opacity: 0.9,
+      letterSpacing: 1,
+    },
     title: {
       color: COLORS.white,
       textAlign: "center",
       marginBottom: 12,
-      fontSize: width > 400 ? 28 : 24,
+      fontSize: width > 400 ? 32 : 28,
       fontWeight: "bold",
       letterSpacing: 0.5,
+      lineHeight: width > 400 ? 38 : 34,
     },
     subtitle: {
       color: COLORS.lightGray,
       textAlign: "center",
       marginBottom: 40,
-      fontSize: width > 400 ? 16 : 14,
+      fontSize: width > 400 ? 18 : 16,
       opacity: 0.9,
+      lineHeight: 24,
+      paddingHorizontal: 20,
+    },
+    featuresContainer: {
+      width: "100%",
+      marginBottom: 40,
+      paddingHorizontal: 20,
+    },
+    featureItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 16,
+      paddingHorizontal: 20,
+    },
+    featureIcon: {
+      fontSize: 24,
+      marginRight: 16,
+    },
+    featureText: {
+      color: COLORS.white,
+      fontSize: width > 400 ? 16 : 15,
+      fontWeight: "500",
+      opacity: 0.95,
     },
     buttonContainer: {
       width: "100%",
@@ -111,22 +160,22 @@ function getStyles(width: number, height: number) {
       marginTop: 20,
     },
     button: {
-      paddingVertical: 15,
-      borderRadius: 12,
+      paddingVertical: 16,
+      borderRadius: 16,
       alignItems: "center",
-      marginBottom: 15,
+      marginBottom: 16,
       shadowColor: COLORS.black,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 3,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
     },
     primaryButton: {
       backgroundColor: COLORS.green,
     },
     secondaryButton: {
       backgroundColor: "transparent",
-      borderWidth: 1.5,
+      borderWidth: 2,
       borderColor: COLORS.white,
       marginTop: 5,
     },

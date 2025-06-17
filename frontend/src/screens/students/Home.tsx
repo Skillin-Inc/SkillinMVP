@@ -11,7 +11,7 @@ import CategoryCard from "../../components/CategoryCard";
 import { apiService, Category } from "../../services/api";
 import temp from "../../../assets/playingCards.png";
 
-type NavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const altCategories = [
   { label: "Tutors", image: temp },

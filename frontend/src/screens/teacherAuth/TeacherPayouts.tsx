@@ -1,10 +1,13 @@
 import React from "react";
 import { Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { StackScreenProps } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
-const PayoutsInfoScreen = () => {
-  const navigation = useNavigation();
+import { TeacherStackParamList } from "../../types";
+
+type Props = StackScreenProps<TeacherStackParamList, "TeacherPayouts">;
+
+const TeacherPayouts = ({ navigation }: Props) => {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -89,4 +92,4 @@ const getStyles = (width: number, height: number) =>
     },
   });
 
-export default PayoutsInfoScreen;
+export default TeacherPayouts;

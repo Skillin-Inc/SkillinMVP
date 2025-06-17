@@ -1,12 +1,12 @@
 // navigation/const TeacherSignupStack.tsx
+import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 
-import ApplicationStartScreen from "../screens/teacherSignup/ApplicationStart";
-import PayoutsInfoScreen from "../screens/teacherSignup/PayoutsInfo";
-import PersonalInfoScreen from "../screens/teacherSignup/PersonalInfo";
-import TeachingExperienceScreen from "../screens/teacherSignup/TeachingExperienceScreen";
-import VerificationScreen from "../screens/teacherSignup/Verification";
-import ReviewSubmitScreen from "../screens/teacherSignup/ReviewAndSubmit";
+import TeacherStart from "../screens/teacherAuth/TeacherStart";
+import TeacherPayouts from "../screens/teacherAuth/TeacherPayouts";
+import TeacherInfo from "../screens/teacherAuth/TeacherInfo";
+import TeacherExperience from "../screens/teacherAuth/TeacherExperience";
+import TeacherSubmit from "../screens/teacherAuth/TeacherSubmit";
 import { TeacherStackParamList } from "../types";
 
 const TeacherSignupStack = createStackNavigator<TeacherStackParamList>();
@@ -14,12 +14,11 @@ const TeacherSignupStack = createStackNavigator<TeacherStackParamList>();
 export default function TeacherNavigator() {
   return (
     <TeacherSignupStack.Navigator screenOptions={{ headerShown: false }}>
-      <TeacherSignupStack.Screen name="ApplicationStart" component={ApplicationStartScreen} />
-      <TeacherSignupStack.Screen name="PayoutsInfo" component={PayoutsInfoScreen} />
-      <TeacherSignupStack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
-      <TeacherSignupStack.Screen name="TeachingExperience" component={TeachingExperienceScreen} />
-      <TeacherSignupStack.Screen name="Verification" component={VerificationScreen} />
-      <TeacherSignupStack.Screen name="ReviewSubmit" component={ReviewSubmitScreen} />
+      <TeacherSignupStack.Screen name="TeacherStart" component={TeacherStart} />
+      <TeacherSignupStack.Screen name="TeacherPayouts" component={TeacherPayouts} />
+      <TeacherSignupStack.Screen name="TeacherInfo" component={TeacherInfo} />
+      <TeacherSignupStack.Screen name="TeacherExperience" component={TeacherExperience} />
+      <TeacherSignupStack.Screen name="TeacherSubmit" component={TeacherSubmit} />
     </TeacherSignupStack.Navigator>
   );
 }

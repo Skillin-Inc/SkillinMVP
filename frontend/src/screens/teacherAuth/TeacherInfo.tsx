@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -9,8 +8,9 @@ import { useScreenDimensions, formatPhoneNumber, formatZipCode } from "../../hoo
 import { TeacherStackParamList } from "../../types/navigation";
 import { COLORS } from "../../styles";
 
-const PersonalInfoScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
+type Props = StackScreenProps<TeacherStackParamList, "TeacherInfo">;
+
+const TeacherInfo = ({ navigation }: Props) => {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -41,7 +41,7 @@ const PersonalInfoScreen = () => {
   };
 
   const handleNext = () => {
-    navigation.navigate("TeachingExperience", {
+    navigation.navigate("TeacherExperience", {
       firstName,
       lastName,
       email,
@@ -125,7 +125,7 @@ const PersonalInfoScreen = () => {
   );
 };
 
-export default PersonalInfoScreen;
+export default TeacherInfo;
 
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({

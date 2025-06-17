@@ -1,26 +1,27 @@
-// src/screens/teacherSignup/TeachingExperienceScreen.tsx
+// src/screens/teacherSignup/TeacherExperience.tsx
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 import * as ImagePicker from "expo-image-picker";
 
 import { useScreenDimensions } from "../../hooks";
 import { TeacherStackParamList } from "../../types/navigation";
 import { COLORS } from "../../styles";
 
-const TeachingExperienceScreen = () => {
-  const route = useRoute<RouteProp<TeacherStackParamList, "TeachingExperience">>();
-  console.log("📦 Received from PersonalInfoScreen:", route.params);
+type Props = StackScreenProps<TeacherStackParamList, "TeacherExperience">;
 
-  const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
+const TeacherExperience = ({ navigation, route }: Props) => {
+  console.log("📦 Received from TeacherInfo:", route.params);
+
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
   const [experienceList, setExperienceList] = useState([{ expertise: "", years: "" }]);
   const [certificationImage, setCertificationImage] = useState<string | null>(null);
   const [portfolios, setPortfolios] = useState<string[]>([""]);
+  const [idFrontImage, setIdFrontImage] = useState<string | null>(null);
+  const [idBackImage, setIdBackImage] = useState<string | null>(null);
 
   const addExperienceField = () => {
     setExperienceList([...experienceList, { expertise: "", years: "" }]);
@@ -59,12 +60,32 @@ const TeachingExperienceScreen = () => {
     }
   };
 
+  const pickImage = async (setState: React.Dispatch<React.SetStateAction<string | null>>) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("We need permission to access your photos!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.5,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      setState(result.assets[0].uri);
+    }
+  };
+
   const handleNext = () => {
-    navigation.navigate("Verification", {
+    navigation.navigate("TeacherSubmit", {
       ...route.params, // personal info
       experienceList,
       certifications: certificationImage ? [certificationImage] : [],
       portfolios,
+      idFront: idFrontImage,
+      idBack: idBackImage,
     });
   };
 
@@ -74,8 +95,11 @@ const TeachingExperienceScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color={COLORS.purple} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Step 2: Teaching Experience</Text>
+        <Text style={styles.headerTitle}>Step 2: Experience & Verification</Text>
       </View>
+
+      {/* Teaching Experience Section */}
+      <Text style={styles.sectionTitle}>Teaching Experience</Text>
 
       {experienceList.map((item, index) => (
         <View key={index} style={styles.rowGroup}>
@@ -133,14 +157,39 @@ const TeachingExperienceScreen = () => {
         onChangeText={(text) => setPortfolios([text])}
       />
 
+      {/* Verification Section */}
+      <Text style={styles.sectionTitle}>Identity Verification</Text>
+
+      <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setIdFrontImage)}>
+        <Text style={styles.uploadButtonText}>{idFrontImage ? "Change ID Front" : "Upload ID Front"}</Text>
+      </TouchableOpacity>
+
+      {idFrontImage && (
+        <Image
+          source={{ uri: idFrontImage }}
+          style={{ width: "100%", height: 200, borderRadius: 8, marginBottom: 20 }}
+        />
+      )}
+
+      <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setIdBackImage)}>
+        <Text style={styles.uploadButtonText}>{idBackImage ? "Change ID Back" : "Upload ID Back"}</Text>
+      </TouchableOpacity>
+
+      {idBackImage && (
+        <Image
+          source={{ uri: idBackImage }}
+          style={{ width: "100%", height: 200, borderRadius: 8, marginBottom: 20 }}
+        />
+      )}
+
       <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-        <Text style={styles.nextButtonText}>Next</Text>
+        <Text style={styles.nextButtonText}>Continue to Review</Text>
       </TouchableOpacity>
     </ScrollView>
   );
 };
 
-export default TeachingExperienceScreen;
+export default TeacherExperience;
 
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
@@ -160,6 +209,13 @@ const getStyles = (width: number, height: number) =>
       fontSize: width > 400 ? 24 : 22,
       fontWeight: "bold",
       color: COLORS.purple,
+    },
+    sectionTitle: {
+      fontSize: width > 400 ? 20 : 18,
+      fontWeight: "bold",
+      color: COLORS.purple,
+      marginTop: height * 0.03,
+      marginBottom: height * 0.02,
     },
     input: {
       width: "100%",
