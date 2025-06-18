@@ -170,9 +170,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Logout error:", error);
     }
   };
+  const switchMode = () => {
+    if (!user) return;
+    const updatedUser = { ...user, is_teacher: !user.is_teacher };
+    setUser(updatedUser);
+  };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, user, login, register, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, user, switchMode, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import StudentHome from "../screens/students/StudentHome";
 import Messages from "../screens/shared/Messages";
-import StudentProfile from "../screens/students/StudentProfile";
+import Profile from "../screens/shared/Profile";
 import Temp from "../screens/shared/Temp";
 
 import { COLORS } from "../styles";
@@ -40,7 +40,7 @@ export default function StudentTabs() {
     >
       <Tab.Screen name="StudentHome" component={StudentHome} />
       <Tab.Screen name="Messages" component={Messages} />
-      <Tab.Screen name="StudentProfile" component={StudentProfile} />
+      <Tab.Screen name="StudentProfile" component={Profile} />
       <Tab.Screen name="Temp" component={Temp} />
     </Tab.Navigator>
   );

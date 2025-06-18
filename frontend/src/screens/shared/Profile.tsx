@@ -14,16 +14,6 @@ import { StudentTabsParamList, StudentStackParamList } from "../../types/navigat
 
 const mockUser = {
   avatar: Avatar_Placeholder,
-  firstName: "Sho",
-  lastName: "Vang",
-  dOB: "01/15/2000", // Might remove this becuase this isn't geting saved into the db maybe we can just do an age limit ? or will
-  // we need to do that?
-  zipCode: "80204", // maybe we can hid this as well i dont think its nessar for the user to see their own zipcode
-  // espishaly if we are not doing anything location based. right?
-  email: "sho@example.com",
-  phoneNumber: "(123) 456-7890",
-  password: "MockPW",
-  membershipTier: "Premium",
   paymentInfo: ["Visa •••• 4242", "Exp: 12/26"],
 };
 
@@ -32,10 +22,8 @@ type Props = CompositeScreenProps<
   StackScreenProps<StudentStackParamList>
 >;
 
-export default function StudentProfile({ navigation }: Props) {
-  const { logout, user } = useContext(AuthContext);
-  console.log("USER DATA:", user);
-
+export default function Profile({ navigation, route }: Props) {
+  const { logout, user, switchMode } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -45,6 +33,8 @@ export default function StudentProfile({ navigation }: Props) {
   const [error, setError] = useState("");
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
 
+  const isFromTeacher = (route.params as any)?.from === "TeacherHome";
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -52,6 +42,21 @@ export default function StudentProfile({ navigation }: Props) {
       console.error("Logout error:", e);
     }
   };
+
+  const handleSwitchMode = () => {
+    switchMode();
+  };
+
+  // Helper component
+  const InfoItem = ({ icon, label, value }: { icon: string; label: string; value: string }) => (
+    <View style={styles.infoItem}>
+      <Ionicons name={icon as any} size={22} color={COLORS.purple} style={styles.infoIcon} />
+      <View>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValue}>{value}</Text>
+      </View>
+    </View>
+  );
 
   return (
     <ScrollView
@@ -65,9 +70,7 @@ export default function StudentProfile({ navigation }: Props) {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color={COLORS.purple} />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>My Profile</Text>
-
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
           <Text style={styles.logoutText}>Log Out</Text>
@@ -75,16 +78,8 @@ export default function StudentProfile({ navigation }: Props) {
       </View>
 
       <View style={styles.profileHeader}>
-        <ImagePickerAvatar
-          initialUri={avatarUri}
-          onChange={(uri) => {
-            console.log("New avatar URI:", uri);
-            setAvatarUri(uri);
-          }}
-          size={120}
-        />
-
-        <Text style={styles.name}>{`${user?.username ?? ""} `}</Text>
+        <ImagePickerAvatar initialUri={avatarUri} onChange={setAvatarUri} size={120} />
+        <Text style={styles.name}>{user?.username ?? ""}</Text>
         <View style={styles.membershipBadge}>
           <Ionicons name="star" size={14} color={COLORS.white} />
           <Text style={styles.membershipText}>{user?.membershipTier ?? "bronze"}</Text>
@@ -93,132 +88,100 @@ export default function StudentProfile({ navigation }: Props) {
 
       <View style={styles.infoContainer}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
-
         <View style={styles.infoBox}>
-          <View style={styles.infoItem}>
-            <Ionicons name="calendar-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
-            <View>
-              <Text style={styles.infoLabel}>Date of Birth</Text>
-              <Text style={styles.infoValue}>{user?.dOB ?? "Not provided"}</Text>
-            </View>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Ionicons name="location-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
-            <View>
-              <Text style={styles.infoLabel}>Zip Code</Text>
-              <Text style={styles.infoValue}>{user?.postalCode}</Text>
-            </View>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Ionicons name="mail-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
-            <View>
-              <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{user?.email}</Text>
-            </View>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Ionicons name="call-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
-            <View>
-              <Text style={styles.infoLabel}>Phone Number</Text>
-              <Text style={styles.infoValue}>{user?.phoneNumber}</Text>
-            </View>
-          </View>
+          <InfoItem icon="calendar-outline" label="Date of Birth" value={user?.dOB ?? "Not provided"} />
+          <InfoItem icon="location-outline" label="Zip Code" value={user?.postalCode?.toString() ?? "Not provided"} />
+          <InfoItem icon="mail-outline" label="Email" value={user?.email ?? ""} />
+          <InfoItem icon="call-outline" label="Phone Number" value={user?.phoneNumber ?? ""} />
         </View>
 
-        <View style={styles.sensitiveInfoSection}>
-          <Text style={styles.sectionTitle}>Sensitive Information</Text>
-
-          {!showSensitive ? (
-            <>
-              {verifyStep ? (
-                <View style={styles.verifyContainer}>
-                  <Text style={styles.verifyText}>Enter password to view sensitive information</Text>
-                  <View style={styles.passwordInputContainer}>
-                    <Ionicons name="lock-closed-outline" size={22} color={COLORS.darkGray} style={styles.inputIcon} />
-                    <TextInput
-                      style={styles.passwordInput}
-                      secureTextEntry
-                      value={enteredPassword}
-                      onChangeText={setEnteredPassword}
-                      placeholder="Enter your password"
-                      placeholderTextColor={COLORS.gray}
-                    />
-                  </View>
-                  {error ? <Text style={styles.errorText}>{error}</Text> : null}
-                  <View style={styles.verifyActions}>
-                    <TouchableOpacity
-                      style={styles.cancelButton}
-                      onPress={() => {
-                        setVerifyStep(false);
-                        setEnteredPassword("");
-                        setError("");
-                      }}
-                    >
-                      <Text style={styles.cancelText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.verifyButton}
-                      onPress={() => {
-                        if (enteredPassword === user?.hashedPassword) {
-                          setShowSensitive(true);
-                          setError("");
-                          setVerifyStep(false);
-                          setEnteredPassword("");
-                        } else {
-                          setError("Incorrect password");
-                        }
-                      }}
-                    >
-                      <Text style={styles.verifyButtonText}>Verify</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <TouchableOpacity style={styles.revealButton} onPress={() => setVerifyStep(true)}>
-                  <Ionicons name="eye-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
-                  <Text style={styles.revealText}>View Sensitive Info</Text>
+        <Text style={styles.sectionTitle}>Sensitive Information</Text>
+        {!showSensitive ? (
+          verifyStep ? (
+            <View style={styles.verifyContainer}>
+              <Text style={styles.verifyText}>Enter password to view sensitive information</Text>
+              <View style={styles.passwordInputContainer}>
+                <Ionicons name="lock-closed-outline" size={22} color={COLORS.darkGray} style={styles.inputIcon} />
+                <TextInput
+                  style={styles.passwordInput}
+                  secureTextEntry
+                  value={enteredPassword}
+                  onChangeText={setEnteredPassword}
+                  placeholder="Enter your password"
+                  placeholderTextColor={COLORS.gray}
+                />
+              </View>
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              <View style={styles.verifyActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setVerifyStep(false);
+                    setEnteredPassword("");
+                    setError("");
+                  }}
+                >
+                  <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
-              )}
-            </>
-          ) : (
-            <View style={styles.sensitiveInfoBox}>
-              <View style={styles.infoItem}>
-                <Ionicons name="key-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
-                <View>
-                  <Text style={styles.infoLabel}>Password</Text>
-                  <Text style={styles.infoValue}>{user?.hashedPassword}</Text>
-                </View>
+                <TouchableOpacity
+                  style={styles.verifyButton}
+                  onPress={() => {
+                    if (enteredPassword === user?.hashedPassword) {
+                      setShowSensitive(true);
+                      setError("");
+                      setVerifyStep(false);
+                      setEnteredPassword("");
+                    } else {
+                      setError("Incorrect password");
+                    }
+                  }}
+                >
+                  <Text style={styles.verifyButtonText}>Verify</Text>
+                </TouchableOpacity>
               </View>
-
-              <View style={styles.paymentSection}>
-                <View style={styles.infoItem}>
-                  <Ionicons name="card-outline" size={22} color={COLORS.purple} style={styles.infoIcon} />
-                  <View style={styles.paymentInfoContainer}>
-                    <Text style={styles.infoLabel}>Payment Information</Text>
-                    {mockUser.paymentInfo.map((item, index) => (
-                      <Text key={index} style={styles.paymentDetail}>
-                        {item}
-                      </Text>
-                    ))}
-                  </View>
-                </View>
-              </View>
-
-              <TouchableOpacity style={styles.hideButton} onPress={() => setShowSensitive(false)}>
-                <Ionicons name="eye-off-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
-                <Text style={styles.hideButtonText}>Hide Sensitive Info</Text>
-              </TouchableOpacity>
             </View>
-          )}
-        </View>
+          ) : (
+            <TouchableOpacity style={styles.revealButton} onPress={() => setVerifyStep(true)}>
+              <Ionicons name="eye-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
+              <Text style={styles.revealText}>View Sensitive Info</Text>
+            </TouchableOpacity>
+          )
+        ) : (
+          <View style={styles.sensitiveInfoBox}>
+            <InfoItem icon="key-outline" label="Password" value={user?.hashedPassword ?? "*****"} />
+            <View style={styles.paymentSection}>
+              <InfoItem icon="card-outline" label="Payment Information" value="" />
+              {mockUser.paymentInfo.map((item, index) => (
+                <Text key={index} style={styles.paymentDetail}>
+                  {item}
+                </Text>
+              ))}
+            </View>
+            <TouchableOpacity style={styles.hideButton} onPress={() => setShowSensitive(false)}>
+              <Ionicons name="eye-off-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
+              <Text style={styles.hideButtonText}>Hide Sensitive Info</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.actionsContainer}>
           <TouchableOpacity style={styles.editProfileButton}>
             <Ionicons name="create-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
             <Text style={styles.actionButtonText}>Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, !user?.isTeacher && { backgroundColor: COLORS.gray }]}
+            onPress={handleSwitchMode}
+            disabled={!user?.isTeacher}
+          >
+            <Ionicons name="school-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
+            <Text style={styles.actionButtonText}>
+              {user?.isTeacher
+                ? isFromTeacher
+                  ? "Switch to Student Mode"
+                  : "Switch to Teacher Mode"
+                : "Teacher Access Only"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

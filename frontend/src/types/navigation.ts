@@ -14,6 +14,7 @@ export type TeacherTabsParamList = {
   TeacherCreateLesson: undefined;
   TeacherStats: undefined;
   Messages: undefined;
+  Profile: { from?: string };
   Temp: undefined;
 };
 
@@ -22,6 +23,7 @@ export type StudentStackParamList = {
   StudentTopicDetail: { id: string };
   StudentAltCategoryDetail: { id: string };
   Chat: { id: string };
+  StudentProfile: { from?: string }; // 👈 Add this
 };
 
 export type TeacherStackParamList = {
