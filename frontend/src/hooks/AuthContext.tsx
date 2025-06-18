@@ -32,6 +32,7 @@ type AuthContextType = {
   login: (loginData: LoginData) => Promise<void>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
+  switchMode: () => void;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -41,6 +42,7 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   register: async () => {},
   logout: async () => {},
+  switchMode: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

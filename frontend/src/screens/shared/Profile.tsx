@@ -10,7 +10,7 @@ import Avatar_Placeholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
 import ImagePickerAvatar from "../../components/ImagePickerAvatar";
 import { COLORS } from "../../styles";
-import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
+import { StudentTabsParamList, StudentStackParamList, TeacherStackParamList } from "../../types/navigation";
 
 const mockUser = {
   avatar: Avatar_Placeholder,
@@ -19,7 +19,10 @@ const mockUser = {
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<StudentTabsParamList, "StudentProfile">,
-  StackScreenProps<StudentStackParamList>
+  CompositeScreenProps<
+    StackScreenProps<TeacherStackParamList, "StudentProfile">,
+    StackScreenProps<StudentStackParamList, "StudentProfile">
+  >
 >;
 
 export default function Profile({ navigation, route }: Props) {
@@ -34,6 +37,9 @@ export default function Profile({ navigation, route }: Props) {
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
 
   const isFromTeacher = (route.params as any)?.from === "TeacherHome";
+  console.log("Profile - route.params:", route.params);
+  console.log("Profile - isFromTeacher:", isFromTeacher);
+  console.log("Profile - user.isTeacher:", user?.isTeacher);
 
   const handleLogout = async () => {
     try {
@@ -93,9 +99,17 @@ export default function Profile({ navigation, route }: Props) {
           <InfoItem icon="location-outline" label="Zip Code" value={user?.postalCode?.toString() ?? "Not provided"} />
           <InfoItem icon="mail-outline" label="Email" value={user?.email ?? ""} />
           <InfoItem icon="call-outline" label="Phone Number" value={user?.phoneNumber ?? ""} />
+
+          {/* ✨ Move this button inside infoBox for better visual grouping */}
+          <TouchableOpacity style={styles.editProfileButton}>
+            <Ionicons name="create-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
+            <Text style={styles.actionButtonText}>Edit Profile</Text>
+          </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionTitle}>Sensitive Information</Text>
+        <View style={styles.infoBox}></View>
+
+        {/* <Text style={styles.sectionTitle}>Sensitive Information</Text>
         {!showSensitive ? (
           verifyStep ? (
             <View style={styles.verifyContainer}>
@@ -145,7 +159,7 @@ export default function Profile({ navigation, route }: Props) {
               <Ionicons name="eye-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
               <Text style={styles.revealText}>View Sensitive Info</Text>
             </TouchableOpacity>
-          )
+          ) 
         ) : (
           <View style={styles.sensitiveInfoBox}>
             <InfoItem icon="key-outline" label="Password" value={user?.hashedPassword ?? "*****"} />
@@ -162,13 +176,9 @@ export default function Profile({ navigation, route }: Props) {
               <Text style={styles.hideButtonText}>Hide Sensitive Info</Text>
             </TouchableOpacity>
           </View>
-        )}
+        )*/}
 
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.editProfileButton}>
-            <Ionicons name="create-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, !user?.isTeacher && { backgroundColor: COLORS.gray }]}
             onPress={handleSwitchMode}
@@ -273,7 +283,7 @@ function getStyles(width: number, height: number) {
     infoBox: {
       backgroundColor: COLORS.lightGray,
       borderRadius: 12,
-      padding: 15,
+      padding: 10,
     },
     infoItem: {
       flexDirection: "row",
@@ -414,7 +424,7 @@ function getStyles(width: number, height: number) {
       fontSize: 14,
     },
     actionsContainer: {
-      marginTop: 25,
+      marginTop: 1,
     },
     actionButton: {
       flexDirection: "row",

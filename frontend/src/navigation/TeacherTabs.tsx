@@ -29,8 +29,6 @@ export default function TeacherTabs() {
             iconName = focused ? "bar-chart" : "bar-chart-outline";
           } else if (route.name === "Messages") {
             iconName = focused ? "chatbubbles" : "chatbubbles-outline";
-          } else if (route.name === "StudentProfile") {
-            iconName = focused ? "person" : "person-outline";
           } else if (route.name === "Temp") {
             iconName = focused ? "settings" : "settings-outline";
           } else {
@@ -48,7 +46,6 @@ export default function TeacherTabs() {
       <Tab.Screen name="TeacherCreateLesson" component={TeacherCreateLesson} />
       <Tab.Screen name="TeacherStats" component={TeacherStats} />
       <Tab.Screen name="Messages" component={Messages} />
-      {/* <Tab.Screen name="StudentProfile" component={Profile} /> */}
       <Tab.Screen name="Temp" component={Temp} />
     </Tab.Navigator>
   );

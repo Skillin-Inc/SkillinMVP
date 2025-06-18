@@ -19,7 +19,7 @@ export default function TeacherHome({ navigation }: Props) {
   const styles = getStyles(screenWidth, screenHeight);
 
   const handleViewProfile = () => {
-    navigation.navigate("StudentProfile");
+    navigation.navigate("StudentProfile" as any, { from: "TeacherHome" });
   };
 
   return (
