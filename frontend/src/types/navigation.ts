@@ -28,6 +28,7 @@ export type StudentStackParamList = {
 
 export type TeacherStackParamList = {
   TeacherTabs: NavigatorScreenParams<TeacherTabsParamList>;
+  StudentProfile: { from?: string }; // optional param
   TeacherCreateCourse: undefined;
   Chat: { id: string };
 };

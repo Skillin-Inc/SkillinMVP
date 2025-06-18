@@ -48,7 +48,7 @@ export default function TeacherTabs() {
       <Tab.Screen name="TeacherCreateLesson" component={TeacherCreateLesson} />
       <Tab.Screen name="TeacherStats" component={TeacherStats} />
       <Tab.Screen name="Messages" component={Messages} />
-      <Tab.Screen name="StudentProfile" component={Profile} />
+      {/* <Tab.Screen name="StudentProfile" component={Profile} /> */}
       <Tab.Screen name="Temp" component={Temp} />
     </Tab.Navigator>
   );
