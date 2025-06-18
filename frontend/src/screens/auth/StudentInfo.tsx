@@ -21,7 +21,6 @@ export default function StudentInfo({ navigation }: Props) {
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleNext = () => {
-    // Basic validation
     if (
       !firstName.trim() ||
       !lastName.trim() ||
@@ -45,7 +44,6 @@ export default function StudentInfo({ navigation }: Props) {
       return;
     }
 
-    // Navigate to next screen with data
     navigation.navigate("StudentAccount", {
       firstName: firstName.trim(),
       lastName: lastName.trim(),

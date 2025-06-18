@@ -1,17 +1,27 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
 import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { COLORS } from "../../styles";
 import UserItem, { ChatUser } from "../../components/UserItem";
-import { MessagesStackParamList } from "../../types";
+import {
+  StudentTabsParamList,
+  TeacherTabsParamList,
+  StudentStackParamList,
+  TeacherStackParamList,
+} from "../../types/navigation";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 
-type Props = StackScreenProps<MessagesStackParamList, "Messages">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<StudentTabsParamList | TeacherTabsParamList, "Messages">,
+  StackScreenProps<StudentStackParamList | TeacherStackParamList>
+>;
 
 export default function Messages({ navigation }: Props) {
   const { user: currentUser } = useContext(AuthContext);

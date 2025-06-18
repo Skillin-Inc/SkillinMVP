@@ -6,9 +6,9 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
-import { TeacherStackParamList } from "../../types";
+import { TeacherAuthStackParamList } from "../../types/navigation";
 
-type Props = StackScreenProps<TeacherStackParamList, "TeacherStart">;
+type Props = StackScreenProps<TeacherAuthStackParamList, "TeacherStart">;
 
 const TeacherStart = ({ navigation }: Props) => {
   const { screenWidth, screenHeight } = useScreenDimensions();

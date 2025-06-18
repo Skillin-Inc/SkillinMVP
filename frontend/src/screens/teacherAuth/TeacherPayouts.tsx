@@ -3,9 +3,9 @@ import { Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { StackScreenProps } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
-import { TeacherStackParamList } from "../../types";
+import { TeacherAuthStackParamList } from "../../types/navigation";
 
-type Props = StackScreenProps<TeacherStackParamList, "TeacherPayouts">;
+type Props = StackScreenProps<TeacherAuthStackParamList, "TeacherPayouts">;
 
 const TeacherPayouts = ({ navigation }: Props) => {
   const { screenWidth, screenHeight } = useScreenDimensions();

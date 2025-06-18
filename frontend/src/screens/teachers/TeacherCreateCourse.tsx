@@ -18,10 +18,11 @@ import { StackScreenProps } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, NewCourse, Category } from "../../services/api";
+import { TeacherStackParamList } from "../../types/navigation";
 
-type Props = StackScreenProps<Record<string, object | undefined>, "CreateCourse">;
+type Props = StackScreenProps<TeacherStackParamList, "TeacherCreateCourse">;
 
-export default function CreateCourse({ navigation }: Props) {
+export default function TeacherCreateCourse({ navigation }: Props) {
   const { user } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     title: "",

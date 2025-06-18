@@ -1,21 +1,25 @@
 import React from "react";
 import { Text, TouchableOpacity, StyleSheet, ScrollView, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { StackScreenProps } from "@react-navigation/stack";
 
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
-import { RootStackParamList } from "../../types";
-type NavigationProp = StackNavigationProp<RootStackParamList, "Profile">;
+import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
 
-export default function TeacherHome() {
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TeacherTabsParamList, "TeacherHome">,
+  StackScreenProps<TeacherStackParamList>
+>;
+
+export default function TeacherHome({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
-  const navigation = useNavigation<NavigationProp>();
 
   const handleViewProfile = () => {
-    navigation.navigate("Profile", { from: "TeacherHome" }); // or "Home"
+    navigation.navigate("TeacherHome");
   };
 
   return (
@@ -31,7 +35,7 @@ export default function TeacherHome() {
         <TouchableOpacity style={styles.smallCard}>
           <Text style={styles.smallCardText}>📚 My Courses</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.smallCard} onPress={() => navigation.navigate("CreateCourse")}>
+        <TouchableOpacity style={styles.smallCard} onPress={() => navigation.navigate("TeacherCreateCourse")}>
           <Text style={styles.smallCardText}>➕ Create Course</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.smallCard}>
@@ -51,7 +55,6 @@ export default function TeacherHome() {
               key={index}
               style={styles.sessionItem}
               onPress={() => {
-                // Placeholder: handle tap to open details
                 console.log("Tapped:", session.title);
               }}
             >
@@ -111,17 +114,17 @@ const getStyles = (width: number, height: number) =>
       marginTop: 10,
     },
     sessionItem: {
-      paddingVertical: 14, // ⬆️ Increased from 8
-      paddingHorizontal: 14, // ⬆️ Increased from 10
+      paddingVertical: 14,
+      paddingHorizontal: 14,
       backgroundColor: COLORS.purple,
-      borderRadius: 10, // ⬆️ Softer edges
-      marginBottom: 10, // ⬆️ More spacing between cards
+      borderRadius: 10,
+      marginBottom: 10,
     },
 
     cardSubText: {
-      fontSize: width > 400 ? 16 : 15, // ⬆️ Slightly larger font
+      fontSize: width > 400 ? 16 : 15,
       color: COLORS.white,
-      fontWeight: "500", // ⬆️ Slightly bolder
+      fontWeight: "500",
       marginTop: 5,
     },
 

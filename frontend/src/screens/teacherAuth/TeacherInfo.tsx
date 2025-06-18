@@ -5,10 +5,10 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useScreenDimensions, formatPhoneNumber, formatZipCode } from "../../hooks";
-import { TeacherStackParamList } from "../../types/navigation";
+import { TeacherAuthStackParamList } from "../../types/navigation";
 import { COLORS } from "../../styles";
 
-type Props = StackScreenProps<TeacherStackParamList, "TeacherInfo">;
+type Props = StackScreenProps<TeacherAuthStackParamList, "TeacherInfo">;
 
 const TeacherInfo = ({ navigation }: Props) => {
   const { screenWidth, screenHeight } = useScreenDimensions();

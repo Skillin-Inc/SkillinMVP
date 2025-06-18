@@ -3,13 +3,13 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, Activity
 import { StackScreenProps } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 
-import { RootStackParamList } from "../../types";
+import { StudentStackParamList } from "../../types/navigation";
 import { apiService, Course, Lesson, Tutor } from "../../services/api";
 
-type Props = StackScreenProps<RootStackParamList, "AltCategoryDetail">;
+type Props = StackScreenProps<StudentStackParamList, "StudentAltCategoryDetail">;
 
-export default function AltCategoryDetail({ navigation, route }: Props) {
-  const { topic: category } = route.params;
+export default function StudentAltCategoryDetail({ navigation, route }: Props) {
+  const { id: category } = route.params;
 
   const [content, setContent] = useState<(Course | Lesson | Tutor)[]>([]);
   const [loading, setLoading] = useState(true);

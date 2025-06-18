@@ -4,11 +4,11 @@ import { StackScreenProps } from "@react-navigation/stack";
 import * as Print from "expo-print";
 import * as FileSystem from "expo-file-system";
 
-import { TeacherStackParamList } from "../../types/navigation";
+import { TeacherAuthStackParamList } from "../../types/navigation";
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
 
-type Props = StackScreenProps<TeacherStackParamList, "TeacherSubmit">;
+type Props = StackScreenProps<TeacherAuthStackParamList, "TeacherSubmit">;
 
 const TeacherSubmit = ({ navigation, route }: Props) => {
   const { screenWidth, screenHeight } = useScreenDimensions();
@@ -27,7 +27,7 @@ const TeacherSubmit = ({ navigation, route }: Props) => {
     idBack = null,
   } = route.params || {};
 
-  const handleEdit = (screen: keyof TeacherStackParamList) => {
+  const handleEdit = (screen: keyof TeacherAuthStackParamList) => {
     navigation.navigate(screen as never); // never was any at first but casue code to be red
   };
 
@@ -243,10 +243,10 @@ const getStyles = (width: number, height: number) =>
       marginBottom: 4,
     },
     value: {
-      fontWeight: "600", // make it slightly bolder
-      color: COLORS.black, // ensure it's true black
-      fontSize: width > 400 ? 16 : 15, // slightly larger
-      marginBottom: 6, // spacing between items
+      fontWeight: "600",
+      color: COLORS.black,
+      fontSize: width > 400 ? 16 : 15,
+      marginBottom: 6,
     },
 
     image: {

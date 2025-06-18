@@ -1,23 +1,36 @@
-// types.ts
+// navigation.ts
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { PersonalInfo, TeachingExperience } from "./index";
 
-// Chat Stack
-export type MessagesStackParamList = {
+export type StudentTabsParamList = {
+  StudentHome: undefined;
   Messages: undefined;
-  Chat: { id: string };
-};
-
-// Tabs
-export type TabNavigatorParamList = {
-  Home: undefined;
-  MessagesStack: NavigatorScreenParams<MessagesStackParamList>;
-  Profile: undefined;
+  StudentProfile: undefined;
   Temp: undefined;
 };
 
-// Teacher Signup Flow
+export type TeacherTabsParamList = {
+  TeacherHome: undefined;
+  TeacherCreateLesson: undefined;
+  TeacherStats: undefined;
+  Messages: undefined;
+  Temp: undefined;
+};
+
+export type StudentStackParamList = {
+  StudentTabs: NavigatorScreenParams<StudentTabsParamList>;
+  StudentTopicDetail: { id: string };
+  StudentAltCategoryDetail: { id: string };
+  Chat: { id: string };
+};
+
 export type TeacherStackParamList = {
+  TeacherTabs: NavigatorScreenParams<TeacherTabsParamList>;
+  TeacherCreateCourse: undefined;
+  Chat: { id: string };
+};
+
+export type TeacherAuthStackParamList = {
   TeacherStart: undefined;
   TeacherInfo: undefined;
   TeacherPayouts: undefined;
@@ -29,7 +42,6 @@ export type TeacherStackParamList = {
     };
 };
 
-// Auth Stack
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
@@ -44,15 +56,12 @@ export type AuthStackParamList = {
     phoneNumber: string;
     postalCode: number;
   };
-  TeacherNavigator: NavigatorScreenParams<TeacherStackParamList>;
+  TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };
-// App Root
+
 export type RootStackParamList = {
-  UserTabs: undefined;
-  TeacherHome: undefined;
-  TeacherTabs: undefined;
-  Profile: { from: "TeacherHome" | "Home" };
-  TopicDetail: { topic: string };
-  AltCategoryDetail: { topic: string }; // FIXED this line
-  CreateCourse: undefined;
+  AuthStack: NavigatorScreenParams<AuthStackParamList>;
+  TeacherAuthStack: NavigatorScreenParams<TeacherAuthStackParamList>;
+  StudentStack: NavigatorScreenParams<StudentStackParamList>;
+  TeacherStack: NavigatorScreenParams<TeacherStackParamList>;
 };

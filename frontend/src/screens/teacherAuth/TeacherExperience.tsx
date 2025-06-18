@@ -6,10 +6,10 @@ import { StackScreenProps } from "@react-navigation/stack";
 import * as ImagePicker from "expo-image-picker";
 
 import { useScreenDimensions } from "../../hooks";
-import { TeacherStackParamList } from "../../types/navigation";
+import { TeacherAuthStackParamList } from "../../types/navigation";
 import { COLORS } from "../../styles";
 
-type Props = StackScreenProps<TeacherStackParamList, "TeacherExperience">;
+type Props = StackScreenProps<TeacherAuthStackParamList, "TeacherExperience">;
 
 const TeacherExperience = ({ navigation, route }: Props) => {
   console.log("📦 Received from TeacherInfo:", route.params);
@@ -80,7 +80,7 @@ const TeacherExperience = ({ navigation, route }: Props) => {
 
   const handleNext = () => {
     navigation.navigate("TeacherSubmit", {
-      ...route.params, // personal info
+      ...route.params,
       experienceList,
       certifications: certificationImage ? [certificationImage] : [],
       portfolios,

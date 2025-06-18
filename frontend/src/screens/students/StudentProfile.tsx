@@ -1,14 +1,16 @@
 import React, { useContext, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar } from "react-native";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 
-import { useScreenDimensions } from "../hooks";
-import Avatar_Placeholder from "../../assets/icons/Avatar_Placeholder.png";
-import { AuthContext } from "../hooks/AuthContext";
-import ImagePickerAvatar from "../components/ImagePickerAvatar";
-import { COLORS } from "../styles";
-import { RootStackParamList } from "../types";
+import { useScreenDimensions } from "../../hooks";
+import Avatar_Placeholder from "../../../assets/icons/Avatar_Placeholder.png";
+import { AuthContext } from "../../hooks/AuthContext";
+import ImagePickerAvatar from "../../components/ImagePickerAvatar";
+import { COLORS } from "../../styles";
+import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
 
 const mockUser = {
   avatar: Avatar_Placeholder,
@@ -25,9 +27,12 @@ const mockUser = {
   paymentInfo: ["Visa •••• 4242", "Exp: 12/26"],
 };
 
-type Props = StackScreenProps<RootStackParamList, "Profile">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<StudentTabsParamList, "StudentProfile">,
+  StackScreenProps<StudentStackParamList>
+>;
 
-export default function Profile({ navigation, route }: Props) {
+export default function StudentProfile({ navigation }: Props) {
   const { logout, user } = useContext(AuthContext);
   console.log("USER DATA:", user);
 
@@ -39,8 +44,6 @@ export default function Profile({ navigation, route }: Props) {
   const [enteredPassword, setEnteredPassword] = useState("");
   const [error, setError] = useState("");
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
-  const { from } = route.params;
-  const isFromTeacher = from === "TeacherHome";
 
   const handleLogout = async () => {
     try {
@@ -48,9 +51,6 @@ export default function Profile({ navigation, route }: Props) {
     } catch (e) {
       console.error("Logout error:", e);
     }
-  };
-  const handleSwitchMode = () => {
-    navigation.navigate(isFromTeacher ? "UserTabs" : "TeacherTabs");
   };
 
   return (
@@ -216,30 +216,6 @@ export default function Profile({ navigation, route }: Props) {
         </View>
 
         <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              !user?.isTeacher && { backgroundColor: COLORS.gray }, // visually disable
-            ]}
-            onPress={() => {
-              if (user?.isTeacher) {
-                handleSwitchMode();
-              } else {
-                alert("Only teachers can access this feature.");
-              }
-            }}
-            disabled={!user?.isTeacher}
-          >
-            <Ionicons name="school-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>
-              {user?.isTeacher
-                ? isFromTeacher
-                  ? "Switch to Student Mode"
-                  : "Switch to Teacher Mode"
-                : "Teacher Access Only"}
-            </Text>
-          </TouchableOpacity>
-
           <TouchableOpacity style={styles.editProfileButton}>
             <Ionicons name="create-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
             <Text style={styles.actionButtonText}>Edit Profile</Text>

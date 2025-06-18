@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { StackScreenProps } from "@react-navigation/stack";
 
 // import { COLORS } from "../styles";
 import { useScreenDimensions } from "../../hooks";
-import { RootStackParamList } from "../../types";
+import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
 import CategoryCard from "../../components/CategoryCard";
 import { apiService, Category } from "../../services/api";
 import temp from "../../../assets/playingCards.png";
 
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<StudentTabsParamList, "StudentHome">,
+  StackScreenProps<StudentStackParamList>
+>;
 
 const altCategories = [
   { label: "Tutors", image: temp },
@@ -21,8 +25,7 @@ const altCategories = [
   { label: "Current", image: temp },
 ];
 
-export default function Home() {
-  const navigation = useNavigation<NavigationProp>();
+export default function StudentHome({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -46,7 +49,7 @@ export default function Home() {
   };
 
   const handleViewProfile = () => {
-    navigation.navigate("Profile", { from: "Home" });
+    navigation.navigate("StudentProfile");
   };
 
   return (
@@ -77,7 +80,7 @@ export default function Home() {
               key={category.id}
               label={category.title}
               image={temp}
-              onPress={() => navigation.navigate("TopicDetail", { topic: category.title })}
+              onPress={() => navigation.navigate("StudentTopicDetail", { id: category.title })}
             />
           ))}
         </ScrollView>
@@ -91,7 +94,7 @@ export default function Home() {
             key={cat.label}
             label={cat.label}
             image={cat.image}
-            onPress={() => navigation.navigate("AltCategoryDetail", { topic: cat.label })}
+            onPress={() => navigation.navigate("StudentAltCategoryDetail", { id: cat.label })}
           />
         ))}
       </ScrollView>
