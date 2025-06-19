@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flex: 2,
-    backgroundColor: COLORS.purple, // Purple background
+    backgroundColor: COLORS.purple,
     justifyContent: "center",
     alignItems: "center",
     padding: 8,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   labelContainer: {
     flex: 1,
-    backgroundColor: COLORS.green, // Green background
+    backgroundColor: COLORS.green,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 6,

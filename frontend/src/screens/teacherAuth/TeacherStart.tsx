@@ -1,32 +1,27 @@
 // fix how do pay outs work? pop up modle?
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
+import { TeacherAuthStackParamList } from "../../types/navigation";
 
-type TeacherStackParamList = {
-  ApplicationStart: undefined;
-  PersonalInfo: undefined;
-  PayoutsInfo: undefined; // ← THIS LINE IS PROBABLY MISSING
-};
+type Props = StackScreenProps<TeacherAuthStackParamList, "TeacherStart">;
 
-const ApplicationStartScreen = () => {
-  const navigation = useNavigation<StackNavigationProp<TeacherStackParamList>>();
+const TeacherStart = ({ navigation }: Props) => {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
   const handleStart = () => {
-    navigation.navigate("PersonalInfo");
+    navigation.navigate("TeacherInfo");
   };
 
   const handlePaymentInfo = () => {
-    navigation.navigate("PayoutsInfo");
+    navigation.navigate("TeacherPayouts");
   };
-  const steps = ["Personal Info", "Experience", "Curriculum", "Verification", "Review & Submit"];
+  const steps = ["Personal Info", "Experience & Verification", "Review & Submit"];
 
   return (
     <View style={styles.container}>
@@ -60,7 +55,7 @@ const ApplicationStartScreen = () => {
   );
 };
 
-export default ApplicationStartScreen;
+export default TeacherStart;
 
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({

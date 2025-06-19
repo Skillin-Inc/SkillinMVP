@@ -13,19 +13,17 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, NewCourse, Category } from "../../services/api";
-import { RootStackParamList } from "../../types";
+import { TeacherStackParamList } from "../../types/navigation";
 
-type CreateCourseNavigationProp = StackNavigationProp<RootStackParamList, "CreateCourse">;
+type Props = StackScreenProps<TeacherStackParamList, "TeacherCreateCourse">;
 
-export default function CreateCourse() {
+export default function TeacherCreateCourse({ navigation }: Props) {
   const { user } = useContext(AuthContext);
-  const navigation = useNavigation<CreateCourseNavigationProp>();
   const [formData, setFormData] = useState({
     title: "",
     description: "",

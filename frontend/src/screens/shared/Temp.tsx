@@ -1,32 +1,16 @@
 import React, { useContext } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
 
-import { useScreenDimensions } from "../hooks";
-import { AuthContext } from "../hooks/AuthContext";
-import { apiService } from "../services/api";
-import { COLORS } from "../styles";
-import { RootStackParamList } from "../types";
-
-type TempScreenNavigationProp = StackNavigationProp<RootStackParamList>;
+import { useScreenDimensions } from "../../hooks";
+import { AuthContext } from "../../hooks/AuthContext";
+import { apiService } from "../../services/api";
+import { COLORS } from "../../styles";
 
 export default function Temp() {
   const { screenWidth } = useScreenDimensions();
-  const { user: currentUser } = useContext(AuthContext);
-  const navigation = useNavigation<TempScreenNavigationProp>();
+  const { user: currentUser, switchMode } = useContext(AuthContext);
   const styles = getStyles(screenWidth);
-
-  const handleSwitchToUserStack = () => {
-    navigation.navigate("UserTabs");
-    Alert.alert("Navigation", "Switched to User Stack");
-  };
-
-  const handleSwitchToTeacherStack = () => {
-    navigation.navigate("TeacherTabs");
-    Alert.alert("Navigation", "Switched to Teacher Stack");
-  };
 
   const handleLogAllUsers = async () => {
     try {
@@ -79,6 +63,10 @@ export default function Temp() {
     }
   };
 
+  const handleSwitchMode = () => {
+    switchMode();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -90,21 +78,6 @@ export default function Temp() {
           This screen contains buttons to log different data to the console, test system connections, and switch between
           navigation stacks.
         </Text>
-
-        {/* Navigation Stack Switcher Section */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Navigation Stack Switcher</Text>
-
-          <TouchableOpacity style={[styles.button, styles.userStackButton]} onPress={handleSwitchToUserStack}>
-            <Ionicons name="person-outline" size={24} color={COLORS.white} />
-            <Text style={styles.buttonText}>Switch to User Stack</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.button, styles.teacherStackButton]} onPress={handleSwitchToTeacherStack}>
-            <Ionicons name="school-outline" size={24} color={COLORS.white} />
-            <Text style={styles.buttonText}>Switch to Teacher Stack</Text>
-          </TouchableOpacity>
-        </View>
 
         {/* Debugging Section */}
         <View style={styles.sectionContainer}>
@@ -126,11 +99,24 @@ export default function Temp() {
           </TouchableOpacity>
         </View>
 
+        {/* Switch Mode Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Navigation</Text>
+
+          <TouchableOpacity style={[styles.button, styles.switchModeButton]} onPress={handleSwitchMode}>
+            <Ionicons name="school-outline" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>
+              {currentUser?.userType === "teacher" ? "Switch to Student Mode" : "Teacher Access Only"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {currentUser && (
           <View style={styles.userInfo}>
             <Text style={styles.userInfoText}>
               Current User: {currentUser.firstName} {currentUser.lastName}
             </Text>
+            <Text style={styles.userInfoText}>Mode: {currentUser.userType === "teacher" ? "Teacher" : "Student"}</Text>
           </View>
         )}
       </View>
@@ -193,10 +179,13 @@ function getStyles(screenWidth: number) {
       shadowRadius: 4,
     },
     userStackButton: {
-      backgroundColor: "#007AFF", // Blue for user stack
+      backgroundColor: "#007AFF",
     },
     teacherStackButton: {
-      backgroundColor: "#34C759", // Green for teacher stack
+      backgroundColor: "#34C759",
+    },
+    switchModeButton: {
+      backgroundColor: "#007AFF",
     },
     buttonText: {
       color: COLORS.white,

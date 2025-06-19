@@ -3,12 +3,12 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { Platform } from "react-native";
 
-import AdminHome from "../screens/adminScreensOnly/AdminHome";
+import AdminHome from "../screens/admin/AdminHome";
 import { COLORS } from "../styles";
 
 const AdminTab = createBottomTabNavigator();
 
-export default function AdminTabNavigator() {
+export default function AdminTabs() {
   return (
     <AdminTab.Navigator
       screenOptions={({ route }) => ({

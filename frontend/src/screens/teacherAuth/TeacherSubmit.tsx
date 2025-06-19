@@ -1,19 +1,16 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from "react-native";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 import * as Print from "expo-print";
 import * as FileSystem from "expo-file-system";
 
-import { TeacherStackParamList } from "../../types/navigation";
+import { TeacherAuthStackParamList } from "../../types/navigation";
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
 
-const ReviewSubmitScreen = () => {
-  const navigation =
-    //  useNavigation<StackNavigationProp<TeacherStackParamList, "ReviewSubmit">>();
-    useNavigation<StackNavigationProp<TeacherStackParamList>>();
-  const route = useRoute<RouteProp<TeacherStackParamList, "ReviewSubmit">>();
+type Props = StackScreenProps<TeacherAuthStackParamList, "TeacherSubmit">;
+
+const TeacherSubmit = ({ navigation, route }: Props) => {
   const { screenWidth, screenHeight } = useScreenDimensions();
 
   const {
@@ -30,7 +27,7 @@ const ReviewSubmitScreen = () => {
     idBack = null,
   } = route.params || {};
 
-  const handleEdit = (screen: keyof TeacherStackParamList) => {
+  const handleEdit = (screen: keyof TeacherAuthStackParamList) => {
     navigation.navigate(screen as never); // never was any at first but casue code to be red
   };
 
@@ -121,7 +118,7 @@ const ReviewSubmitScreen = () => {
 
       if (response.ok) {
         alert("PDF submitted and emailed!");
-        navigation.navigate("ApplicationStart");
+        navigation.navigate("TeacherStart");
       } else {
         const errText = await response.text();
         console.error("Email error:", errText);
@@ -157,7 +154,7 @@ const ReviewSubmitScreen = () => {
           Zip Code: <Text style={styles.value}>{zipCode}</Text>
         </Text>
         {profileImage && <Image source={{ uri: profileImage }} style={styles.image} />}
-        <TouchableOpacity onPress={() => handleEdit("PersonalInfo")}>
+        <TouchableOpacity onPress={() => handleEdit("TeacherInfo")}>
           <Text style={styles.editLink}>Edit</Text>
         </TouchableOpacity>
       </View>
@@ -187,7 +184,7 @@ const ReviewSubmitScreen = () => {
             ))}
           </>
         )}
-        <TouchableOpacity onPress={() => handleEdit("TeachingExperience")}>
+        <TouchableOpacity onPress={() => handleEdit("TeacherExperience")}>
           <Text style={styles.editLink}>Edit</Text>
         </TouchableOpacity>
       </View>
@@ -196,7 +193,7 @@ const ReviewSubmitScreen = () => {
         <Text style={styles.sectionTitle}>✅ Verification</Text>
         {idFront && <Image source={{ uri: idFront }} style={styles.image} />}
         {idBack && <Image source={{ uri: idBack }} style={styles.image} />}
-        <TouchableOpacity onPress={() => handleEdit("Verification")}>
+        <TouchableOpacity onPress={() => handleEdit("TeacherExperience")}>
           <Text style={styles.editLink}>Edit</Text>
         </TouchableOpacity>
       </View>
@@ -208,7 +205,7 @@ const ReviewSubmitScreen = () => {
   );
 };
 
-export default ReviewSubmitScreen;
+export default TeacherSubmit;
 const getStyles = (width: number, height: number) =>
   StyleSheet.create({
     container: {
@@ -246,10 +243,10 @@ const getStyles = (width: number, height: number) =>
       marginBottom: 4,
     },
     value: {
-      fontWeight: "600", // make it slightly bolder
-      color: COLORS.black, // ensure it's true black
-      fontSize: width > 400 ? 16 : 15, // slightly larger
-      marginBottom: 6, // spacing between items
+      fontWeight: "600",
+      color: COLORS.black,
+      fontSize: width > 400 ? 16 : 15,
+      marginBottom: 6,
     },
 
     image: {

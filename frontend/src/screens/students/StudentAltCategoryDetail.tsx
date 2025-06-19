@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, ActivityIndicator, Alert } from "react-native";
-import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 import { Ionicons } from "@expo/vector-icons";
 
-import { RootStackParamList } from "../../types";
+import { StudentStackParamList } from "../../types/navigation";
 import { apiService, Course, Lesson, Tutor } from "../../services/api";
 
-type AltCategoryDetailRouteProp = RouteProp<RootStackParamList, "AltCategoryDetail">;
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+type Props = StackScreenProps<StudentStackParamList, "StudentAltCategoryDetail">;
 
-export default function AltCategoryDetail() {
-  const route = useRoute<AltCategoryDetailRouteProp>();
-  const navigation = useNavigation<NavigationProp>();
-  const { topic: category } = route.params;
+export default function StudentAltCategoryDetail({ navigation, route }: Props) {
+  const { id: category } = route.params;
 
   const [content, setContent] = useState<(Course | Lesson | Tutor)[]>([]);
   const [loading, setLoading] = useState(true);

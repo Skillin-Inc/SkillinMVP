@@ -16,14 +16,15 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
-import { MessagesStackParamList } from "../../types";
+import { StudentStackParamList, TeacherStackParamList } from "../../types/navigation";
 import { MessageBubble, Message } from "../../components/MessageBubble";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, BackendMessage, BackendUser } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 
-type Props = StackScreenProps<MessagesStackParamList, "Chat">;
+// Dynamic type that works with both StudentStack and TeacherStack
+type Props = StackScreenProps<StudentStackParamList | TeacherStackParamList, "Chat">;
 
 export default function Chat({ route, navigation }: Props) {
   const { id } = route.params;

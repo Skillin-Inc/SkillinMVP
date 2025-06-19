@@ -21,8 +21,8 @@ router.get("/", async (req: Request, res: Response) => {
 `);
 
     res.json(result.rows);
-  } catch (err) {
-    console.error(err);
+  } catch {
+    console.error("Failed to fetch teachers");
     res.status(500).json({ error: "Failed to fetch teachers" });
   }
 });
@@ -45,7 +45,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       return;
     }
     res.json(result.rows[0]);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to fetch teacher" });
   }
 });
@@ -68,7 +68,7 @@ router.patch("/:id", async (req: Request, res: Response) => {
       return;
     }
     res.json(result.rows[0]);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to update teacher" });
   }
 });
@@ -83,7 +83,7 @@ router.delete("/:id", async (req: Request, res: Response) => {
       return;
     }
     res.json({ message: "Teacher deleted", teacher: result.rows[0] });
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "Failed to delete teacher" });
   }
 });

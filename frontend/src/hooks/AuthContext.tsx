@@ -32,6 +32,7 @@ type AuthContextType = {
   login: (loginData: LoginData) => Promise<User>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
+  switchMode: () => void;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -41,6 +42,7 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => ({} as User),
   register: async () => {},
   logout: async () => {},
+  switchMode: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -171,9 +173,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Logout error:", error);
     }
   };
+  const switchMode = () => {
+    if (!user) return;
+    const updatedUser: User = { ...user, userType: user.userType === "teacher" ? "student" : "teacher" };
+    setUser(updatedUser);
+  };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, user, login, register, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, user, switchMode, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

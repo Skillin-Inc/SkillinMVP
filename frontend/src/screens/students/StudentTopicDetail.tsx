@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, FlatList, TextInput } from "react-native";
-import { RouteProp, useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { RootStackParamList } from "../../types";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 import { apiService, Course, Category } from "../../services/api";
+import { StudentStackParamList } from "../../types/navigation";
 
-type TopicDetailRouteProp = RouteProp<RootStackParamList, "TopicDetail">;
-type NavigationProp = StackNavigationProp<RootStackParamList>;
+type Props = StackScreenProps<StudentStackParamList, "StudentTopicDetail">;
 
 interface CourseCardProps {
   course: Course;
@@ -35,10 +33,8 @@ const CourseCard = ({ course, onPress }: CourseCardProps) => (
   </TouchableOpacity>
 );
 
-export default function TopicDetail() {
-  const route = useRoute<TopicDetailRouteProp>();
-  const navigation = useNavigation<NavigationProp>();
-  const { topic } = route.params;
+export default function StudentTopicDetail({ navigation, route }: Props) {
+  const { id } = route.params;
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +42,7 @@ export default function TopicDetail() {
 
   useEffect(() => {
     loadCoursesForTopic();
-  }, [topic]);
+  }, [id]);
 
   const loadCoursesForTopic = async () => {
     try {
@@ -54,11 +50,11 @@ export default function TopicDetail() {
 
       const categories = await apiService.getAllCategories();
       const matchingCategory = categories.find(
-        (category: Category) => category.title.toLowerCase() === topic.toLowerCase()
+        (category: Category) => category.title.toLowerCase() === id.toLowerCase()
       );
 
       if (!matchingCategory) {
-        Alert.alert("Error", `Topic "${topic}" not found.`);
+        Alert.alert("Error", `Topic "${id}" not found.`);
         setCourses([]);
         return;
       }
@@ -78,7 +74,6 @@ export default function TopicDetail() {
     Alert.alert("Course Selected", `You selected: ${course.title}`);
   };
 
-  // Filter courses based on search query
   const filteredCourses = courses.filter(
     (course) =>
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -90,9 +85,7 @@ export default function TopicDetail() {
       <Ionicons name="school-outline" size={64} color="#ccc" />
       <Text style={styles.emptyTitle}>{searchQuery ? "No Matching Courses" : "No Courses Available"}</Text>
       <Text style={styles.emptySubtitle}>
-        {searchQuery
-          ? `No courses match "${searchQuery}" in ${topic}.`
-          : `There are no courses available for ${topic} yet.`}
+        {searchQuery ? `No courses match "${searchQuery}" in ${id}.` : `There are no courses available for ${id} yet.`}
       </Text>
     </View>
   );
@@ -108,7 +101,7 @@ export default function TopicDetail() {
       </TouchableOpacity>
 
       <View style={styles.header}>
-        <Text style={styles.title}>{topic}</Text>
+        <Text style={styles.title}>{id}</Text>
         <Text style={styles.subtitle}>
           {loading
             ? "Loading courses..."
