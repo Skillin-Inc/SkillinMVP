@@ -38,12 +38,22 @@ export type AuthStackParamList = {
   Register: undefined;
   TeacherNavigator: NavigatorScreenParams<TeacherStackParamList>;
 };
+
+// Admin Tabs
+export type AdminTabNavigatorParamList = {
+  AdminHome: undefined;
+  UserManagement: undefined;
+  ContentModeration: undefined;
+  Analytics: undefined;
+};
+
 // App Root
 export type RootStackParamList = {
   UserTabs: undefined;
   TeacherHome: undefined;
   TeacherTabs: undefined;
-  Profile: { from: "TeacherHome" | "Home" };
+  AdminTabs: undefined;
+  Profile: { from: "TeacherHome" | "Home" | "AdminHome" };
   TopicDetail: { topic: string };
   AltCategoryDetail: { topic: string }; // FIXED this line
   CreateCourse: undefined;
