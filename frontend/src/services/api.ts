@@ -8,6 +8,7 @@ export interface RegisterData {
   username: string;
   password: string;
   postalCode: number;
+  userType?: "student" | "teacher" | "admin";
 }
 
 export interface LoginData {
@@ -24,7 +25,7 @@ export interface User {
   username: string;
   postalCode: number;
   createdAt: string;
-  isTeacher: boolean;
+  userType: "student" | "teacher" | "admin";
   membershipTier?: string;
   dOB?: string;
   hashedPassword?: string;
@@ -33,7 +34,7 @@ export interface User {
   phone_number?: string;
   postal_code?: number;
   created_at?: string;
-  is_teacher?: boolean;
+  user_type?: "student" | "teacher" | "admin";
   hashed_password?: string;
 }
 
@@ -46,7 +47,7 @@ export interface BackendUser {
   username: string;
   postal_code: number;
   created_at: string;
-  is_teacher: boolean;
+  user_type: "student" | "teacher" | "admin";
 }
 
 export interface LoginResponse {
@@ -148,7 +149,7 @@ function createApiService() {
       username: backendUser.username,
       postalCode: backendUser.postal_code,
       createdAt: backendUser.created_at,
-      isTeacher: backendUser.is_teacher,
+      userType: backendUser.user_type,
     };
   };
 
@@ -352,6 +353,27 @@ function createApiService() {
     return makeRequest<Tutor[]>("/teachers");
   };
 
+  const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
+    const encodedEmail = encodeURIComponent(email);
+    return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`, {
+      method: "DELETE",
+    });
+  };
+
+  const updateUserType = async (
+    email: string,
+    userType: "student" | "teacher" | "admin"
+  ): Promise<{ success: boolean; message: string }> => {
+    const encodedEmail = encodeURIComponent(email);
+    return makeRequest<{ success: boolean; message: string }>(
+      `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}/user-type`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ userType }),
+      }
+    );
+  };
+
   return {
     register,
     login,
@@ -382,6 +404,8 @@ function createApiService() {
     checkBackendConnection,
     checkDatabaseConnection,
     getAllTutors,
+    deleteUser,
+    updateUserType,
   };
 }
 

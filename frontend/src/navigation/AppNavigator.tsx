@@ -9,27 +9,26 @@ import AuthStack from "./AuthStack";
 import TeacherAuthStack from "./TeacherAuthStack";
 import StudentStack from "./StudentStack";
 import TeacherStack from "./TeacherStack";
+import AdminTabNavigator from "./AdminTabNavigator";
 import { RootStackParamList } from "../types/navigation";
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   const { user } = useContext(AuthContext);
-  const isTeacher = user?.is_teacher || false;
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!user ? (
+        {!user && (
           <>
             <Stack.Screen name="AuthStack" component={AuthStack} />
             <Stack.Screen name="TeacherAuthStack" component={TeacherAuthStack} />
           </>
-        ) : isTeacher ? (
-          <Stack.Screen name="TeacherStack" component={TeacherStack} />
-        ) : (
-          <Stack.Screen name="StudentStack" component={StudentStack} />
         )}
+        {user?.userType === "student" && <Stack.Screen name="StudentStack" component={StudentStack} />}
+        {user?.userType === "teacher" && <Stack.Screen name="TeacherStack" component={TeacherStack} />}
+        {user?.userType === "admin" && <Stack.Screen name="AdminStack" component={AdminTabNavigator} />}
       </Stack.Navigator>
     </NavigationContainer>
   );

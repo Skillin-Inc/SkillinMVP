@@ -48,8 +48,9 @@ export default function TeacherCreateLesson({ navigation }: Props) {
   const styles = getStyles();
 
   useEffect(() => {
+    if (!user || user.userType !== "teacher") return;
     loadCourses();
-  }, []);
+  }, [user]);
 
   const loadCourses = async () => {
     if (!user || !user.isTeacher) return;
@@ -89,7 +90,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
   };
 
   const handleSubmit = async () => {
-    if (!user || !user.isTeacher) {
+    if (!user || user.userType !== "teacher") {
       Alert.alert("Error", "Only teachers can create lessons");
       return;
     }
@@ -151,7 +152,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
     }
   };
 
-  if (!user || !user.isTeacher) {
+  if (!user || user.userType !== "teacher") {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
