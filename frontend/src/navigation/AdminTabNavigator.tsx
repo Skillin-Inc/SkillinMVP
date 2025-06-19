@@ -69,14 +69,7 @@ export default function AdminTabNavigator() {
           title: "User Management",
         }}
       />
-      <AdminTab.Screen
-        name="ContentModeration"
-        component={AdminHome} // Placeholder - replace with actual component
-        options={{
-          tabBarLabel: "Moderate",
-          title: "Content Moderation",
-        }}
-      />
+
       <AdminTab.Screen
         name="Analytics"
         component={AdminHome} // Placeholder - replace with actual component

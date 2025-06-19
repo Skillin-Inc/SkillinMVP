@@ -353,6 +353,27 @@ function createApiService() {
     return makeRequest<Tutor[]>("/teachers");
   };
 
+  const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
+    const encodedEmail = encodeURIComponent(email);
+    return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`, {
+      method: "DELETE",
+    });
+  };
+
+  const updateUserType = async (
+    email: string,
+    userType: "student" | "teacher" | "admin"
+  ): Promise<{ success: boolean; message: string }> => {
+    const encodedEmail = encodeURIComponent(email);
+    return makeRequest<{ success: boolean; message: string }>(
+      `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}/user-type`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ userType }),
+      }
+    );
+  };
+
   return {
     register,
     login,
@@ -383,6 +404,8 @@ function createApiService() {
     checkBackendConnection,
     checkDatabaseConnection,
     getAllTutors,
+    deleteUser,
+    updateUserType,
   };
 }
 
