@@ -9,7 +9,7 @@ import { COLORS } from "../../styles";
 
 export default function Temp() {
   const { screenWidth } = useScreenDimensions();
-  const { user: currentUser } = useContext(AuthContext);
+  const { user: currentUser, switchMode } = useContext(AuthContext);
   const styles = getStyles(screenWidth);
 
   const handleLogAllUsers = async () => {
@@ -63,6 +63,10 @@ export default function Temp() {
     }
   };
 
+  const handleSwitchMode = () => {
+    switchMode();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -95,11 +99,28 @@ export default function Temp() {
           </TouchableOpacity>
         </View>
 
+        {/* Switch Mode Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Navigation</Text>
+
+          <TouchableOpacity
+            style={[styles.button, styles.switchModeButton]}
+            onPress={handleSwitchMode}
+            disabled={!currentUser?.isTeacher}
+          >
+            <Ionicons name="school-outline" size={24} color={COLORS.white} />
+            <Text style={styles.buttonText}>
+              {currentUser?.isTeacher ? "Switch to Student Mode" : "Teacher Access Only"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {currentUser && (
           <View style={styles.userInfo}>
             <Text style={styles.userInfoText}>
               Current User: {currentUser.firstName} {currentUser.lastName}
             </Text>
+            <Text style={styles.userInfoText}>Mode: {currentUser.isTeacher ? "Teacher" : "Student"}</Text>
           </View>
         )}
       </View>
@@ -166,6 +187,9 @@ function getStyles(screenWidth: number) {
     },
     teacherStackButton: {
       backgroundColor: "#34C759",
+    },
+    switchModeButton: {
+      backgroundColor: "#007AFF",
     },
     buttonText: {
       color: COLORS.white,
