@@ -14,8 +14,6 @@ import categoriesRouter from "./routes/categories";
 import progressRouter from "./routes/progress";
 import teacherRoutes from "./routes/teachers";
 
-import { pool } from "./db";
-
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
