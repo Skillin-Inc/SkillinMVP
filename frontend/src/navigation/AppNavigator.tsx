@@ -9,7 +9,7 @@ import AuthStack from "./AuthStack";
 import TeacherAuthStack from "./TeacherAuthStack";
 import StudentStack from "./StudentStack";
 import TeacherStack from "./TeacherStack";
-import AdminTabNavigator from "./AdminTabNavigator";
+import AdminTabs from "./AdminTabs";
 import { RootStackParamList } from "../types/navigation";
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -28,7 +28,7 @@ export default function AppNavigator() {
         )}
         {user?.userType === "student" && <Stack.Screen name="StudentStack" component={StudentStack} />}
         {user?.userType === "teacher" && <Stack.Screen name="TeacherStack" component={TeacherStack} />}
-        {user?.userType === "admin" && <Stack.Screen name="AdminStack" component={AdminTabNavigator} />}
+        {user?.userType === "admin" && <Stack.Screen name="AdminStack" component={AdminTabs} />}
       </Stack.Navigator>
     </NavigationContainer>
   );

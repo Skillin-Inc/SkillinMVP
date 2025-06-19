@@ -1,7 +1,6 @@
 import React, { useContext, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
@@ -9,7 +8,6 @@ import { useScreenDimensions } from "../../hooks";
 import { apiService } from "../../services/api";
 
 export default function AdminHome() {
-  const navigation = useNavigation();
   const { user, logout } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
@@ -49,8 +47,9 @@ export default function AdminHome() {
       const res = await apiService.deleteUser(email);
       Alert.alert("Success", res.message || "User deleted successfully.");
       setEmail("");
-    } catch (err: any) {
-      Alert.alert("Error", err.message || "Failed to delete user.");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to delete user.";
+      Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -66,8 +65,9 @@ export default function AdminHome() {
       const res = await apiService.updateUserType(updateEmail, selectedType);
       Alert.alert("Success", res.message || "User type updated successfully.");
       setUpdateEmail("");
-    } catch (err: any) {
-      Alert.alert("Error", err.message || "Failed to update user type.");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update user type.";
+      Alert.alert("Error", errorMessage);
     } finally {
       setUpdateLoading(false);
     }

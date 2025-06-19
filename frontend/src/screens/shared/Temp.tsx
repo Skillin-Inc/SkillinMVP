@@ -103,14 +103,10 @@ export default function Temp() {
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Navigation</Text>
 
-          <TouchableOpacity
-            style={[styles.button, styles.switchModeButton]}
-            onPress={handleSwitchMode}
-            disabled={!currentUser?.isTeacher}
-          >
+          <TouchableOpacity style={[styles.button, styles.switchModeButton]} onPress={handleSwitchMode}>
             <Ionicons name="school-outline" size={24} color={COLORS.white} />
             <Text style={styles.buttonText}>
-              {currentUser?.isTeacher ? "Switch to Student Mode" : "Teacher Access Only"}
+              {currentUser?.userType === "teacher" ? "Switch to Student Mode" : "Teacher Access Only"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -120,7 +116,7 @@ export default function Temp() {
             <Text style={styles.userInfoText}>
               Current User: {currentUser.firstName} {currentUser.lastName}
             </Text>
-            <Text style={styles.userInfoText}>Mode: {currentUser.isTeacher ? "Teacher" : "Student"}</Text>
+            <Text style={styles.userInfoText}>Mode: {currentUser.userType === "teacher" ? "Teacher" : "Student"}</Text>
           </View>
         )}
       </View>

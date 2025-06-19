@@ -53,7 +53,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
   }, [user]);
 
   const loadCourses = async () => {
-    if (!user || !user.isTeacher) return;
+    if (!user) return;
 
     try {
       const coursesData = await apiService.getCoursesByTeacher(user.id);

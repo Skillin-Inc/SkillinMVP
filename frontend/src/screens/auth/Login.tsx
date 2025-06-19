@@ -38,7 +38,7 @@ export default function Login({ navigation }: Props) {
       // Show success message based on user type
       const userType = response.userType;
       let message = "";
-      let title = "Login Successful";
+      const title = "Login Successful";
 
       switch (userType) {
         case "admin":

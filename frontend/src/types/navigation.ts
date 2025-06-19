@@ -60,7 +60,7 @@ export type AuthStackParamList = {
   TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };
 
-export type AdminTabNavigatorParamList = {
+export type AdminTabsParamList = {
   AdminHome: undefined;
   UserManagement: undefined;
   ContentModeration: undefined;
@@ -72,5 +72,5 @@ export type RootStackParamList = {
   TeacherAuthStack: NavigatorScreenParams<TeacherAuthStackParamList>;
   StudentStack: NavigatorScreenParams<StudentStackParamList>;
   TeacherStack: NavigatorScreenParams<TeacherStackParamList>;
-  AdminStack: NavigatorScreenParams<AdminTabNavigatorParamList>;
+  AdminStack: NavigatorScreenParams<AdminTabsParamList>;
 };

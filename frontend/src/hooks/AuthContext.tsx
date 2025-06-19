@@ -175,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   const switchMode = () => {
     if (!user) return;
-    const updatedUser = { ...user, is_teacher: !user.is_teacher };
+    const updatedUser: User = { ...user, userType: user.userType === "teacher" ? "student" : "teacher" };
     setUser(updatedUser);
   };
 
