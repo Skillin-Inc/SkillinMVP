@@ -139,7 +139,7 @@ export async function createMessage(data: NewMessage) {
     `INSERT INTO public.messages
       ("sender_id", "receiver_id", "content")
      VALUES ($1, $2, $3)
-     RETURNING "id", "sender_id", "receiver_id", "content", "created_at"`,
+     RETURNING "id", "sender_id", "receiver_id", "content", "is_read", "created_at"`,
     [sender_id, receiver_id, content]
   );
 
@@ -432,7 +432,7 @@ export async function deleteLesson(id: number): Promise<boolean> {
 
 export async function getMessagesBetweenUsers(userId1: number, userId2: number) {
   const result = await pool.query(
-    `SELECT m.*, 
+    `SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.created_at,
             u1."first_name" as sender_first_name, u1."last_name" as sender_last_name,
             u2."first_name" as receiver_first_name, u2."last_name" as receiver_last_name
      FROM public.messages m
@@ -463,7 +463,15 @@ export async function getConversationsForUser(userId: number) {
                 ELSE u1."last_name" 
             END as other_user_last_name,
             m.content as last_message,
-            m.created_at as last_message_time
+            m.created_at as last_message_time,
+            (SELECT COUNT(*) 
+             FROM public.messages unread 
+             WHERE unread.receiver_id = $1 
+               AND unread.sender_id = CASE 
+                   WHEN m.sender_id = $1 THEN m.receiver_id 
+                   ELSE m.sender_id 
+               END
+               AND unread.is_read = false) as unread_count
      FROM public.messages m
      JOIN public.users u1 ON m.sender_id = u1."id"
      JOIN public.users u2 ON m.receiver_id = u2."id"
@@ -473,6 +481,29 @@ export async function getConversationsForUser(userId: number) {
   );
 
   return result.rows;
+}
+
+export async function markMessagesAsRead(userId: number, otherUserId: number) {
+  const result = await pool.query(
+    `UPDATE public.messages 
+     SET "is_read" = true 
+     WHERE "receiver_id" = $1 AND "sender_id" = $2 AND "is_read" = false
+     RETURNING "id"`,
+    [userId, otherUserId]
+  );
+
+  return result.rows;
+}
+
+export async function getUnreadCount(userId: number, otherUserId: number) {
+  const result = await pool.query(
+    `SELECT COUNT(*) as unread_count
+     FROM public.messages 
+     WHERE "receiver_id" = $1 AND "sender_id" = $2 AND "is_read" = false`,
+    [userId, otherUserId]
+  );
+
+  return Number(result.rows[0].unread_count);
 }
 
 export async function deleteUserByEmail(email: string) {

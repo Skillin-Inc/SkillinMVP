@@ -17,7 +17,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, NewCourse, Category } from "../../services/api";
+import { apiService, NewCourse, Category, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
 
 type Props = StackScreenProps<TeacherStackParamList, "TeacherCreateCourse">;
@@ -30,8 +30,10 @@ export default function TeacherCreateCourse({ navigation }: Props) {
     categoryId: "",
   });
   const [categories, setCategories] = useState<Category[]>([]);
+  const [teacherCourses, setTeacherCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [loadingCourses, setLoadingCourses] = useState(true);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [errors, setErrors] = useState({
@@ -44,7 +46,8 @@ export default function TeacherCreateCourse({ navigation }: Props) {
 
   useEffect(() => {
     loadCategories();
-  }, []);
+    loadTeacherCourses();
+  }, [user]);
 
   const loadCategories = async () => {
     try {
@@ -58,6 +61,22 @@ export default function TeacherCreateCourse({ navigation }: Props) {
     }
   };
 
+  const loadTeacherCourses = async () => {
+    if (!user || user.userType !== "teacher") {
+      setLoadingCourses(false);
+      return;
+    }
+
+    try {
+      const courses = await apiService.getCoursesByTeacher(user.id);
+      setTeacherCourses(courses);
+    } catch (error) {
+      console.error("Error loading teacher courses:", error);
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
   const validateForm = (): boolean => {
     const newErrors = {
       title: "",
@@ -67,6 +86,16 @@ export default function TeacherCreateCourse({ navigation }: Props) {
 
     if (!formData.title.trim()) {
       newErrors.title = "Title is required";
+    } else {
+      // Check for duplicate course titles
+      const trimmedTitle = formData.title.trim();
+      const duplicateCourse = teacherCourses.find(
+        (course) => course.title.toLowerCase() === trimmedTitle.toLowerCase()
+      );
+
+      if (duplicateCourse) {
+        newErrors.title = "You already have a course with this title";
+      }
     }
 
     if (!formData.description.trim()) {
@@ -82,7 +111,6 @@ export default function TeacherCreateCourse({ navigation }: Props) {
   };
 
   const handleSubmit = async () => {
-    // if (!user || !user.isTeacher) {
     if (!user || user.userType !== "teacher") {
       Alert.alert("Error", "Only teachers can create courses");
       return;
@@ -118,6 +146,9 @@ export default function TeacherCreateCourse({ navigation }: Props) {
               description: "",
               categoryId: "",
             });
+            setSelectedCategory(null);
+            // Refresh the teacher's courses list
+            loadTeacherCourses();
           },
         },
       ]);
@@ -258,12 +289,17 @@ export default function TeacherCreateCourse({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={[styles.submitButton, loading ? styles.submitButtonDisabled : null]}
+            style={[styles.submitButton, loading || loadingCourses ? styles.submitButtonDisabled : null]}
             onPress={handleSubmit}
-            disabled={loading}
+            disabled={loading || loadingCourses}
           >
             {loading ? (
               <ActivityIndicator color={COLORS.white} size="small" />
+            ) : loadingCourses ? (
+              <>
+                <ActivityIndicator color={COLORS.white} size="small" />
+                <Text style={styles.submitButtonText}>Loading...</Text>
+              </>
             ) : (
               <>
                 <Ionicons name="add-circle-outline" size={20} color={COLORS.white} />

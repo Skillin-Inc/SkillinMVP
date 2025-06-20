@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -13,6 +14,7 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
@@ -39,6 +41,8 @@ export default function TeacherCreateLesson({ navigation }: Props) {
   const [loadingCourses, setLoadingCourses] = useState(true);
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [errors, setErrors] = useState({
     title: "",
     description: "",
@@ -51,6 +55,15 @@ export default function TeacherCreateLesson({ navigation }: Props) {
     if (!user || user.userType !== "teacher") return;
     loadCourses();
   }, [user]);
+
+  // Refresh courses when screen comes into focus (e.g., returning from course creation)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user && user.userType === "teacher") {
+        loadCourses();
+      }
+    }, [user])
+  );
 
   const loadCourses = async () => {
     if (!user) return;
@@ -122,6 +135,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
               courseId: "",
             });
             setSelectedCourse(null);
+            setSelectedVideo(null);
             setErrors({
               title: "",
               description: "",
@@ -152,6 +166,67 @@ export default function TeacherCreateLesson({ navigation }: Props) {
     }
   };
 
+  // move this somewhere else so it's only called when the user downloads the app
+  const requestPermissions = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission Required", "We need access to your media library to select videos.");
+      return false;
+    }
+    return true;
+  };
+
+  const selectVideo = async () => {
+    const hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    setUploadingVideo(true);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["videos"],
+        allowsEditing: true,
+        quality: 0.8,
+        videoMaxDuration: 600, // 10 mins max for now
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const videoAsset = result.assets[0];
+        setSelectedVideo(videoAsset);
+        Alert.alert("Video Selected", `Selected: ${videoAsset.fileName || "video"}`);
+      }
+    } catch (error) {
+      console.error("Error selecting video:", error);
+      Alert.alert("Error", "Failed to select video. Please try again.");
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const removeVideo = () => {
+    Alert.alert("Remove Video", "Are you sure you want to remove the selected video?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Remove",
+        style: "destructive",
+        onPress: () => setSelectedVideo(null),
+      },
+    ]);
+  };
+
+  const formatFileSize = (bytes: number | undefined): string => {
+    if (!bytes) return "Unknown size";
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return Math.round((bytes / Math.pow(1024, i)) * 100) / 100 + " " + sizes[i];
+  };
+
+  const formatDuration = (duration: number | undefined): string => {
+    if (!duration) return "Unknown duration";
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
   if (!user || user.userType !== "teacher") {
     return (
       <SafeAreaView style={styles.container}>
@@ -180,7 +255,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
         <View style={styles.header}>
           <Ionicons name="book-outline" size={32} color={COLORS.purple} />
           <Text style={styles.headerTitle}>Create New Lesson</Text>
-          <Text style={styles.headerSubtitle}>Create lesson content (video upload coming soon)</Text>
+          <Text style={styles.headerSubtitle}>Create lesson content with optional video upload</Text>
         </View>
 
         <View style={styles.form}>
@@ -207,6 +282,13 @@ export default function TeacherCreateLesson({ navigation }: Props) {
             ) : courses.length === 0 ? (
               <View style={styles.noCourseContainer}>
                 <Text style={styles.noCourseText}>No courses found. Please create a course first.</Text>
+                <TouchableOpacity
+                  style={styles.createCourseButton}
+                  onPress={() => navigation.navigate("TeacherCreateCourse")}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color={COLORS.white} />
+                  <Text style={styles.createCourseButtonText}>Create Your First Course</Text>
+                </TouchableOpacity>
               </View>
             ) : (
               <TouchableOpacity
@@ -248,6 +330,19 @@ export default function TeacherCreateLesson({ navigation }: Props) {
                     </TouchableOpacity>
                   )}
                 />
+                <TouchableOpacity
+                  style={styles.createCourseItem}
+                  onPress={() => {
+                    setShowCourseModal(false);
+                    navigation.navigate("TeacherCreateCourse");
+                  }}
+                >
+                  <View style={styles.createCourseContent}>
+                    <Ionicons name="add-circle-outline" size={20} color={COLORS.purple} />
+                    <Text style={styles.createCourseText}>Create New Course</Text>
+                  </View>
+                  <Ionicons name="arrow-forward" size={20} color={COLORS.purple} />
+                </TouchableOpacity>
               </View>
             </View>
           </Modal>
@@ -266,6 +361,50 @@ export default function TeacherCreateLesson({ navigation }: Props) {
             />
             {errors.description ? <Text style={styles.errorText}>{errors.description}</Text> : null}
             <Text style={styles.characterCount}>{formData.description.length}/500 characters</Text>
+          </View>
+
+          {/* Video Upload Section */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Lesson Video</Text>
+            <Text style={styles.helperText}>Upload a video for your lesson (optional)</Text>
+
+            {selectedVideo ? (
+              <View style={styles.videoPreview}>
+                <View style={styles.videoInfo}>
+                  <Ionicons name="videocam" size={24} color={COLORS.purple} />
+                  <View style={styles.videoDetails}>
+                    <Text style={styles.videoFileName}>{selectedVideo.fileName || "Selected Video"}</Text>
+                    <View style={styles.videoMeta}>
+                      <Text style={styles.videoMetaText}>{formatFileSize(selectedVideo.fileSize)}</Text>
+                      {selectedVideo.duration && (
+                        <>
+                          <Text style={styles.videoMetaSeparator}>•</Text>
+                          <Text style={styles.videoMetaText}>{formatDuration(selectedVideo.duration)}</Text>
+                        </>
+                      )}
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.videoActions}>
+                  <TouchableOpacity style={styles.videoActionButton} onPress={selectVideo}>
+                    <Ionicons name="swap-horizontal" size={16} color={COLORS.purple} />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.videoActionButton} onPress={removeVideo}>
+                    <Ionicons name="trash-outline" size={16} color={COLORS.error} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.videoUploadButton} onPress={selectVideo} disabled={uploadingVideo}>
+                {uploadingVideo ? (
+                  <ActivityIndicator color={COLORS.purple} size="small" />
+                ) : (
+                  <Ionicons name="cloud-upload-outline" size={32} color={COLORS.purple} />
+                )}
+                <Text style={styles.videoUploadText}>{uploadingVideo ? "Selecting Video..." : "Select Video"}</Text>
+                <Text style={styles.videoUploadSubtext}>Choose a video file from your device</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <TouchableOpacity
@@ -423,6 +562,21 @@ function getStyles() {
       fontSize: 16,
       color: "#856404",
       textAlign: "center",
+      marginBottom: 16,
+    },
+    createCourseButton: {
+      backgroundColor: COLORS.purple,
+      borderRadius: 8,
+      padding: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    createCourseButtonText: {
+      color: COLORS.white,
+      fontSize: 14,
+      fontWeight: "600",
+      marginLeft: 8,
     },
     pickerContainer: {
       borderWidth: 1,
@@ -478,6 +632,25 @@ function getStyles() {
       fontSize: 16,
       color: COLORS.black,
     },
+    createCourseItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: 16,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.lightGray,
+      backgroundColor: COLORS.lightGray,
+    },
+    createCourseContent: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    createCourseText: {
+      fontSize: 16,
+      color: COLORS.purple,
+      fontWeight: "600",
+      marginLeft: 8,
+    },
     headerContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -501,6 +674,74 @@ function getStyles() {
     },
     headerSpacer: {
       width: 40,
+    },
+    videoUploadButton: {
+      borderWidth: 2,
+      borderColor: COLORS.purple,
+      borderStyle: "dashed",
+      borderRadius: 12,
+      padding: 32,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "#F8F8FF",
+    },
+    videoUploadText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.purple,
+      marginTop: 8,
+    },
+    videoUploadSubtext: {
+      fontSize: 14,
+      color: COLORS.gray,
+      marginTop: 4,
+    },
+    videoPreview: {
+      borderWidth: 1,
+      borderColor: COLORS.lightGray,
+      borderRadius: 12,
+      padding: 16,
+      backgroundColor: COLORS.white,
+    },
+    videoInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    videoDetails: {
+      flex: 1,
+      marginLeft: 12,
+    },
+    videoFileName: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.black,
+      marginBottom: 4,
+    },
+    videoMeta: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    videoMetaText: {
+      fontSize: 14,
+      color: COLORS.gray,
+    },
+    videoMetaSeparator: {
+      fontSize: 14,
+      color: COLORS.gray,
+      marginHorizontal: 8,
+    },
+    videoActions: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    videoActionButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: COLORS.lightGray,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });
 }

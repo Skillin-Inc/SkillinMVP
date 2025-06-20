@@ -59,6 +59,7 @@ io.on("connection", (socket) => {
           sender_id: newMessage.sender_id,
           receiver_id: newMessage.receiver_id,
           content: newMessage.content,
+          is_read: newMessage.is_read,
           created_at: newMessage.created_at,
         });
       }
@@ -68,6 +69,7 @@ io.on("connection", (socket) => {
         sender_id: newMessage.sender_id,
         receiver_id: newMessage.receiver_id,
         content: newMessage.content,
+        is_read: newMessage.is_read,
         created_at: newMessage.created_at,
       });
     } catch (error) {

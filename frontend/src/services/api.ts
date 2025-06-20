@@ -55,19 +55,12 @@ export interface LoginResponse {
   user: User;
 }
 
-export interface Conversation {
-  other_user_id: number;
-  other_user_first_name: string;
-  other_user_last_name: string;
-  last_message: string;
-  last_message_time: string;
-}
-
 export interface BackendMessage {
   id: number;
   sender_id: number;
   receiver_id: number;
   content: string;
+  is_read: boolean;
   created_at: string;
   sender_first_name?: string;
   sender_last_name?: string;
@@ -79,6 +72,15 @@ export interface NewMessage {
   sender_id: number;
   receiver_id: number;
   content: string;
+}
+
+export interface Conversation {
+  other_user_id: number;
+  other_user_first_name: string;
+  other_user_last_name: string;
+  last_message: string;
+  last_message_time: string;
+  unread_count: number;
 }
 
 export interface NewCategory {
@@ -222,6 +224,18 @@ function createApiService() {
       method: "POST",
       body: JSON.stringify(messageData),
     });
+  };
+
+  const markMessagesAsRead = async (
+    userId: number,
+    otherUserId: number
+  ): Promise<{ message: string; count: number }> => {
+    return makeRequest<{ message: string; count: number }>(
+      `${API_CONFIG.ENDPOINTS.MESSAGES}/mark-read/${userId}/${otherUserId}`,
+      {
+        method: "PUT",
+      }
+    );
   };
 
   const createLesson = async (lessonData: NewLesson): Promise<Lesson> => {
@@ -382,6 +396,7 @@ function createApiService() {
     getConversationsForUser,
     getMessagesBetweenUsers,
     createMessage,
+    markMessagesAsRead,
     createLesson,
     getAllLessons,
     getLessonById,

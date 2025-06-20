@@ -3,10 +3,14 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { Platform } from "react-native";
 
+import { AdminTabsParamList } from "../types/navigation";
 import AdminHome from "../screens/admin/AdminHome";
+import AdminUsers from "../screens/admin/AdminUsers";
+import AdminCourses from "../screens/admin/AdminCourses";
+import Messages from "../screens/shared/Messages";
 import { COLORS } from "../styles";
 
-const AdminTab = createBottomTabNavigator();
+const AdminTab = createBottomTabNavigator<AdminTabsParamList>();
 
 export default function AdminTabs() {
   return (
@@ -19,10 +23,10 @@ export default function AdminTabs() {
             iconName = focused ? "shield" : "shield-outline";
           } else if (route.name === "UserManagement") {
             iconName = focused ? "people" : "people-outline";
-          } else if (route.name === "ContentModeration") {
-            iconName = focused ? "checkmark-circle" : "checkmark-circle-outline";
-          } else if (route.name === "Analytics") {
-            iconName = focused ? "analytics" : "analytics-outline";
+          } else if (route.name === "CourseManagement") {
+            iconName = focused ? "school" : "school-outline";
+          } else if (route.name === "Messages") {
+            iconName = focused ? "chatbubbles" : "chatbubbles-outline";
           } else {
             iconName = "shield-outline";
           }
@@ -63,21 +67,21 @@ export default function AdminTabs() {
       />
       <AdminTab.Screen
         name="UserManagement"
-        component={AdminHome} // Placeholder - replace with actual component
+        component={AdminUsers}
         options={{
           tabBarLabel: "Users",
           title: "User Management",
         }}
       />
-
       <AdminTab.Screen
-        name="Analytics"
-        component={AdminHome} // Placeholder - replace with actual component
+        name="CourseManagement"
+        component={AdminCourses}
         options={{
-          tabBarLabel: "Analytics",
-          title: "Analytics",
+          tabBarLabel: "Courses",
+          title: "Course Management",
         }}
       />
+      <AdminTab.Screen name="Messages" component={Messages} />
     </AdminTab.Navigator>
   );
 }

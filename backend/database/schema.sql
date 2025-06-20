@@ -31,6 +31,7 @@ CREATE TABLE "messages" (
   "sender_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
   "receiver_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
   "content" text NOT NULL,
+  "is_read" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz(3) default current_timestamp
 );
 

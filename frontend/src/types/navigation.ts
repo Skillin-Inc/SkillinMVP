@@ -4,6 +4,7 @@ import { PersonalInfo, TeachingExperience } from "./index";
 
 export type StudentTabsParamList = {
   StudentHome: undefined;
+  StudentProgress: undefined;
   Messages: undefined;
   StudentProfile: undefined;
   Temp: undefined;
@@ -17,10 +18,18 @@ export type TeacherTabsParamList = {
   Temp: undefined;
 };
 
+export type AdminTabsParamList = {
+  AdminHome: undefined;
+  UserManagement: undefined;
+  CourseManagement: undefined;
+  Messages: undefined;
+};
+
 export type StudentStackParamList = {
   StudentTabs: NavigatorScreenParams<StudentTabsParamList>;
   StudentTopicDetail: { id: string };
-  StudentAltCategoryDetail: { id: string };
+  StudentCourse: { courseId: number };
+  StudentLesson: { lessonId: number };
   Chat: { id: string };
 };
 
@@ -28,6 +37,14 @@ export type TeacherStackParamList = {
   TeacherTabs: NavigatorScreenParams<TeacherTabsParamList>;
   TeacherStats: undefined;
   TeacherCreateCourse: undefined;
+  TeacherCoursesList: undefined;
+  TeacherCourse: { courseId: number };
+  TeacherLesson: { lessonId: number };
+  Chat: { id: string };
+};
+
+export type AdminStackParamList = {
+  AdminTabs: NavigatorScreenParams<AdminTabsParamList>;
   Chat: { id: string };
 };
 
@@ -60,17 +77,10 @@ export type AuthStackParamList = {
   TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };
 
-export type AdminTabsParamList = {
-  AdminHome: undefined;
-  UserManagement: undefined;
-  ContentModeration: undefined;
-  Analytics: undefined;
-};
-
 export type RootStackParamList = {
   AuthStack: NavigatorScreenParams<AuthStackParamList>;
   TeacherAuthStack: NavigatorScreenParams<TeacherAuthStackParamList>;
   StudentStack: NavigatorScreenParams<StudentStackParamList>;
   TeacherStack: NavigatorScreenParams<TeacherStackParamList>;
-  AdminStack: NavigatorScreenParams<AdminTabsParamList>;
+  AdminStack: NavigatorScreenParams<AdminStackParamList>;
 };

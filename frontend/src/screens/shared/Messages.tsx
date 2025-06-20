@@ -1,5 +1,15 @@
 import React, { useState, useMemo, useEffect, useContext } from "react";
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, SafeAreaView } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  ActivityIndicator,
+  RefreshControl,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
@@ -28,6 +38,8 @@ export default function Messages({ navigation }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<ChatUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   const styles = getStyles();
 
   const fetchUsersWithConversations = async () => {
@@ -52,7 +64,7 @@ export default function Messages({ navigation }: Props) {
             name: `${user.first_name} ${user.last_name}`,
             lastMessage: conversation ? conversation.last_message : "Start a conversation!",
             timestamp: conversation ? formatTimestamp(conversation.last_message_time) : "Now",
-            unreadCount: 2, // implement this soon
+            unreadCount: conversation ? conversation.unread_count : 0,
           };
         });
 
@@ -64,6 +76,12 @@ export default function Messages({ navigation }: Props) {
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchUsersWithConversations();
+    setRefreshing(false);
+  };
+
   useEffect(() => {
     fetchUsersWithConversations();
   }, [currentUser]);
@@ -73,6 +91,7 @@ export default function Messages({ navigation }: Props) {
 
     const handleNewMessage = (socketMessage: SocketMessage) => {
       if (socketMessage.sender_id === currentUser.id || socketMessage.receiver_id === currentUser.id) {
+        // Refresh conversations to update unread counts and last message
         fetchUsersWithConversations();
       }
     };
@@ -132,10 +151,22 @@ export default function Messages({ navigation }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Messages</Text>
+        <View style={styles.headerContainer}>
+          <View style={styles.headerSpacer} />
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitleText}>Messages</Text>
+          </View>
+          <View style={styles.connectionStatus}>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: websocketService.isConnected() ? COLORS.green : COLORS.gray },
+              ]}
+            />
+          </View>
         </View>
         <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.purple} />
           <Text style={styles.loadingText}>Loading conversations...</Text>
         </View>
       </SafeAreaView>
@@ -144,8 +175,11 @@ export default function Messages({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
+      <View style={styles.headerContainer}>
+        <View style={styles.headerSpacer} />
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitleText}>Messages</Text>
+        </View>
         <View style={styles.connectionStatus}>
           <View
             style={[styles.statusDot, { backgroundColor: websocketService.isConnected() ? COLORS.green : COLORS.gray }]}
@@ -153,7 +187,21 @@ export default function Messages({ navigation }: Props) {
         </View>
       </View>
 
-      <View style={styles.searchContainer}>
+      {/* Messages Header Info */}
+      <View style={styles.messagesHeader}>
+        <View style={styles.messagesIcon}>
+          <Ionicons name="chatbubbles" size={32} color={COLORS.purple} />
+        </View>
+        <View style={styles.messagesInfo}>
+          <Text style={styles.messagesTitle}>Your Conversations</Text>
+          <Text style={styles.messagesSubtitle}>
+            {filteredUsers.length} {filteredUsers.length === 1 ? "conversation" : "conversations"}
+          </Text>
+        </View>
+      </View>
+
+      {/* Search Section */}
+      <View style={styles.searchSection}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color={COLORS.gray} style={styles.searchIcon} />
           <TextInput
@@ -171,14 +219,28 @@ export default function Messages({ navigation }: Props) {
         </View>
       </View>
 
-      <FlatList
-        data={filteredUsers}
-        renderItem={({ item }) => <UserItem user={item} onPress={handleUserPress} />}
-        keyExtractor={(item) => item.id}
-        style={styles.userList}
-        showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      {/* Conversations List */}
+      <View style={styles.conversationsSection}>
+        {filteredUsers.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="chatbubble-outline" size={64} color={COLORS.gray} />
+            <Text style={styles.emptyTitle}>No Conversations</Text>
+            <Text style={styles.emptyText}>
+              {searchQuery ? "No conversations match your search." : "Start chatting with other users!"}
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredUsers}
+            renderItem={({ item }) => <UserItem user={item} onPress={handleUserPress} />}
+            keyExtractor={(item) => item.id}
+            style={styles.conversationsList}
+            showsVerticalScrollIndicator={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 }
@@ -189,64 +251,126 @@ function getStyles() {
       flex: 1,
       backgroundColor: COLORS.white,
     },
-    header: {
+    headerContainer: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: 20,
-      paddingTop: 20,
-      paddingBottom: 10,
+      padding: 16,
+      backgroundColor: COLORS.white,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.lightGray,
     },
-    headerTitle: {
-      fontSize: 28,
-      fontWeight: "bold" as const,
+    headerSpacer: {
+      width: 40,
+    },
+    headerTitleContainer: {
+      flex: 1,
+      alignItems: "center",
+      paddingHorizontal: 16,
+    },
+    headerTitleText: {
+      fontSize: 18,
+      fontWeight: "bold",
       color: COLORS.black,
     },
     connectionStatus: {
       flexDirection: "row",
       alignItems: "center",
+      padding: 8,
     },
     statusDot: {
       width: 8,
       height: 8,
       borderRadius: 4,
     },
-    searchContainer: {
-      paddingHorizontal: 20,
-      paddingBottom: 10,
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 40,
+    },
+    loadingText: {
+      fontSize: 16,
+      color: COLORS.gray,
+      marginTop: 16,
+    },
+    messagesHeader: {
+      flexDirection: "row",
+      padding: 20,
+      backgroundColor: COLORS.lightGray,
+    },
+    messagesIcon: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: COLORS.white,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: 16,
+    },
+    messagesInfo: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    messagesTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: COLORS.black,
+      marginBottom: 4,
+    },
+    messagesSubtitle: {
+      fontSize: 14,
+      color: COLORS.gray,
+    },
+    searchSection: {
+      padding: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.lightGray,
     },
     searchBar: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: COLORS.lightGray,
-      borderRadius: 25,
-      paddingHorizontal: 15,
-      paddingVertical: 10,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
     searchIcon: {
-      marginRight: 10,
+      marginRight: 12,
     },
     searchInput: {
       flex: 1,
       fontSize: 16,
       color: COLORS.black,
     },
-    userList: {
+    conversationsSection: {
+      flex: 1,
+    },
+    conversationsList: {
       flex: 1,
     },
     separator: {
       height: 1,
-      backgroundColor: "#E5E5EA",
+      backgroundColor: COLORS.lightGray,
       marginLeft: 20,
     },
-    loadingContainer: {
+    emptyContainer: {
       flex: 1,
-      justifyContent: "center",
       alignItems: "center",
+      justifyContent: "center",
+      padding: 40,
     },
-    loadingText: {
+    emptyTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: COLORS.black,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    emptyText: {
       fontSize: 16,
       color: COLORS.gray,
+      textAlign: "center",
+      lineHeight: 24,
     },
   });
 }

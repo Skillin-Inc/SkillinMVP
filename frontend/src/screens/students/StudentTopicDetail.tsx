@@ -71,7 +71,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
   };
 
   const handleCoursePress = (course: Course) => {
-    Alert.alert("Course Selected", `You selected: ${course.title}`);
+    navigation.navigate("StudentCourse", { courseId: course.id });
   };
 
   const filteredCourses = courses.filter(

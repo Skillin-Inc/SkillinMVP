@@ -1,219 +1,505 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+  Alert,
+  RefreshControl,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
-import { useScreenDimensions } from "../../hooks";
 import { AuthContext } from "../../hooks/AuthContext";
 import ImagePickerAvatar from "../../components/ImagePickerAvatar";
-import { COLORS } from "../../styles";
+import { COLORS, SPACINGS } from "../../styles";
+import { TeacherTabsParamList } from "../../types/navigation";
 
-export default function TeacherProfile() {
+type Props = BottomTabScreenProps<TeacherTabsParamList, "TeacherProfile">;
+
+export default function TeacherProfile({ navigation }: Props) {
   const { logout, user } = useContext(AuthContext);
-  const { screenWidth, screenHeight } = useScreenDimensions();
-  const styles = getStyles(screenWidth, screenHeight);
-
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (e) {
-      console.error("Logout error:", e);
-    }
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await logout();
+          } catch (e) {
+            console.error("Logout error:", e);
+            Alert.alert("Error", "Failed to sign out. Please try again.");
+          }
+        },
+      },
+    ]);
   };
 
-  const InfoItem = ({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }) => (
-    <View style={styles.infoItem}>
-      <Ionicons name={icon} size={22} color={COLORS.purple} style={styles.infoIcon} />
-      <View>
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // TODO: Refresh teacher data and stats
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const handleEditProfile = () => {
+    Alert.alert("Edit Profile", "Profile editing will be available soon!");
+  };
+
+  const handleSettings = () => {
+    Alert.alert("Settings", "Settings page will be available soon!");
+  };
+
+  const handleSupport = () => {
+    Alert.alert("Support", "Support center will be available soon!");
+  };
+
+  const handleViewStats = () => {
+    navigation.navigate("TeacherHome");
+  };
+
+  const InfoCard = ({
+    icon,
+    label,
+    value,
+    onPress,
+  }: {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+    value: string;
+    onPress?: () => void;
+  }) => (
+    <TouchableOpacity style={styles.infoCard} onPress={onPress} disabled={!onPress}>
+      <View style={styles.infoCardHeader}>
+        <View style={styles.infoIcon}>
+          <Ionicons name={icon} size={20} color={COLORS.purple} />
+        </View>
         <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
+        {onPress && <Ionicons name="chevron-forward" size={16} color={COLORS.gray} />}
       </View>
-    </View>
+      <Text style={styles.infoValue}>{value}</Text>
+    </TouchableOpacity>
   );
 
-  return (
-    <ScrollView
-      style={styles.scrollContainer}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
+  const StatsCard = ({
+    icon,
+    label,
+    value,
+    onPress,
+    color = COLORS.purple,
+  }: {
+    icon: keyof typeof Ionicons.glyphMap;
+    label: string;
+    value: string;
+    onPress?: () => void;
+    color?: string;
+  }) => (
+    <TouchableOpacity style={styles.statsCard} onPress={onPress} disabled={!onPress}>
+      <View style={[styles.statsIcon, { backgroundColor: color }]}>
+        <Ionicons name={icon} size={24} color={COLORS.white} />
+      </View>
+      <Text style={styles.statsValue}>{value}</Text>
+      <Text style={styles.statsLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
 
+  const ActionCard = ({
+    icon,
+    title,
+    subtitle,
+    onPress,
+    color = COLORS.purple,
+  }: {
+    icon: keyof typeof Ionicons.glyphMap;
+    title: string;
+    subtitle: string;
+    onPress: () => void;
+    color?: string;
+  }) => (
+    <TouchableOpacity style={styles.actionCard} onPress={onPress}>
+      <View style={[styles.actionIcon, { backgroundColor: color }]}>
+        <Ionicons name={icon} size={24} color={COLORS.white} />
+      </View>
+      <View style={styles.actionContent}>
+        <Text style={styles.actionTitle}>{title}</Text>
+        <Text style={styles.actionSubtitle}>{subtitle}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
+    </TouchableOpacity>
+  );
+
+  const getTeacherBadgeColor = () => {
+    // You can customize this based on teacher level/experience
+    return COLORS.blue;
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Teacher Profile</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
-          <Text style={styles.logoutText}>Log Out</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+        </TouchableOpacity>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>Teacher Profile</Text>
+        </View>
+        <TouchableOpacity style={styles.settingsButton} onPress={handleSettings}>
+          <Ionicons name="settings-outline" size={24} color={COLORS.black} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.profileHeader}>
-        <ImagePickerAvatar initialUri={avatarUri} onChange={setAvatarUri} size={120} />
-        <Text style={styles.name}>{user?.username ?? ""}</Text>
-        <View style={styles.teacherBadge}>
-          <Ionicons name="school" size={14} color={COLORS.white} />
-          <Text style={styles.teacherText}>Teacher</Text>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {/* Profile Header */}
+        <View style={styles.profileSection}>
+          <View style={styles.avatarContainer}>
+            <ImagePickerAvatar initialUri={avatarUri} onChange={setAvatarUri} size={100} />
+          </View>
+
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{user?.username ?? "Unknown Teacher"}</Text>
+            <Text style={styles.userEmail}>{user?.email ?? ""}</Text>
+
+            <View style={[styles.teacherBadge, { backgroundColor: getTeacherBadgeColor() }]}>
+              <Ionicons name="school" size={14} color={COLORS.white} />
+              <Text style={styles.teacherText}>Certified Teacher</Text>
+            </View>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.infoContainer}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
-        <View style={styles.infoBox}>
-          <InfoItem icon="calendar-outline" label="Date of Birth" value={user?.dOB ?? "Not provided"} />
-          <InfoItem icon="location-outline" label="Zip Code" value={user?.postalCode?.toString() ?? "Not provided"} />
-          <InfoItem icon="mail-outline" label="Email" value={user?.email ?? ""} />
-          <InfoItem icon="call-outline" label="Phone Number" value={user?.phoneNumber ?? ""} />
+        {/* Teaching Stats */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Teaching Statistics</Text>
 
-          <TouchableOpacity style={styles.editProfileButton}>
-            <Ionicons name="create-outline" size={20} color={COLORS.white} style={styles.buttonIcon} />
-            <Text style={styles.actionButtonText}>Edit Profile</Text>
+          <View style={styles.statsGrid}>
+            <StatsCard icon="book-outline" label="Courses" value="0" onPress={handleViewStats} color={COLORS.purple} />
+
+            <StatsCard
+              icon="people-outline"
+              label="Students"
+              value="0"
+              onPress={handleViewStats}
+              color={COLORS.green}
+            />
+          </View>
+
+          <View style={styles.statsGrid}>
+            <StatsCard icon="star-outline" label="Rating" value="--" onPress={handleViewStats} color={COLORS.blue} />
+
+            <StatsCard icon="cash-outline" label="Earnings" value="$0" onPress={handleViewStats} color="#FFD700" />
+          </View>
+        </View>
+
+        {/* Personal Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
+
+          <InfoCard icon="calendar-outline" label="Date of Birth" value={user?.dOB ?? "Not provided"} />
+
+          <InfoCard icon="location-outline" label="Location" value={user?.postalCode?.toString() ?? "Not provided"} />
+
+          <InfoCard icon="call-outline" label="Phone Number" value={user?.phoneNumber ?? "Not provided"} />
+        </View>
+
+        {/* Teacher Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Teacher Actions</Text>
+
+          <ActionCard
+            icon="create-outline"
+            title="Edit Profile"
+            subtitle="Update your profile information"
+            onPress={handleEditProfile}
+          />
+
+          <ActionCard
+            icon="add-circle-outline"
+            title="Create Course"
+            subtitle="Design a new course"
+            onPress={() => navigation.navigate("TeacherCreateLesson")}
+            color={COLORS.green}
+          />
+
+          <ActionCard
+            icon="library-outline"
+            title="My Courses"
+            subtitle="Manage your courses"
+            onPress={() => Alert.alert("My Courses", "Feature coming soon!")}
+          />
+
+          <ActionCard
+            icon="stats-chart-outline"
+            title="Analytics"
+            subtitle="View detailed statistics"
+            onPress={handleViewStats}
+            color={COLORS.blue}
+          />
+
+          <ActionCard
+            icon="card-outline"
+            title="Payouts"
+            subtitle="Manage earnings and payments"
+            onPress={() => Alert.alert("Payouts", "Feature coming soon!")}
+            color="#FFD700"
+          />
+
+          <ActionCard
+            icon="help-circle-outline"
+            title="Teacher Support"
+            subtitle="Get help with teaching"
+            onPress={handleSupport}
+          />
+        </View>
+
+        {/* Sign Out */}
+        <View style={styles.section}>
+          <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+            <Text style={styles.signOutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionTitle}>Teaching Information</Text>
-        <View style={styles.infoBox}>
-          <InfoItem icon="book-outline" label="Courses Created" value="0" />
-          <InfoItem icon="people-outline" label="Students Taught" value="0" />
-          <InfoItem icon="star-outline" label="Rating" value="Not rated yet" />
-          <InfoItem icon="cash-outline" label="Earnings" value="$0.00" />
+        {/* App Version */}
+        <View style={styles.versionContainer}>
+          <Text style={styles.versionText}>Skillin Teacher v1.0.0</Text>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-function getStyles(width: number, height: number) {
-  return StyleSheet.create({
-    scrollContainer: {
-      flex: 1,
-      backgroundColor: COLORS.white,
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: SPACINGS.base,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
+  },
+  backButton: {
+    padding: SPACINGS.small,
+    borderRadius: 8,
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: SPACINGS.base,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: COLORS.black,
+  },
+  settingsButton: {
+    padding: SPACINGS.small,
+    borderRadius: 8,
+  },
+  profileSection: {
+    alignItems: "center",
+    padding: SPACINGS.large,
+    backgroundColor: COLORS.lightGray,
+  },
+  avatarContainer: {
+    marginBottom: SPACINGS.base,
+  },
+  userInfo: {
+    alignItems: "center",
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: COLORS.black,
+    marginBottom: SPACINGS.smallest,
+  },
+  userEmail: {
+    fontSize: 16,
+    color: COLORS.gray,
+    marginBottom: SPACINGS.base,
+  },
+  teacherBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: SPACINGS.smallest + 2,
+    paddingHorizontal: SPACINGS.small + 4,
+    borderRadius: 20,
+  },
+  teacherText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: SPACINGS.smallest,
+  },
+  section: {
+    padding: SPACINGS.base,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGray,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: COLORS.black,
+    marginBottom: SPACINGS.base,
+  },
+  statsGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SPACINGS.small,
+  },
+  statsCard: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: SPACINGS.base,
+    margin: SPACINGS.smallest,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
     },
-    scrollContent: {
-      paddingBottom: 30,
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+  },
+  statsIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: SPACINGS.small,
+  },
+  statsValue: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: COLORS.black,
+    marginBottom: SPACINGS.smallest,
+  },
+  statsLabel: {
+    fontSize: 12,
+    color: COLORS.gray,
+    textAlign: "center",
+  },
+  infoCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: SPACINGS.base,
+    marginBottom: SPACINGS.small,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
     },
-    header: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      width: "100%",
-      paddingHorizontal: 16,
-      paddingTop: height * 0.06,
-      paddingBottom: 10,
-      backgroundColor: COLORS.white,
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.lightGray,
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+  },
+  infoCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SPACINGS.smallest,
+  },
+  infoIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: COLORS.lightGray,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: SPACINGS.small,
+  },
+  infoLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+    color: COLORS.black,
+  },
+  infoValue: {
+    fontSize: 16,
+    color: COLORS.gray,
+    marginLeft: 40,
+  },
+  actionCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: SPACINGS.base,
+    marginBottom: SPACINGS.small,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
     },
-    headerTitle: {
-      fontSize: 20,
-      fontWeight: "bold",
-      color: COLORS.purple,
-    },
-    logoutButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: COLORS.purple,
-      paddingVertical: 6,
-      paddingHorizontal: 12,
-      borderRadius: 20,
-    },
-    logoutText: {
-      color: COLORS.white,
-      fontSize: 14,
-      fontWeight: "600",
-      marginLeft: 5,
-    },
-    profileHeader: {
-      alignItems: "center",
-      paddingVertical: 20,
-      backgroundColor: COLORS.white,
-      borderBottomWidth: 8,
-      borderBottomColor: COLORS.lightGray,
-    },
-    name: {
-      fontSize: width > 400 ? 26 : 22,
-      fontWeight: "bold",
-      color: COLORS.purple,
-      marginTop: 12,
-    },
-    teacherBadge: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: COLORS.blue,
-      paddingVertical: 4,
-      paddingHorizontal: 10,
-      borderRadius: 20,
-      marginTop: 8,
-    },
-    teacherText: {
-      color: COLORS.white,
-      fontSize: 12,
-      fontWeight: "600",
-      marginLeft: 4,
-    },
-    infoContainer: {
-      paddingHorizontal: 16,
-    },
-    sectionTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: COLORS.purple,
-      marginTop: 20,
-      marginBottom: 10,
-    },
-    infoBox: {
-      backgroundColor: COLORS.lightGray,
-      borderRadius: 12,
-      padding: 10,
-    },
-    infoItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: 15,
-    },
-    infoIcon: {
-      marginRight: 12,
-    },
-    infoLabel: {
-      fontSize: 13,
-      color: COLORS.darkGray,
-      marginBottom: 2,
-    },
-    infoValue: {
-      fontSize: 16,
-      color: COLORS.black,
-      fontWeight: "500",
-    },
-    actionsContainer: {
-      marginTop: 1,
-    },
-    actionButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: COLORS.green,
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 25,
-      marginTop: 10,
-    },
-    actionButtonText: {
-      color: COLORS.white,
-      fontWeight: "600",
-      fontSize: 16,
-    },
-    editProfileButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: COLORS.purple,
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 25,
-      marginTop: 10,
-    },
-    buttonIcon: {
-      marginRight: 8,
-    },
-  });
-}
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.lightGray,
+  },
+  actionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: SPACINGS.base,
+  },
+  actionContent: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: COLORS.black,
+    marginBottom: SPACINGS.smallest,
+  },
+  actionSubtitle: {
+    fontSize: 14,
+    color: COLORS.gray,
+  },
+  signOutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.error,
+    borderRadius: 12,
+    paddingVertical: SPACINGS.base,
+    paddingHorizontal: SPACINGS.large,
+  },
+  signOutText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: SPACINGS.small,
+  },
+  versionContainer: {
+    alignItems: "center",
+    padding: SPACINGS.large,
+  },
+  versionText: {
+    fontSize: 12,
+    color: COLORS.gray,
+  },
+});

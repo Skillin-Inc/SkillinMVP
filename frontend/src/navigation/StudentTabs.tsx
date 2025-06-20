@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
 import StudentHome from "../screens/students/StudentHome";
+import StudentProgress from "../screens/students/StudentProgress";
 import Messages from "../screens/shared/Messages";
 import StudentProfile from "../screens/students/StudentProfile";
 import Temp from "../screens/shared/Temp";
@@ -21,6 +22,8 @@ export default function StudentTabs() {
 
           if (route.name === "StudentHome") {
             iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "StudentProgress") {
+            iconName = focused ? "play-circle" : "play-circle-outline";
           } else if (route.name === "Messages") {
             iconName = focused ? "chatbubbles" : "chatbubbles-outline";
           } else if (route.name === "StudentProfile") {
@@ -39,6 +42,14 @@ export default function StudentTabs() {
       })}
     >
       <Tab.Screen name="StudentHome" component={StudentHome} />
+      <Tab.Screen
+        name="StudentProgress"
+        component={StudentProgress}
+        options={{
+          tabBarLabel: "Progress",
+          title: "My Progress",
+        }}
+      />
       <Tab.Screen name="Messages" component={Messages} />
       <Tab.Screen name="StudentProfile" component={StudentProfile} />
       <Tab.Screen name="Temp" component={Temp} />

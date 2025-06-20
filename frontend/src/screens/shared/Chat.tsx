@@ -16,7 +16,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
-import { StudentStackParamList, TeacherStackParamList } from "../../types/navigation";
+import { StudentStackParamList, TeacherStackParamList, AdminStackParamList } from "../../types/navigation";
 import { MessageBubble, Message } from "../../components/MessageBubble";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
@@ -24,7 +24,7 @@ import { apiService, BackendMessage, BackendUser } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 
 // Dynamic type that works with both StudentStack and TeacherStack
-type Props = StackScreenProps<StudentStackParamList | TeacherStackParamList, "Chat">;
+type Props = StackScreenProps<StudentStackParamList | TeacherStackParamList | AdminStackParamList, "Chat">;
 
 export default function Chat({ route, navigation }: Props) {
   const { id } = route.params;
@@ -55,6 +55,9 @@ export default function Chat({ route, navigation }: Props) {
         }));
 
         setMessages(formattedMessages);
+
+        // Mark messages as read when user opens chat
+        await apiService.markMessagesAsRead(currentUser.id, Number(id));
       } catch (error) {
         console.error("Error fetching chat data:", error);
       } finally {
