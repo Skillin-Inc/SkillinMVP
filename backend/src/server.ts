@@ -12,7 +12,7 @@ import lessonsRouter from "./routes/lessons";
 import coursesRouter from "./routes/courses";
 import categoriesRouter from "./routes/categories";
 import progressRouter from "./routes/progress";
-import { pool } from "./db";
+import teacherRoutes from "./routes/teachers";
 
 const app = express();
 const server = createServer(app);
@@ -33,32 +33,6 @@ app.use(express.json({ limit: "10mb" })); // change to 20mb if needed
 // backend check
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from Express + TypeScript!");
-});
-
-// db check
-app.get("/health/db", async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query("SELECT 1 as test");
-    if (result.rows.length > 0 && result.rows[0].test === 1) {
-      res.status(200).json({
-        status: "healthy",
-        message: "Database connection successful",
-        timestamp: new Date().toISOString(),
-      });
-    } else {
-      res.status(500).json({
-        status: "unhealthy",
-        message: "Database query returned unexpected result",
-      });
-    }
-  } catch (error) {
-    console.error("Database health check failed:", error);
-    res.status(500).json({
-      status: "unhealthy",
-      message: "Database connection failed",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
 });
 
 io.on("connection", (socket) => {
@@ -85,6 +59,7 @@ io.on("connection", (socket) => {
           sender_id: newMessage.sender_id,
           receiver_id: newMessage.receiver_id,
           content: newMessage.content,
+          is_read: newMessage.is_read,
           created_at: newMessage.created_at,
         });
       }
@@ -94,6 +69,7 @@ io.on("connection", (socket) => {
         sender_id: newMessage.sender_id,
         receiver_id: newMessage.receiver_id,
         content: newMessage.content,
+        is_read: newMessage.is_read,
         created_at: newMessage.created_at,
       });
     } catch (error) {
@@ -120,6 +96,7 @@ app.use("/lessons", lessonsRouter);
 app.use("/courses", coursesRouter);
 app.use("/categories", categoriesRouter);
 app.use("/progress", progressRouter);
+app.use("/teachers", teacherRoutes);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });

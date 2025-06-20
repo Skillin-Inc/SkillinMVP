@@ -41,18 +41,18 @@ export interface NewUser {
   username: string;
   password: string;
   postalCode: number;
-  isTeacher: boolean;
+  userType: "student" | "teacher" | "admin";
 }
 
 export async function createUser(data: NewUser) {
-  const { firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher = false } = data;
+  const { firstName, lastName, email, phoneNumber, username, password, postalCode, userType = "student" } = data;
 
   const result = await pool.query(
     `INSERT INTO public.users
-    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "is_teacher")
+    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "user_type")
    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-   RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "is_teacher", "created_at"`,
-    [firstName, lastName, email, phoneNumber, username, password, postalCode, isTeacher]
+   RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "user_type", "created_at"`,
+    [firstName, lastName, email, phoneNumber, username, password, postalCode, userType]
   );
 
   return result.rows[0];
@@ -139,7 +139,7 @@ export async function createMessage(data: NewMessage) {
     `INSERT INTO public.messages
       ("sender_id", "receiver_id", "content")
      VALUES ($1, $2, $3)
-     RETURNING "id", "sender_id", "receiver_id", "content", "created_at"`,
+     RETURNING "id", "sender_id", "receiver_id", "content", "is_read", "created_at"`,
     [sender_id, receiver_id, content]
   );
 
@@ -432,7 +432,7 @@ export async function deleteLesson(id: number): Promise<boolean> {
 
 export async function getMessagesBetweenUsers(userId1: number, userId2: number) {
   const result = await pool.query(
-    `SELECT m.*, 
+    `SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.created_at,
             u1."first_name" as sender_first_name, u1."last_name" as sender_last_name,
             u2."first_name" as receiver_first_name, u2."last_name" as receiver_last_name
      FROM public.messages m
@@ -463,7 +463,15 @@ export async function getConversationsForUser(userId: number) {
                 ELSE u1."last_name" 
             END as other_user_last_name,
             m.content as last_message,
-            m.created_at as last_message_time
+            m.created_at as last_message_time,
+            (SELECT COUNT(*) 
+             FROM public.messages unread 
+             WHERE unread.receiver_id = $1 
+               AND unread.sender_id = CASE 
+                   WHEN m.sender_id = $1 THEN m.receiver_id 
+                   ELSE m.sender_id 
+               END
+               AND unread.is_read = false) as unread_count
      FROM public.messages m
      JOIN public.users u1 ON m.sender_id = u1."id"
      JOIN public.users u2 ON m.receiver_id = u2."id"
@@ -473,6 +481,29 @@ export async function getConversationsForUser(userId: number) {
   );
 
   return result.rows;
+}
+
+export async function markMessagesAsRead(userId: number, otherUserId: number) {
+  const result = await pool.query(
+    `UPDATE public.messages 
+     SET "is_read" = true 
+     WHERE "receiver_id" = $1 AND "sender_id" = $2 AND "is_read" = false
+     RETURNING "id"`,
+    [userId, otherUserId]
+  );
+
+  return result.rows;
+}
+
+export async function getUnreadCount(userId: number, otherUserId: number) {
+  const result = await pool.query(
+    `SELECT COUNT(*) as unread_count
+     FROM public.messages 
+     WHERE "receiver_id" = $1 AND "sender_id" = $2 AND "is_read" = false`,
+    [userId, otherUserId]
+  );
+
+  return Number(result.rows[0].unread_count);
 }
 
 export async function deleteUserByEmail(email: string) {
@@ -485,22 +516,58 @@ export async function deleteUserByEmail(email: string) {
   return result.rows[0] ?? null;
 }
 
-export async function toggleIsTeacherByEmail(email: string) {
-  const current = await pool.query(`SELECT "is_teacher" FROM public.users WHERE email = $1`, [email]);
+export async function updateUserTypeByEmail(email: string, newUserType: "student" | "teacher" | "admin") {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
 
-  if (current.rows.length === 0) return null;
+    const current = await client.query(`SELECT id AS user_id, user_type FROM public.users WHERE email = $1`, [email]);
 
-  const flipped = !current.rows[0].is_teacher;
+    if (current.rows.length === 0) {
+      await client.query("ROLLBACK");
+      return null;
+    }
 
-  const result = await pool.query(
-    `UPDATE public.users
-     SET "is_teacher" = $1
-     WHERE email = $2
-     RETURNING *`,
-    [flipped, email]
-  );
+    const { user_id, user_type: currentUserType } = current.rows[0];
 
-  return result.rows[0];
+    // If the user type is already the same, no need to update
+    if (currentUserType === newUserType) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    const result = await client.query(
+      `UPDATE public.users
+       SET user_type = $1
+       WHERE email = $2
+       RETURNING *`,
+      [newUserType, email]
+    );
+
+    // Handle teachers table updates
+    if (newUserType === "teacher") {
+      // Promote: Add to teachers table if not already there
+      await client.query(
+        `INSERT INTO public.teachers (user_id, category_id)
+         SELECT $1, 1
+         WHERE NOT EXISTS (
+           SELECT 1 FROM public.teachers WHERE user_id = $1
+         )`,
+        [user_id]
+      );
+    } else if (currentUserType === "teacher") {
+      // Demote: Remove from teachers table if they were a teacher
+      await client.query(`DELETE FROM public.teachers WHERE user_id = $1`, [user_id]);
+    }
+
+    await client.query("COMMIT");
+    return result.rows[0];
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export interface NewProgress {

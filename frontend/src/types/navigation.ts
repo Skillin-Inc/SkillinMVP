@@ -1,50 +1,86 @@
-// types.ts
+// navigation.ts
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { PersonalInfo, TeachingExperience } from "./index";
 
-// Chat Stack
-export type MessagesStackParamList = {
+export type StudentTabsParamList = {
+  StudentHome: undefined;
+  StudentProgress: undefined;
   Messages: undefined;
-  Chat: { id: string };
-};
-
-// Tabs
-export type TabNavigatorParamList = {
-  Home: undefined;
-  MessagesStack: NavigatorScreenParams<MessagesStackParamList>;
-  Profile: undefined;
+  StudentProfile: undefined;
   Temp: undefined;
 };
 
-// Teacher Signup Flow
+export type TeacherTabsParamList = {
+  TeacherHome: undefined;
+  TeacherCreateLesson: undefined;
+  Messages: undefined;
+  TeacherProfile: undefined;
+  Temp: undefined;
+};
+
+export type AdminTabsParamList = {
+  AdminHome: undefined;
+  UserManagement: undefined;
+  CourseManagement: undefined;
+  Messages: undefined;
+};
+
+export type StudentStackParamList = {
+  StudentTabs: NavigatorScreenParams<StudentTabsParamList>;
+  StudentTopicDetail: { id: string };
+  StudentCourse: { courseId: number };
+  StudentLesson: { lessonId: number };
+  Chat: { id: string };
+};
+
 export type TeacherStackParamList = {
-  ApplicationStart: undefined;
-  PersonalInfo: undefined;
-  PayoutsInfo: undefined;
-  TeachingExperience: PersonalInfo;
-  Verification: PersonalInfo & TeachingExperience;
-  ReviewSubmit: PersonalInfo &
+  TeacherTabs: NavigatorScreenParams<TeacherTabsParamList>;
+  TeacherStats: undefined;
+  TeacherCreateCourse: undefined;
+  TeacherCoursesList: undefined;
+  TeacherCourse: { courseId: number };
+  TeacherLesson: { lessonId: number };
+  Chat: { id: string };
+};
+
+export type AdminStackParamList = {
+  AdminTabs: NavigatorScreenParams<AdminTabsParamList>;
+  Chat: { id: string };
+};
+
+export type TeacherAuthStackParamList = {
+  TeacherStart: undefined;
+  TeacherInfo: undefined;
+  TeacherPayouts: undefined;
+  TeacherExperience: PersonalInfo;
+  TeacherSubmit: PersonalInfo &
     TeachingExperience & {
       idFront: string | null;
       idBack: string | null;
     };
 };
 
-// Auth Stack
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
   RegisterPayment: undefined;
-  Register: undefined;
-  TeacherNavigator: NavigatorScreenParams<TeacherStackParamList>;
+  StudentInfo: undefined;
+  StudentAccount: {
+    firstName: string;
+    lastName: string;
+    dOB: string;
+    zipCode: string;
+    email: string;
+    phoneNumber: string;
+    postalCode: number;
+  };
+  TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };
-// App Root
+
 export type RootStackParamList = {
-  UserTabs: undefined;
-  TeacherHome: undefined;
-  TeacherTabs: undefined;
-  Profile: { from: "TeacherHome" | "Home" };
-  TopicDetail: { topic: string };
-  AltCategoryDetail: { topic: string }; // FIXED this line
-  CreateCourse: undefined;
+  AuthStack: NavigatorScreenParams<AuthStackParamList>;
+  TeacherAuthStack: NavigatorScreenParams<TeacherAuthStackParamList>;
+  StudentStack: NavigatorScreenParams<StudentStackParamList>;
+  TeacherStack: NavigatorScreenParams<TeacherStackParamList>;
+  AdminStack: NavigatorScreenParams<AdminStackParamList>;
 };

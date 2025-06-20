@@ -1,17 +1,15 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Linking } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 import { AuthStackParamList } from "../../types";
 
-export default function RegisterPayment() {
+type Props = StackScreenProps<AuthStackParamList, "RegisterPayment">;
+
+export default function RegisterPayment({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
-  type RegisterPaymentNavigationProp = StackNavigationProp<AuthStackParamList, "RegisterPayment">;
-
-  const navigation = useNavigation<RegisterPaymentNavigationProp>();
 
   const handlePaymentPress = () => {
     Linking.openURL("https://buy.stripe.com/9AQ03wbg7ayg7SM288");

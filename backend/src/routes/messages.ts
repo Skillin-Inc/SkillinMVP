@@ -1,6 +1,6 @@
 // src/routes/messages.ts
 import { Router, Request, Response } from "express";
-import { createMessage, NewMessage, getMessagesBetweenUsers, getConversationsForUser } from "../db";
+import { createMessage, NewMessage, getMessagesBetweenUsers, getConversationsForUser, markMessagesAsRead } from "../db";
 
 const router = Router();
 
@@ -70,6 +70,25 @@ router.get("/conversations/:userId", async (req, res) => {
   try {
     const conversations = await getConversationsForUser(userId);
     res.json(conversations);
+  } catch (error: unknown) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+  return;
+});
+
+router.put("/mark-read/:userId/:otherUserId", async (req, res) => {
+  const userId = Number(req.params.userId);
+  const otherUserId = Number(req.params.otherUserId);
+
+  if (isNaN(userId) || isNaN(otherUserId)) {
+    res.status(400).json({ error: "Invalid user IDs" });
+    return;
+  }
+
+  try {
+    const markedMessages = await markMessagesAsRead(userId, otherUserId);
+    res.json({ message: "Messages marked as read", count: markedMessages.length });
   } catch (error: unknown) {
     console.error(error);
     res.status(500).json({ error: "Internal server error" });

@@ -8,6 +8,7 @@ export interface RegisterData {
   username: string;
   password: string;
   postalCode: number;
+  userType?: "student" | "teacher" | "admin";
 }
 
 export interface LoginData {
@@ -24,7 +25,7 @@ export interface User {
   username: string;
   postalCode: number;
   createdAt: string;
-  isTeacher: boolean;
+  userType: "student" | "teacher" | "admin";
   membershipTier?: string;
   dOB?: string;
   hashedPassword?: string;
@@ -33,7 +34,7 @@ export interface User {
   phone_number?: string;
   postal_code?: number;
   created_at?: string;
-  is_teacher?: boolean;
+  user_type?: "student" | "teacher" | "admin";
   hashed_password?: string;
 }
 
@@ -46,7 +47,7 @@ export interface BackendUser {
   username: string;
   postal_code: number;
   created_at: string;
-  is_teacher: boolean;
+  user_type: "student" | "teacher" | "admin";
 }
 
 export interface LoginResponse {
@@ -54,19 +55,12 @@ export interface LoginResponse {
   user: User;
 }
 
-export interface Conversation {
-  other_user_id: number;
-  other_user_first_name: string;
-  other_user_last_name: string;
-  last_message: string;
-  last_message_time: string;
-}
-
 export interface BackendMessage {
   id: number;
   sender_id: number;
   receiver_id: number;
   content: string;
+  is_read: boolean;
   created_at: string;
   sender_first_name?: string;
   sender_last_name?: string;
@@ -78,6 +72,15 @@ export interface NewMessage {
   sender_id: number;
   receiver_id: number;
   content: string;
+}
+
+export interface Conversation {
+  other_user_id: number;
+  other_user_first_name: string;
+  other_user_last_name: string;
+  last_message: string;
+  last_message_time: string;
+  unread_count: number;
 }
 
 export interface NewCategory {
@@ -126,6 +129,16 @@ export interface Lesson {
   teacher_first_name?: string;
   teacher_last_name?: string;
 }
+export interface Tutor {
+  teacher_id: number;
+  user_id: number;
+  first_name: string;
+  last_name: string;
+  username: string;
+  email: string;
+  phone_number: string;
+  category: string;
+}
 
 function createApiService() {
   const transformBackendUserToUser = (backendUser: BackendUser): User => {
@@ -138,7 +151,7 @@ function createApiService() {
       username: backendUser.username,
       postalCode: backendUser.postal_code,
       createdAt: backendUser.created_at,
-      isTeacher: backendUser.is_teacher,
+      userType: backendUser.user_type,
     };
   };
 
@@ -211,6 +224,18 @@ function createApiService() {
       method: "POST",
       body: JSON.stringify(messageData),
     });
+  };
+
+  const markMessagesAsRead = async (
+    userId: number,
+    otherUserId: number
+  ): Promise<{ message: string; count: number }> => {
+    return makeRequest<{ message: string; count: number }>(
+      `${API_CONFIG.ENDPOINTS.MESSAGES}/mark-read/${userId}/${otherUserId}`,
+      {
+        method: "PUT",
+      }
+    );
   };
 
   const createLesson = async (lessonData: NewLesson): Promise<Lesson> => {
@@ -338,6 +363,30 @@ function createApiService() {
   }> => {
     return makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>("/health/db");
   };
+  const getAllTutors = async (): Promise<Tutor[]> => {
+    return makeRequest<Tutor[]>("/teachers");
+  };
+
+  const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
+    const encodedEmail = encodeURIComponent(email);
+    return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`, {
+      method: "DELETE",
+    });
+  };
+
+  const updateUserType = async (
+    email: string,
+    userType: "student" | "teacher" | "admin"
+  ): Promise<{ success: boolean; message: string }> => {
+    const encodedEmail = encodeURIComponent(email);
+    return makeRequest<{ success: boolean; message: string }>(
+      `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}/user-type`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ userType }),
+      }
+    );
+  };
 
   return {
     register,
@@ -347,6 +396,7 @@ function createApiService() {
     getConversationsForUser,
     getMessagesBetweenUsers,
     createMessage,
+    markMessagesAsRead,
     createLesson,
     getAllLessons,
     getLessonById,
@@ -368,6 +418,9 @@ function createApiService() {
     deleteCategory,
     checkBackendConnection,
     checkDatabaseConnection,
+    getAllTutors,
+    deleteUser,
+    updateUserType,
   };
 }
 
