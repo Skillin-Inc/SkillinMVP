@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "../styles";
+import { COLORS } from "../../styles";
 
 interface StatsCardProps {
   icon: keyof typeof Ionicons.glyphMap;

@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, Image } from "react-native";
 
-import { COLORS } from "../styles";
+import { COLORS } from "../../styles";
 import AvatarPlaceholder from "../../assets/icons/Avatar_Placeholder.png";
 
 export interface Message {
