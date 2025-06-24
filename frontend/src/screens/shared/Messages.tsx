@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  ActivityIndicator,
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,7 +16,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { COLORS } from "../../styles";
-import UserItem, { ChatUser } from "../../components/UserItem";
+import UserItem, { ChatUser } from "../../components/cards/UserItem";
 import {
   StudentTabsParamList,
   TeacherTabsParamList,
@@ -27,6 +26,7 @@ import {
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
+import { LoadingState, EmptyState, SectionHeader } from "../../components/common";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<StudentTabsParamList | TeacherTabsParamList, "Messages">,
@@ -165,10 +165,7 @@ export default function Messages({ navigation }: Props) {
             />
           </View>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.purple} />
-          <Text style={styles.loadingText}>Loading conversations...</Text>
-        </View>
+        <LoadingState text="Loading conversations..." />
       </SafeAreaView>
     );
   }
@@ -193,10 +190,10 @@ export default function Messages({ navigation }: Props) {
           <Ionicons name="chatbubbles" size={32} color={COLORS.purple} />
         </View>
         <View style={styles.messagesInfo}>
-          <Text style={styles.messagesTitle}>Your Conversations</Text>
-          <Text style={styles.messagesSubtitle}>
-            {filteredUsers.length} {filteredUsers.length === 1 ? "conversation" : "conversations"}
-          </Text>
+          <SectionHeader
+            title="Your Conversations"
+            subtitle={`${filteredUsers.length} ${filteredUsers.length === 1 ? "conversation" : "conversations"}`}
+          />
         </View>
       </View>
 
@@ -222,13 +219,11 @@ export default function Messages({ navigation }: Props) {
       {/* Conversations List */}
       <View style={styles.conversationsSection}>
         {filteredUsers.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubble-outline" size={64} color={COLORS.gray} />
-            <Text style={styles.emptyTitle}>No Conversations</Text>
-            <Text style={styles.emptyText}>
-              {searchQuery ? "No conversations match your search." : "Start chatting with other users!"}
-            </Text>
-          </View>
+          <EmptyState
+            icon="chatbubble-outline"
+            title="No Conversations"
+            subtitle={searchQuery ? "No conversations match your search." : "Start chatting with other users!"}
+          />
         ) : (
           <FlatList
             data={filteredUsers}

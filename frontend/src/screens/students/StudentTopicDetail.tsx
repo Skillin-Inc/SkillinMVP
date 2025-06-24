@@ -1,37 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, FlatList, TextInput } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 import { apiService, Course, Category } from "../../services/api";
 import { StudentStackParamList } from "../../types/navigation";
+import { LoadingState, EmptyState } from "../../components/common";
+import { CourseCard } from "../../components/cards";
 
 type Props = StackScreenProps<StudentStackParamList, "StudentTopicDetail">;
-
-interface CourseCardProps {
-  course: Course;
-  onPress?: () => void;
-}
-
-const CourseCard = ({ course, onPress }: CourseCardProps) => (
-  <TouchableOpacity style={styles.courseCard} onPress={onPress}>
-    <View style={styles.courseHeader}>
-      <Text style={styles.courseTitle}>{course.title}</Text>
-      <View style={styles.teacherBadge}>
-        <Ionicons name="person" size={14} color="#666" />
-        <Text style={styles.teacherName}>
-          {course.teacher_first_name} {course.teacher_last_name}
-        </Text>
-      </View>
-    </View>
-    <Text style={styles.courseDescription} numberOfLines={3}>
-      {course.description}
-    </Text>
-    <View style={styles.courseFooter}>
-      <Text style={styles.courseDate}>Created {new Date(course.created_at).toLocaleDateString()}</Text>
-      <Ionicons name="chevron-forward" size={20} color="#414288" />
-    </View>
-  </TouchableOpacity>
-);
 
 export default function StudentTopicDetail({ navigation, route }: Props) {
   const { id } = route.params;
@@ -80,16 +56,6 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
       course.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="school-outline" size={64} color="#ccc" />
-      <Text style={styles.emptyTitle}>{searchQuery ? "No Matching Courses" : "No Courses Available"}</Text>
-      <Text style={styles.emptySubtitle}>
-        {searchQuery ? `No courses match "${searchQuery}" in ${id}.` : `There are no courses available for ${id} yet.`}
-      </Text>
-    </View>
-  );
-
   const renderCourseItem = ({ item }: { item: Course }) => (
     <CourseCard course={item} onPress={() => handleCoursePress(item)} />
   );
@@ -132,12 +98,17 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
       )}
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#414288" />
-          <Text style={styles.loadingText}>Loading courses...</Text>
-        </View>
+        <LoadingState text="Loading courses..." color="#414288" />
       ) : filteredCourses.length === 0 ? (
-        renderEmptyState()
+        <EmptyState
+          icon="school-outline"
+          title={searchQuery ? "No Matching Courses" : "No Courses Available"}
+          subtitle={
+            searchQuery
+              ? `No courses match "${searchQuery}" in ${id}.`
+              : `There are no courses available for ${id} yet.`
+          }
+        />
       ) : (
         <FlatList
           data={filteredCourses}

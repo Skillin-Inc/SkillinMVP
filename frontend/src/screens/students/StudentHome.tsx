@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   Alert,
   SafeAreaView,
   RefreshControl,
@@ -17,7 +16,8 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
-import CategoryCard from "../../components/CategoryCard";
+import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
+import { CategoryCard, QuickActionCard } from "../../components/cards";
 import { apiService, Category } from "../../services/api";
 import temp from "../../../assets/playingCards.png";
 
@@ -71,10 +71,7 @@ export default function StudentHome({ navigation }: Props) {
             <Ionicons name="person-circle-outline" size={24} color={COLORS.black} />
           </TouchableOpacity>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.purple} />
-          <Text style={styles.loadingText}>Loading topics...</Text>
-        </View>
+        <LoadingState text="Loading topics..." />
       </SafeAreaView>
     );
   }
@@ -107,19 +104,17 @@ export default function StudentHome({ navigation }: Props) {
 
         {/* Topics Section */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Topics</Text>
-            <Text style={styles.sectionSubtitle}>
-              {categories.length} {categories.length === 1 ? "topic" : "topics"} available
-            </Text>
-          </View>
+          <SectionHeader
+            title="Topics"
+            subtitle={`${categories.length} ${categories.length === 1 ? "topic" : "topics"} available`}
+          />
 
           {categories.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="library-outline" size={64} color={COLORS.gray} />
-              <Text style={styles.emptyTitle}>No Topics Available</Text>
-              <Text style={styles.emptyText}>Check back later for new topics!</Text>
-            </View>
+            <EmptyState
+              icon="library-outline"
+              title="No Topics Available"
+              subtitle="Check back later for new topics!"
+            />
           ) : (
             <ScrollView
               horizontal
@@ -143,39 +138,35 @@ export default function StudentHome({ navigation }: Props) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("StudentProfile")}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="person-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>My Profile</Text>
-              <Text style={styles.quickActionSubtitle}>View and edit your profile</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="person-outline"
+              title="My Profile"
+              subtitle="View and edit your profile"
+              onPress={() => navigation.navigate("StudentProfile")}
+            />
 
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="bookmark-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Saved Courses</Text>
-              <Text style={styles.quickActionSubtitle}>Your bookmarked content</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="bookmark-outline"
+              title="Saved Courses"
+              subtitle="Your bookmarked content"
+              onPress={() => {}}
+            />
           </View>
 
           <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="trending-up-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Progress</Text>
-              <Text style={styles.quickActionSubtitle}>Track your learning</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="trending-up-outline"
+              title="Progress"
+              subtitle="Track your learning"
+              onPress={() => {}}
+            />
 
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="help-circle-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Help & Support</Text>
-              <Text style={styles.quickActionSubtitle}>Get assistance</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="help-circle-outline"
+              title="Help & Support"
+              subtitle="Get assistance"
+              onPress={() => {}}
+            />
           </View>
         </View>
       </ScrollView>

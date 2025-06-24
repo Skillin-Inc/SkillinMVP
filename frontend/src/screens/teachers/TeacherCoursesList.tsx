@@ -7,7 +7,6 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
-  ActivityIndicator,
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +16,8 @@ import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
+import { LoadingState, EmptyState } from "../../components/common";
+import { CourseCard } from "../../components/cards";
 
 type Props = StackScreenProps<TeacherStackParamList, "TeacherCoursesList">;
 
@@ -68,15 +69,6 @@ export default function TeacherCoursesList({ navigation }: Props) {
     setRefreshing(false);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   const handleCreateCourse = () => {
     navigation.navigate("TeacherCreateCourse");
   };
@@ -121,58 +113,26 @@ export default function TeacherCoursesList({ navigation }: Props) {
         </View>
 
         {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={COLORS.purple} />
-            <Text style={styles.loadingText}>Loading your courses...</Text>
-          </View>
+          <LoadingState text="Loading your courses..." />
         ) : courses.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="library-outline" size={80} color={COLORS.gray} />
-            <Text style={styles.emptyTitle}>No Courses Yet</Text>
-            <Text style={styles.emptyText}>Start by creating your first course to organize your lessons.</Text>
-            <TouchableOpacity style={styles.createButton} onPress={handleCreateCourse}>
-              <Ionicons name="add-circle-outline" size={20} color={COLORS.white} />
-              <Text style={styles.createButtonText}>Create Your First Course</Text>
-            </TouchableOpacity>
-          </View>
+          <EmptyState
+            icon="library-outline"
+            title="No Courses Yet"
+            subtitle="Start by creating your first course to organize your lessons."
+            buttonText="Create Your First Course"
+            onButtonPress={handleCreateCourse}
+            iconSize={80}
+          />
         ) : (
           <View style={styles.coursesContainer}>
             {courses.map((course) => (
-              <TouchableOpacity
+              <CourseCard
                 key={course.id}
-                style={styles.courseCard}
-                onPress={() => {
-                  navigation.navigate("TeacherCourse", { courseId: course.id });
-                }}
-              >
-                <View style={styles.courseHeader}>
-                  <View style={styles.courseIcon}>
-                    <Ionicons name="book" size={24} color={COLORS.purple} />
-                  </View>
-                  <View style={styles.courseInfo}>
-                    <Text style={styles.courseTitle}>{course.title}</Text>
-                    <Text style={styles.courseDate}>Created {formatDate(course.created_at)}</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
-                </View>
-                <Text style={styles.courseDescription} numberOfLines={2}>
-                  {course.description}
-                </Text>
-                <View style={styles.courseFooter}>
-                  <View style={styles.courseStats}>
-                    <View style={styles.statItem}>
-                      <Ionicons name="play-circle-outline" size={16} color={COLORS.gray} />
-                      <Text style={styles.statText}>
-                        {lessonCounts[course.id] || 0} {(lessonCounts[course.id] || 0) === 1 ? "lesson" : "lessons"}
-                      </Text>
-                    </View>
-                    <View style={styles.statItem}>
-                      <Ionicons name="people-outline" size={16} color={COLORS.gray} />
-                      <Text style={styles.statText}>0 students</Text>
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
+                course={course}
+                onPress={() => navigation.navigate("TeacherCourse", { courseId: course.id })}
+                showTeacher={false}
+                lessonCount={lessonCounts[course.id] || 0}
+              />
             ))}
           </View>
         )}

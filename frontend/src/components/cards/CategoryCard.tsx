@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, StyleSheet, TouchableOpacity, View, Image, ImageSourcePropType } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS, SPACINGS } from "../styles";
+import { COLORS, SPACINGS } from "../../styles";
 
 type Props = {
   label: string;

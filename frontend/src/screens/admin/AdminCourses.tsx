@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
 import { apiService, Course, Category, Lesson } from "../../services/api";
+import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditCourseModalProps {
   visible: boolean;
@@ -428,19 +429,13 @@ export default function AdminCourses() {
   );
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.purple} />
-        <Text style={styles.loadingText}>Loading courses...</Text>
-      </View>
-    );
+    return <LoadingState text="Loading courses..." />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Course Management</Text>
-        <Text style={styles.headerSubtitle}>{courses.length} courses total</Text>
+        <SectionHeader title="Course Management" subtitle={`${courses.length} courses total`} />
       </View>
 
       <View style={styles.searchContainer}>

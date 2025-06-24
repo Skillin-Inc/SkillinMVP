@@ -13,7 +13,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
 import { AuthContext } from "../../hooks/AuthContext";
-import ImagePickerAvatar from "../../components/ImagePickerAvatar";
+import { SectionHeader } from "../../components/common";
+import { ImagePickerAvatar } from "../../components/forms";
+import { StatsCard, QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { TeacherTabsParamList } from "../../types/navigation";
 
@@ -87,53 +89,6 @@ export default function TeacherProfile({ navigation }: Props) {
     </TouchableOpacity>
   );
 
-  const StatsCard = ({
-    icon,
-    label,
-    value,
-    onPress,
-    color = COLORS.purple,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    label: string;
-    value: string;
-    onPress?: () => void;
-    color?: string;
-  }) => (
-    <TouchableOpacity style={styles.statsCard} onPress={onPress} disabled={!onPress}>
-      <View style={[styles.statsIcon, { backgroundColor: color }]}>
-        <Ionicons name={icon} size={24} color={COLORS.white} />
-      </View>
-      <Text style={styles.statsValue}>{value}</Text>
-      <Text style={styles.statsLabel}>{label}</Text>
-    </TouchableOpacity>
-  );
-
-  const ActionCard = ({
-    icon,
-    title,
-    subtitle,
-    onPress,
-    color = COLORS.purple,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    title: string;
-    subtitle: string;
-    onPress: () => void;
-    color?: string;
-  }) => (
-    <TouchableOpacity style={styles.actionCard} onPress={onPress}>
-      <View style={[styles.actionIcon, { backgroundColor: color }]}>
-        <Ionicons name={icon} size={24} color={COLORS.white} />
-      </View>
-      <View style={styles.actionContent}>
-        <Text style={styles.actionTitle}>{title}</Text>
-        <Text style={styles.actionSubtitle}>{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
-    </TouchableOpacity>
-  );
-
   const getTeacherBadgeColor = () => {
     // You can customize this based on teacher level/experience
     return COLORS.blue;
@@ -178,24 +133,18 @@ export default function TeacherProfile({ navigation }: Props) {
 
         {/* Teaching Stats */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Teaching Statistics</Text>
+          <SectionHeader title="Teaching Statistics" />
 
           <View style={styles.statsGrid}>
-            <StatsCard icon="book-outline" label="Courses" value="0" onPress={handleViewStats} color={COLORS.purple} />
+            <StatsCard icon="book-outline" label="Courses" value="0" color={COLORS.purple} />
 
-            <StatsCard
-              icon="people-outline"
-              label="Students"
-              value="0"
-              onPress={handleViewStats}
-              color={COLORS.green}
-            />
+            <StatsCard icon="people-outline" label="Students" value="0" color={COLORS.green} />
           </View>
 
           <View style={styles.statsGrid}>
-            <StatsCard icon="star-outline" label="Rating" value="--" onPress={handleViewStats} color={COLORS.blue} />
+            <StatsCard icon="star-outline" label="Rating" value="--" color={COLORS.blue} />
 
-            <StatsCard icon="cash-outline" label="Earnings" value="$0" onPress={handleViewStats} color="#FFD700" />
+            <StatsCard icon="cash-outline" label="Earnings" value="$0" color="#FFD700" />
           </View>
         </View>
 
@@ -212,52 +161,58 @@ export default function TeacherProfile({ navigation }: Props) {
 
         {/* Teacher Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Teacher Actions</Text>
+          <SectionHeader title="Teacher Actions" />
 
-          <ActionCard
-            icon="create-outline"
-            title="Edit Profile"
-            subtitle="Update your profile information"
-            onPress={handleEditProfile}
-          />
+          <View style={styles.quickActions}>
+            <QuickActionCard
+              icon="create-outline"
+              title="Edit Profile"
+              subtitle="Update your profile information"
+              onPress={handleEditProfile}
+            />
 
-          <ActionCard
-            icon="add-circle-outline"
-            title="Create Course"
-            subtitle="Design a new course"
-            onPress={() => navigation.navigate("TeacherCreateLesson")}
-            color={COLORS.green}
-          />
+            <QuickActionCard
+              icon="add-circle-outline"
+              title="Create Course"
+              subtitle="Design a new course"
+              onPress={() => navigation.navigate("TeacherCreateLesson")}
+              iconColor={COLORS.green}
+            />
+          </View>
 
-          <ActionCard
-            icon="library-outline"
-            title="My Courses"
-            subtitle="Manage your courses"
-            onPress={() => Alert.alert("My Courses", "Feature coming soon!")}
-          />
+          <View style={styles.quickActions}>
+            <QuickActionCard
+              icon="library-outline"
+              title="My Courses"
+              subtitle="Manage your courses"
+              onPress={() => Alert.alert("My Courses", "Feature coming soon!")}
+            />
 
-          <ActionCard
-            icon="stats-chart-outline"
-            title="Analytics"
-            subtitle="View detailed statistics"
-            onPress={handleViewStats}
-            color={COLORS.blue}
-          />
+            <QuickActionCard
+              icon="stats-chart-outline"
+              title="Analytics"
+              subtitle="View detailed statistics"
+              onPress={handleViewStats}
+              iconColor={COLORS.blue}
+            />
+          </View>
 
-          <ActionCard
-            icon="card-outline"
-            title="Payouts"
-            subtitle="Manage earnings and payments"
-            onPress={() => Alert.alert("Payouts", "Feature coming soon!")}
-            color="#FFD700"
-          />
+          <View style={styles.quickActions}>
+            <QuickActionCard
+              icon="card-outline"
+              title="Payouts"
+              subtitle="Manage earnings and payments"
+              onPress={() => Alert.alert("Payouts", "Feature coming soon!")}
+              iconColor="#FFD700"
+            />
 
-          <ActionCard
-            icon="help-circle-outline"
-            title="Teacher Support"
-            subtitle="Get help with teaching"
-            onPress={handleSupport}
-          />
+            <QuickActionCard
+              icon="help-circle-outline"
+              title="Teacher Support"
+              subtitle="Get help with teaching"
+              onPress={handleSupport}
+            />
+          </View>
         </View>
 
         {/* Sign Out */}
@@ -350,6 +305,12 @@ const styles = StyleSheet.create({
     padding: SPACINGS.base,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
+  },
+  quickActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SPACINGS.small,
+    gap: 8,
   },
   sectionTitle: {
     fontSize: 20,

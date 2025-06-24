@@ -1,7 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
+import { SectionHeader } from "../../components/common";
+import { StatsCard } from "../../components/cards";
 
 export default function TeacherStats() {
   const { screenWidth } = useScreenDimensions();
@@ -9,26 +11,16 @@ export default function TeacherStats() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>📊 Teacher Stats</Text>
+      <SectionHeader title="📊 Teacher Stats" />
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Total Students:</Text>
-        <Text style={styles.value}>45</Text>
+      <View style={styles.statsGrid}>
+        <StatsCard icon="people-outline" label="Total Students" value="45" color={COLORS.purple} />
+        <StatsCard icon="book-outline" label="Courses Taught" value="8" color={COLORS.green} />
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Courses Taught:</Text>
-        <Text style={styles.value}>8</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>1-on-1 Sessions:</Text>
-        <Text style={styles.value}>23</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.label}>Average Rating:</Text>
-        <Text style={styles.value}>4.8 ⭐</Text>
+      <View style={styles.statsGrid}>
+        <StatsCard icon="time-outline" label="1-on-1 Sessions" value="23" color={COLORS.blue} />
+        <StatsCard icon="star-outline" label="Average Rating" value="4.8 ⭐" color="#FFD700" />
       </View>
     </ScrollView>
   );
@@ -41,6 +33,13 @@ const getStyles = (width: number) =>
       backgroundColor: "#fff",
       padding: width * 0.06,
       alignItems: "center",
+    },
+    statsGrid: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+      marginBottom: 16,
+      gap: 8,
     },
     header: {
       fontSize: 32,

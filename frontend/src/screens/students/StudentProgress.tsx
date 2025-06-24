@@ -6,6 +6,8 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS, SPACINGS } from "../../styles";
 import { StudentTabsParamList } from "../../types/navigation";
+import { SectionHeader, EmptyState } from "../../components/common";
+import { StatsCard } from "../../components/cards";
 
 type Props = BottomTabScreenProps<StudentTabsParamList, "StudentProgress">;
 
@@ -84,42 +86,6 @@ export default function StudentProgress({ navigation }: Props) {
     </TouchableOpacity>
   );
 
-  const EmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <View style={styles.emptyIcon}>
-        <Ionicons name="play-circle-outline" size={64} color={COLORS.gray} />
-      </View>
-      <Text style={styles.emptyTitle}>No Lessons in Progress</Text>
-      <Text style={styles.emptyText}>
-        Start watching lessons to see your progress here. Your partially watched lessons will appear in this section.
-      </Text>
-      <TouchableOpacity style={styles.browseButton} onPress={() => navigation.navigate("StudentHome")}>
-        <Ionicons name="search-outline" size={20} color={COLORS.white} />
-        <Text style={styles.browseButtonText}>Browse Courses</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const StatsCard = ({
-    icon,
-    label,
-    value,
-    color = COLORS.purple,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    label: string;
-    value: string;
-    color?: string;
-  }) => (
-    <View style={styles.statsCard}>
-      <View style={[styles.statsIcon, { backgroundColor: color }]}>
-        <Ionicons name={icon} size={20} color={COLORS.white} />
-      </View>
-      <Text style={styles.statsValue}>{value}</Text>
-      <Text style={styles.statsLabel}>{label}</Text>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -156,15 +122,19 @@ export default function StudentProgress({ navigation }: Props) {
 
         {/* Progress Lessons */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Continue Watching</Text>
-            <Text style={styles.sectionSubtitle}>
-              {progressLessons.length} {progressLessons.length === 1 ? "lesson" : "lessons"}
-            </Text>
-          </View>
+          <SectionHeader
+            title="Continue Watching"
+            subtitle={`${progressLessons.length} ${progressLessons.length === 1 ? "lesson" : "lessons"}`}
+          />
 
           {progressLessons.length === 0 ? (
-            <EmptyState />
+            <EmptyState
+              icon="play-circle-outline"
+              title="No Lessons in Progress"
+              subtitle="Start watching lessons to see your progress here. Your partially watched lessons will appear in this section."
+              buttonText="Browse Courses"
+              onButtonPress={() => navigation.navigate("StudentHome")}
+            />
           ) : (
             <View style={styles.progressList}>
               {progressLessons.map((lesson) => (

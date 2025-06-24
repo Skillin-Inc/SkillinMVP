@@ -19,6 +19,7 @@ import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, NewCourse, Category, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
+import { HeaderWithBack, EmptyState } from "../../components/common";
 
 type Props = StackScreenProps<TeacherStackParamList, "TeacherCreateCourse">;
 
@@ -177,26 +178,19 @@ export default function TeacherCreateCourse({ navigation }: Props) {
   if (!user || user.userType !== "teacher") {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="warning-outline" size={64} color={COLORS.error} />
-          <Text style={styles.errorTitle}>Access Denied</Text>
-          <Text style={styles.errorText}>Only teachers can create courses.</Text>
-        </View>
+        <EmptyState
+          icon="warning-outline"
+          title="Access Denied"
+          subtitle="Only teachers can create courses."
+          iconColor={COLORS.error}
+        />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitleText}>Create Course</Text>
-        </View>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithBack title="Create Course" onBackPress={() => navigation.goBack()} />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>

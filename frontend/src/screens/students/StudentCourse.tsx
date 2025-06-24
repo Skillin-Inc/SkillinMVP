@@ -7,7 +7,6 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
-  ActivityIndicator,
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +16,7 @@ import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, Course, Lesson } from "../../services/api";
 import { StudentStackParamList } from "../../types/navigation";
+import { HeaderWithBack, LoadingState, EmptyState, SectionHeader } from "../../components/common";
 
 type Props = StackScreenProps<StudentStackParamList, "StudentCourse">;
 
@@ -89,19 +89,8 @@ export default function StudentCourse({ navigation, route }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleText}>Course Details</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.purple} />
-          <Text style={styles.loadingText}>Loading course details...</Text>
-        </View>
+        <HeaderWithBack title="Course Details" onBackPress={() => navigation.goBack()} />
+        <LoadingState text="Loading course details..." />
       </SafeAreaView>
     );
   }
@@ -109,20 +98,13 @@ export default function StudentCourse({ navigation, route }: Props) {
   if (!course) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleText}>Course Not Found</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color={COLORS.error} />
-          <Text style={styles.errorTitle}>Course Not Found</Text>
-          <Text style={styles.errorText}>The requested course could not be found.</Text>
-        </View>
+        <HeaderWithBack title="Course Not Found" onBackPress={() => navigation.goBack()} />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Course Not Found"
+          subtitle="The requested course could not be found."
+          iconColor={COLORS.error}
+        />
       </SafeAreaView>
     );
   }
@@ -179,7 +161,7 @@ export default function StudentCourse({ navigation, route }: Props) {
 
         {/* Course Description */}
         <View style={styles.descriptionSection}>
-          <Text style={styles.sectionTitle}>About this course</Text>
+          <SectionHeader title="About this course" />
           <Text style={styles.courseDescription}>{course.description}</Text>
         </View>
 

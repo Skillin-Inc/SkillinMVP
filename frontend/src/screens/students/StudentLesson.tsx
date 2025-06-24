@@ -1,14 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 
@@ -16,6 +7,7 @@ import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, Lesson, Course } from "../../services/api";
 import { StudentStackParamList } from "../../types/navigation";
+import { HeaderWithBack, LoadingState, EmptyState } from "../../components/common";
 
 type Props = StackScreenProps<StudentStackParamList, "StudentLesson">;
 
@@ -105,19 +97,8 @@ export default function StudentLesson({ navigation, route }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleText}>Lesson</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.purple} />
-          <Text style={styles.loadingText}>Loading lesson...</Text>
-        </View>
+        <HeaderWithBack title="Lesson" onBackPress={() => navigation.goBack()} />
+        <LoadingState text="Loading lesson..." />
       </SafeAreaView>
     );
   }
@@ -125,20 +106,13 @@ export default function StudentLesson({ navigation, route }: Props) {
   if (!lesson) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleText}>Lesson Not Found</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color={COLORS.error} />
-          <Text style={styles.errorTitle}>Lesson Not Found</Text>
-          <Text style={styles.errorText}>The requested lesson could not be found.</Text>
-        </View>
+        <HeaderWithBack title="Lesson Not Found" onBackPress={() => navigation.goBack()} />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Lesson Not Found"
+          subtitle="The requested lesson could not be found."
+          iconColor={COLORS.error}
+        />
       </SafeAreaView>
     );
   }
