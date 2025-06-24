@@ -13,7 +13,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
 import { AuthContext } from "../../hooks/AuthContext";
-import ImagePickerAvatar from "../../components/ImagePickerAvatar";
+import { SectionHeader } from "../../components/common";
+import { ImagePickerAvatar } from "../../components/forms";
+import { QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { StudentTabsParamList } from "../../types/navigation";
 
@@ -160,7 +162,7 @@ export default function StudentProfile({ navigation }: Props) {
 
         {/* Personal Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
+          <SectionHeader title="Personal Information" />
 
           <InfoCard icon="calendar-outline" label="Date of Birth" value={user?.dOB ?? "Not provided"} />
 
@@ -171,28 +173,39 @@ export default function StudentProfile({ navigation }: Props) {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Actions</Text>
+          <SectionHeader title="Account Actions" />
 
-          <ActionCard
-            icon="create-outline"
-            title="Edit Profile"
-            subtitle="Update your personal information"
-            onPress={handleEditProfile}
-          />
+          <View style={styles.quickActions}>
+            <QuickActionCard
+              icon="create-outline"
+              title="Edit Profile"
+              subtitle="Update your personal information"
+              onPress={handleEditProfile}
+            />
 
-          <ActionCard
-            icon="bookmark-outline"
-            title="Saved Courses"
-            subtitle="View your bookmarked content"
-            onPress={() => Alert.alert("Saved Courses", "Feature coming soon!")}
-          />
+            <QuickActionCard
+              icon="bookmark-outline"
+              title="Saved Courses"
+              subtitle="View your bookmarked content"
+              onPress={() => Alert.alert("Saved Courses", "Feature coming soon!")}
+            />
+          </View>
 
-          <ActionCard
-            icon="stats-chart-outline"
-            title="Learning Progress"
-            subtitle="Track your achievements"
-            onPress={() => Alert.alert("Progress", "Feature coming soon!")}
-          />
+          <View style={styles.quickActions}>
+            <QuickActionCard
+              icon="stats-chart-outline"
+              title="Learning Progress"
+              subtitle="Track your achievements"
+              onPress={() => Alert.alert("Progress", "Feature coming soon!")}
+            />
+
+            <QuickActionCard
+              icon="help-circle-outline"
+              title="Help & Support"
+              subtitle="Get assistance and FAQ"
+              onPress={handleSupport}
+            />
+          </View>
 
           <ActionCard
             icon="help-circle-outline"
@@ -293,6 +306,12 @@ const styles = StyleSheet.create({
     padding: SPACINGS.base,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
+  },
+  quickActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SPACINGS.small,
+    gap: 8,
   },
   sectionTitle: {
     fontSize: 20,

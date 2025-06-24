@@ -6,6 +6,7 @@ import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
 import { apiService } from "../../services/api";
+import { SectionHeader } from "../../components/common";
 
 export default function AdminHome() {
   const { user, logout } = useContext(AuthContext);
@@ -97,7 +98,7 @@ export default function AdminHome() {
 
       {/* Delete User Section */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Delete User by Email</Text>
+        <SectionHeader title="Delete User by Email" />
         <TextInput
           style={styles.input}
           placeholder="Enter user email"
@@ -118,7 +119,7 @@ export default function AdminHome() {
 
       {/* Update User Type Section */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Update User Type by Email</Text>
+        <SectionHeader title="Update User Type by Email" />
         <TextInput
           style={styles.input}
           placeholder="Enter user email"

@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
 import { AuthStackParamList } from "../../types";
+import { SectionHeader } from "../../components/common";
 
 type Props = StackScreenProps<AuthStackParamList, "StudentInfo">;
 
@@ -63,7 +64,7 @@ export default function StudentInfo({ navigation }: Props) {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color={COLORS.purple} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Personal Information</Text>
+        <SectionHeader title="Personal Information" />
       </View>
 
       <View style={styles.formContainer}>

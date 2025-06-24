@@ -17,7 +17,8 @@ import { StackScreenProps } from "@react-navigation/stack";
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
 import { StudentStackParamList, TeacherStackParamList, AdminStackParamList } from "../../types/navigation";
-import { MessageBubble, Message } from "../../components/MessageBubble";
+import { MessageBubble, Message } from "../../components/media/MessageBubble";
+import { LoadingState } from "../../components/common";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
 import { apiService, BackendMessage, BackendUser } from "../../services/api";
@@ -187,9 +188,7 @@ export default function Chat({ route, navigation }: Props) {
           </TouchableOpacity>
           <Text style={styles.headerName}>Loading...</Text>
         </View>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading messages...</Text>
-        </View>
+        <LoadingState text="Loading messages..." />
       </SafeAreaView>
     );
   }

@@ -15,6 +15,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
 import { apiService, BackendUser } from "../../services/api";
+import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditUserModalProps {
   visible: boolean;
@@ -237,19 +238,13 @@ export default function AdminUsers() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.purple} />
-        <Text style={styles.loadingText}>Loading users...</Text>
-      </View>
-    );
+    return <LoadingState text="Loading users..." />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>User Management</Text>
-        <Text style={styles.headerSubtitle}>{users.length} users total</Text>
+        <SectionHeader title="User Management" subtitle={`${users.length} users total`} />
       </View>
 
       <View style={styles.searchContainer}>
