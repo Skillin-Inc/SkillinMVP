@@ -1,3 +1,5 @@
+// File: src/screens/students/StudentProfile.tsx
+
 import React, { useContext, useState } from "react";
 import {
   View,
@@ -11,15 +13,19 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
 
 import { AuthContext } from "../../hooks/AuthContext";
 import ImagePickerAvatar from "../../components/ImagePickerAvatar";
 import { COLORS, SPACINGS } from "../../styles";
-import { StudentTabsParamList } from "../../types/navigation";
+import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
 
 type Props = BottomTabScreenProps<StudentTabsParamList, "StudentProfile">;
+type StackNav = StackNavigationProp<StudentStackParamList>;
 
 export default function StudentProfile({ navigation }: Props) {
+  const stackNavigation = useNavigation<StackNav>();
   const { logout, user } = useContext(AuthContext);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
@@ -44,7 +50,6 @@ export default function StudentProfile({ navigation }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // TODO: Refresh user data
     setTimeout(() => setRefreshing(false), 1000);
   };
 
@@ -123,7 +128,6 @@ export default function StudentProfile({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
@@ -141,7 +145,6 @@ export default function StudentProfile({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Profile Header */}
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <ImagePickerAvatar initialUri={avatarUri} onChange={setAvatarUri} size={100} />
@@ -151,25 +154,26 @@ export default function StudentProfile({ navigation }: Props) {
             <Text style={styles.userName}>{user?.username ?? "Unknown User"}</Text>
             <Text style={styles.userEmail}>{user?.email ?? ""}</Text>
 
-            <View style={[styles.membershipBadge, { backgroundColor: getMembershipBadgeColor(user?.membershipTier) }]}>
+            <View
+              style={[
+                styles.membershipBadge,
+                { backgroundColor: getMembershipBadgeColor(user?.membershipTier) },
+              ]}
+            >
               <Ionicons name="star" size={14} color={COLORS.white} />
               <Text style={styles.membershipText}>{user?.membershipTier ?? "Bronze"} Member</Text>
             </View>
           </View>
         </View>
 
-        {/* Personal Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
 
           <InfoCard icon="calendar-outline" label="Date of Birth" value={user?.dOB ?? "Not provided"} />
-
           <InfoCard icon="location-outline" label="Location" value={user?.postalCode?.toString() ?? "Not provided"} />
-
           <InfoCard icon="call-outline" label="Phone Number" value={user?.phoneNumber ?? "Not provided"} />
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Actions</Text>
 
@@ -200,9 +204,16 @@ export default function StudentProfile({ navigation }: Props) {
             subtitle="Get assistance and FAQ"
             onPress={handleSupport}
           />
+
+          {/* ✅ Subscription → Navigate to new screen */}
+          <ActionCard
+            icon="wallet-outline"
+            title="Subscription"
+            subtitle="Handle your payments"
+            onPress={() => stackNavigation.navigate("StudentSubscription")}
+          />
         </View>
 
-        {/* Sign Out */}
         <View style={styles.section}>
           <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
             <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
@@ -210,7 +221,6 @@ export default function StudentProfile({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* App Version */}
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Skillin v1.0.0</Text>
         </View>
@@ -218,6 +228,9 @@ export default function StudentProfile({ navigation }: Props) {
     </SafeAreaView>
   );
 }
+
+
+
 
 const styles = StyleSheet.create({
   container: {
