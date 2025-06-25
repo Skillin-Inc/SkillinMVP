@@ -108,6 +108,7 @@ export interface Course {
   created_at: string;
   teacher_first_name?: string;
   teacher_last_name?: string;
+  teacher_username?: string;
 }
 
 export interface NewLesson {

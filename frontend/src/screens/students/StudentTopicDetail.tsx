@@ -50,11 +50,16 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
     navigation.navigate("StudentCourse", { courseId: course.id });
   };
 
-  const filteredCourses = courses.filter(
-    (course) =>
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCourses = courses.filter((course) => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      course.title.toLowerCase().includes(searchLower) ||
+      course.description.toLowerCase().includes(searchLower) ||
+      (course.teacher_first_name && course.teacher_first_name.toLowerCase().includes(searchLower)) ||
+      (course.teacher_last_name && course.teacher_last_name.toLowerCase().includes(searchLower)) ||
+      (course.teacher_username && course.teacher_username.toLowerCase().includes(searchLower))
+    );
+  });
 
   const renderCourseItem = ({ item }: { item: Course }) => (
     <CourseCard course={item} onPress={() => handleCoursePress(item)} />
@@ -83,7 +88,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
             <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search courses..."
+              placeholder="Search courses and teachers..."
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholderTextColor="#999"
