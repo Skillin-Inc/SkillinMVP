@@ -110,6 +110,7 @@ export interface Course {
   created_at: string;
   teacher_first_name?: string;
   teacher_last_name?: string;
+  teacher_username?: string;
 }
 
 export interface NewLesson {
@@ -222,7 +223,7 @@ export async function createCourse(data: NewCourse) {
 
 export async function getAllCourses(): Promise<Course[]> {
   const result = await pool.query(
-    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
      JOIN public.users u ON c.teacher_id = u."id"
      ORDER BY c.created_at DESC`
@@ -233,7 +234,7 @@ export async function getAllCourses(): Promise<Course[]> {
 
 export async function getCourseById(id: number): Promise<Course | null> {
   const result = await pool.query(
-    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
      JOIN public.users u ON c.teacher_id = u."id"
      WHERE c."id" = $1`,
@@ -245,7 +246,7 @@ export async function getCourseById(id: number): Promise<Course | null> {
 
 export async function getCoursesByTeacher(teacherId: number): Promise<Course[]> {
   const result = await pool.query(
-    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
      JOIN public.users u ON c.teacher_id = u."id"
      WHERE c.teacher_id = $1
@@ -258,7 +259,7 @@ export async function getCoursesByTeacher(teacherId: number): Promise<Course[]> 
 
 export async function getCoursesByCategory(categoryId: number): Promise<Course[]> {
   const result = await pool.query(
-    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
+    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
      JOIN public.users u ON c.teacher_id = u."id"
      WHERE c.category_id = $1
