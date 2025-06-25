@@ -140,12 +140,12 @@ export default function TeacherProfile({ navigation }: Props) {
 
             <StatsCard icon="people-outline" label="Students" value="0" color={COLORS.green} />
           </View>
-
+          {/* 
           <View style={styles.statsGrid}>
             <StatsCard icon="star-outline" label="Rating" value="--" color={COLORS.blue} />
 
             <StatsCard icon="cash-outline" label="Earnings" value="$0" color="#FFD700" />
-          </View>
+          </View> */}
         </View>
 
         {/* Personal Information */}
@@ -188,23 +188,23 @@ export default function TeacherProfile({ navigation }: Props) {
               onPress={() => Alert.alert("My Courses", "Feature coming soon!")}
             />
 
-            <QuickActionCard
+            {/* <QuickActionCard
               icon="stats-chart-outline"
               title="Analytics"
               subtitle="View detailed statistics"
               onPress={handleViewStats}
               iconColor={COLORS.blue}
-            />
+            /> */}
           </View>
 
           <View style={styles.quickActions}>
-            <QuickActionCard
+            {/* <QuickActionCard
               icon="card-outline"
               title="Payouts"
               subtitle="Manage earnings and payments"
               onPress={() => Alert.alert("Payouts", "Feature coming soon!")}
               iconColor="#FFD700"
-            />
+            /> */}
 
             <QuickActionCard
               icon="help-circle-outline"
