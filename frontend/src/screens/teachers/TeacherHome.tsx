@@ -131,7 +131,7 @@ export default function TeacherHome({ navigation }: Props) {
             />
           </View>
 
-          <View style={styles.quickActions}>
+          {/* <View style={styles.quickActions}>
             <QuickActionCard
               icon="calendar-outline"
               title="Schedule"
@@ -145,10 +145,10 @@ export default function TeacherHome({ navigation }: Props) {
               subtitle="View performance stats"
               onPress={() => {}}
             />
-          </View>
+          </View> */}
         </View>
 
-        {/* Upcoming Sessions */}
+        {/* Upcoming Sessions 
         <View style={styles.section}>
           <SectionHeader
             title="Upcoming Sessions"
@@ -175,6 +175,7 @@ export default function TeacherHome({ navigation }: Props) {
             </View>
           )}
         </View>
+        */}
 
         {/* Recent Activity */}
         <View style={styles.section}>

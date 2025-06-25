@@ -41,10 +41,10 @@ export default function TeacherTabs() {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="TeacherHome" component={TeacherHome} />
-      <Tab.Screen name="TeacherCreateLesson" component={TeacherCreateLesson} />
-      <Tab.Screen name="Messages" component={Messages} />
-      <Tab.Screen name="TeacherProfile" component={TeacherProfile} />
+      <Tab.Screen name="TeacherHome" component={TeacherHome} options={{ tabBarLabel: "Home" }} />
+      <Tab.Screen name="TeacherCreateLesson" component={TeacherCreateLesson} options={{ tabBarLabel: "Lessons" }} />
+      <Tab.Screen name="Messages" component={Messages} options={{ tabBarLabel: "Messages" }} />
+      <Tab.Screen name="TeacherProfile" component={TeacherProfile} options={{ tabBarLabel: "Profile" }} />
       <Tab.Screen name="Temp" component={Temp} />
     </Tab.Navigator>
   );

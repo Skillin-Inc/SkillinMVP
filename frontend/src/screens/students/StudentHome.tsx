@@ -54,6 +54,9 @@ export default function StudentHome({ navigation }: Props) {
     await loadCategories();
     setRefreshing(false);
   };
+  const handlePremiumFeature = () => {
+    Alert.alert("Premium Feature", "This feature is premium-only and coming soon!");
+  };
 
   const handleViewProfile = () => {
     navigation.navigate("StudentProfile");
@@ -158,14 +161,7 @@ export default function StudentHome({ navigation }: Props) {
               icon="trending-up-outline"
               title="Progress"
               subtitle="Track your learning"
-              onPress={() => {}}
-            />
-
-            <QuickActionCard
-              icon="help-circle-outline"
-              title="Help & Support"
-              subtitle="Get assistance"
-              onPress={() => {}}
+              onPress={handlePremiumFeature}
             />
           </View>
         </View>
