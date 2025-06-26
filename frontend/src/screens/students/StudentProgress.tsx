@@ -157,7 +157,10 @@ export default function StudentProgress({ navigation }: Props) {
               <Text style={styles.actionSubtitle}>Discover new content</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("StudentProfile")}>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id || 0 })}
+            >
               <View style={styles.actionIcon}>
                 <Ionicons name="person-outline" size={24} color={COLORS.purple} />
               </View>

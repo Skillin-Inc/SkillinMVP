@@ -6,7 +6,7 @@ export type StudentTabsParamList = {
   StudentHome: undefined;
   StudentProgress: undefined;
   Messages: undefined;
-  StudentProfile: undefined;
+  StudentProfile: { userId?: number };
   Temp: undefined;
 };
 
@@ -14,7 +14,7 @@ export type TeacherTabsParamList = {
   TeacherHome: undefined;
   TeacherCreateLesson: undefined;
   Messages: undefined;
-  TeacherProfile: undefined;
+  TeacherProfile: { userId?: number };
   Temp: undefined;
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Text,
   TouchableOpacity,
@@ -13,6 +13,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
+
+import { AuthContext } from "../../hooks/AuthContext";
 
 import { COLORS } from "../../styles";
 import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
@@ -32,6 +34,7 @@ const upcomingSessions = [
 ];
 
 export default function TeacherHome({ navigation }: Props) {
+  const { user } = useContext(AuthContext);
   const [loading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -46,7 +49,7 @@ export default function TeacherHome({ navigation }: Props) {
   };
 
   const handleViewProfile = () => {
-    navigation.navigate("TeacherProfile");
+    navigation.navigate("TeacherProfile", { userId: user?.id || 0 });
   };
 
   const handleSessionPress = (session: { title: string; time: string; type: string }) => {
