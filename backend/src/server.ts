@@ -4,7 +4,7 @@ import cors from "cors";
 import "dotenv/config";
 import { createServer } from "http";
 import { Server } from "socket.io";
-
+import stripeRoutes from "./routes/stripe";
 import usersRouter from "./routes/users";
 import sendEmailRouter from "./routes/sendEmail";
 import messagesRouter from "./routes/messages";
@@ -97,11 +97,11 @@ app.use("/courses", coursesRouter);
 app.use("/categories", categoriesRouter);
 app.use("/progress", progressRouter);
 app.use("/teachers", teacherRoutes);
+app.use("/api", stripeRoutes);  
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });
 });
-
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

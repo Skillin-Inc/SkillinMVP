@@ -2,6 +2,7 @@
 
 import React, { useContext, useState } from "react";
 import {
+  Linking,
   View,
   Text,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
   Alert,
   RefreshControl,
 } from "react-native";
+import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { useNavigation } from "@react-navigation/native";
@@ -126,6 +128,37 @@ export default function StudentProfile({ navigation }: Props) {
     }
   };
 
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+
+const handleOpenStripePortal = async () => {
+  if (!user?.email) {
+    Alert.alert("Error", "Missing user email");
+    return;
+  }
+
+  try {
+    const response = await axios.post(`${apiUrl}/api/create-billing-portal-session`, {
+      email: user.email,
+      name: `${user.firstName} ${user.lastName}`,
+    });
+
+    const { url } = response.data;
+    console.log("Received portal URL:", url);
+
+    if (!url || typeof url !== "string") {
+      Alert.alert("Error", "Stripe portal URL not found.");
+      return;
+    }
+
+    Linking.openURL(url);
+  } catch (error) {
+    console.error("Portal open error:", error);
+    Alert.alert("Error", "Unable to open Stripe portal.");
+  }
+};
+
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -205,12 +238,12 @@ export default function StudentProfile({ navigation }: Props) {
             onPress={handleSupport}
           />
 
-          {/* ✅ Subscription → Navigate to new screen */}
+          
           <ActionCard
             icon="wallet-outline"
             title="Subscription"
             subtitle="Handle your payments"
-            onPress={() => stackNavigation.navigate("StudentSubscription")}
+            onPress={handleOpenStripePortal}
           />
         </View>
 
