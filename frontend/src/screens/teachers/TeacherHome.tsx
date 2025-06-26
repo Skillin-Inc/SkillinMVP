@@ -18,20 +18,12 @@ import { AuthContext } from "../../hooks/AuthContext";
 
 import { COLORS } from "../../styles";
 import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
-import { SectionHeader, EmptyState } from "../../components/common";
-import { QuickActionCard, SessionCard } from "../../components/cards";
+import { QuickActionCard } from "../../components/cards";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TeacherTabsParamList, "TeacherHome">,
   StackScreenProps<TeacherStackParamList>
 >;
-
-const upcomingSessions = [
-  { title: "1-on-1 with John", time: "2:00 PM", type: "private" },
-  { title: "Group Training", time: "4:30 PM", type: "group" },
-  { title: "Math Review with Sarah", time: "6:00 PM", type: "private" },
-  { title: "Office Hours", time: "7:15 PM", type: "office" },
-];
 
 export default function TeacherHome({ navigation }: Props) {
   const { user } = useContext(AuthContext);
@@ -42,7 +34,6 @@ export default function TeacherHome({ navigation }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Simulate loading
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
@@ -50,11 +41,6 @@ export default function TeacherHome({ navigation }: Props) {
 
   const handleViewProfile = () => {
     navigation.navigate("TeacherProfile", { userId: user?.id || 0 });
-  };
-
-  const handleSessionPress = (session: { title: string; time: string; type: string }) => {
-    console.log("Tapped:", session.title);
-    // TODO: Navigate to session details
   };
 
   if (loading) {
@@ -94,7 +80,6 @@ export default function TeacherHome({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Teacher Header */}
         <View style={styles.teacherHeader}>
           <View style={styles.teacherIcon}>
             <Ionicons name="school" size={32} color={COLORS.purple} />
@@ -115,7 +100,6 @@ export default function TeacherHome({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
@@ -134,53 +118,21 @@ export default function TeacherHome({ navigation }: Props) {
             />
           </View>
 
-          {/* <View style={styles.quickActions}>
-            <QuickActionCard
-              icon="calendar-outline"
-              title="Schedule"
-              subtitle="Manage your timetable"
-              onPress={() => {}}
-            />
-
-            <QuickActionCard
-              icon="stats-chart-outline"
-              title="Analytics"
-              subtitle="View performance stats"
-              onPress={() => {}}
-            />
-          </View> */}
-        </View>
-
-        {/* Upcoming Sessions 
-        <View style={styles.section}>
-          <SectionHeader
-            title="Upcoming Sessions"
-            subtitle={`${upcomingSessions.length} ${upcomingSessions.length === 1 ? "session" : "sessions"} today`}
+          <QuickActionCard
+            icon="calendar-outline"
+            title="Schedule"
+            subtitle="Manage your timetable"
+            onPress={() => {}}
           />
 
-          {upcomingSessions.length === 0 ? (
-            <EmptyState
-              icon="calendar-outline"
-              title="No Sessions Today"
-              subtitle="Your schedule is clear. Take some time to prepare new content!"
-            />
-          ) : (
-            <View style={styles.sessionsContainer}>
-              {upcomingSessions.map((session, index) => (
-                <SessionCard
-                  key={index}
-                  title={session.title}
-                  time={session.time}
-                  type={session.type}
-                  onPress={() => handleSessionPress(session)}
-                />
-              ))}
-            </View>
-          )}
+          <QuickActionCard
+            icon="stats-chart-outline"
+            title="Analytics"
+            subtitle="View performance stats"
+            onPress={() => {}}
+          />
         </View>
-        */}
 
-        {/* Recent Activity */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <View style={styles.activityCard}>

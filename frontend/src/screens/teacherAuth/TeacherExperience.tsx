@@ -98,7 +98,6 @@ const TeacherExperience = ({ navigation, route }: Props) => {
         <Text style={styles.headerTitle}>Step 2: Experience & Verification</Text>
       </View>
 
-      {/* Teaching Experience Section */}
       <Text style={styles.sectionTitle}>Teaching Experience</Text>
 
       {experienceList.map((item, index) => (
@@ -157,7 +156,6 @@ const TeacherExperience = ({ navigation, route }: Props) => {
         onChangeText={(text) => setPortfolios([text])}
       />
 
-      {/* Verification Section */}
       <Text style={styles.sectionTitle}>Identity Verification</Text>
 
       <TouchableOpacity style={styles.uploadButton} onPress={() => pickImage(setIdFrontImage)}>

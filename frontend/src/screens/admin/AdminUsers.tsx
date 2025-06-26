@@ -110,7 +110,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ visible, user, onClose, o
           </TouchableOpacity>
         </View>
 
-        {/* User Type Selection Modal */}
         <Modal visible={showUserTypeModal} transparent animationType="fade">
           <View style={styles.typeModalOverlay}>
             <View style={styles.typeModalContent}>

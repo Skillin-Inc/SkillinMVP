@@ -99,7 +99,6 @@ export default function StudentHome({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <View style={styles.welcomeIcon}>
             <Ionicons name="school" size={32} color={COLORS.purple} />
@@ -108,7 +107,6 @@ export default function StudentHome({ navigation }: Props) {
           <Text style={styles.welcomeDescription}>Explore our topics and start your learning journey today!</Text>
         </View>
 
-        {/* Topics Section */}
         <View style={styles.section}>
           <SectionHeader
             title="Topics"
@@ -140,7 +138,6 @@ export default function StudentHome({ navigation }: Props) {
           )}
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>

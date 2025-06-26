@@ -30,6 +30,7 @@ export type StudentStackParamList = {
   StudentTopicDetail: { id: string };
   StudentCourse: { courseId: number };
   StudentLesson: { lessonId: number };
+  TeacherProfile: { userId: number };
   Chat: { id: string };
 };
 
@@ -40,6 +41,7 @@ export type TeacherStackParamList = {
   TeacherCoursesList: undefined;
   TeacherCourse: { courseId: number };
   TeacherLesson: { lessonId: number };
+  StudentProfile: { userId: number };
   Chat: { id: string };
 };
 

@@ -140,6 +140,27 @@ export default function Chat({ route, navigation }: Props) {
     };
   }, [currentUser, id]);
 
+  const handleUserPress = () => {
+    if (!otherUser || !currentUser) return;
+
+    try {
+      // Navigate to appropriate profile based on the other user's type
+      if (otherUser.user_type === "teacher") {
+        // @ts-expect-error - Navigation type issue with shared Chat component
+        navigation.navigate("TeacherProfile", { userId: Number(id) });
+      } else if (otherUser.user_type === "student") {
+        // @ts-expect-error - Navigation type issue with shared Chat component
+        navigation.navigate("StudentProfile", { userId: Number(id) });
+      } else {
+        // For admin or unknown types, show an alert
+        alert("Profile not available for this user type.");
+      }
+    } catch (error) {
+      console.error("Navigation error:", error);
+      alert("Unable to view profile.");
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!messageText.trim() || !currentUser) return;
 
@@ -200,7 +221,7 @@ export default function Chat({ route, navigation }: Props) {
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
         </TouchableOpacity>
 
-        <View style={styles.headerInfo}>
+        <TouchableOpacity style={styles.headerInfo} onPress={handleUserPress}>
           <Image source={AvatarPlaceholder} style={styles.headerAvatar} />
           <View>
             <Text style={styles.headerName}>
@@ -208,7 +229,8 @@ export default function Chat({ route, navigation }: Props) {
             </Text>
             <Text style={styles.headerStatus}>{websocketService.isConnected() ? "Online" : "Offline"}</Text>
           </View>
-        </View>
+          <Ionicons name="chevron-forward" size={16} color={COLORS.gray} style={styles.headerChevron} />
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.moreButton}>
           <Ionicons name="ellipsis-vertical" size={24} color={COLORS.black} />
@@ -287,6 +309,9 @@ function getStyles() {
     headerStatus: {
       fontSize: 12,
       color: COLORS.green,
+    },
+    headerChevron: {
+      marginLeft: 8,
     },
     moreButton: {
       padding: 4,

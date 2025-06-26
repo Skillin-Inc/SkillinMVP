@@ -30,7 +30,6 @@ export default function StudentLesson({ navigation, route }: Props) {
       const lessonData = await apiService.getLessonById(lessonId);
       setLesson(lessonData);
 
-      // Also fetch the course data for context
       const courseData = await apiService.getCourseById(lessonData.course_id);
       setCourse(courseData);
     } catch (error) {
@@ -66,20 +65,20 @@ export default function StudentLesson({ navigation, route }: Props) {
     Alert.alert("Lesson Progress", isCompleted ? "Lesson marked as incomplete" : "Lesson marked as complete!");
   };
 
-  const handleBackToCourse = () => {
-    if (course) {
-      navigation.navigate("StudentCourse", { courseId: course.id });
-    } else {
-      navigation.goBack();
-    }
-  };
-
   const handleTakeNotes = () => {
     Alert.alert("Take Notes", "This feature is premium-only and coming soon!");
   };
 
   const handleDownload = () => {
     Alert.alert("Download", "Offline download will be available soon!");
+  };
+
+  const handleInstructorPress = () => {
+    if (lesson?.teacher_id) {
+      navigation.navigate("TeacherProfile", { userId: lesson.teacher_id });
+    } else {
+      Alert.alert("Instructor", "Instructor profile not available.");
+    }
   };
 
   if (!user || user.userType !== "student") {
@@ -120,7 +119,7 @@ export default function StudentLesson({ navigation, route }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackToCourse}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
@@ -134,9 +133,8 @@ export default function StudentLesson({ navigation, route }: Props) {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Course Context */}
         {course && (
-          <TouchableOpacity style={styles.courseContext} onPress={handleBackToCourse}>
+          <TouchableOpacity style={styles.courseContext} onPress={() => navigation.goBack()}>
             <View style={styles.courseContextHeader}>
               <Ionicons name="arrow-back" size={16} color={COLORS.purple} />
               <Text style={styles.courseContextText}>Back to {course.title}</Text>
@@ -144,7 +142,6 @@ export default function StudentLesson({ navigation, route }: Props) {
           </TouchableOpacity>
         )}
 
-        {/* Video Section */}
         <View style={styles.videoSection}>
           <View style={styles.videoPlaceholder}>
             <Ionicons name="play-circle" size={80} color={COLORS.white} />
@@ -155,7 +152,6 @@ export default function StudentLesson({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* Video Controls */}
           <View style={styles.videoControls}>
             <TouchableOpacity style={styles.controlButton} onPress={handleDownload}>
               <Ionicons name="download-outline" size={20} color={COLORS.gray} />
@@ -172,7 +168,6 @@ export default function StudentLesson({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Lesson Information */}
         <View style={styles.lessonInfo}>
           <View style={styles.lessonHeader}>
             <View style={styles.lessonTitleSection}>
@@ -223,7 +218,6 @@ export default function StudentLesson({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Lesson Details */}
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Lesson Details</Text>
 
@@ -235,15 +229,16 @@ export default function StudentLesson({ navigation, route }: Props) {
             </View>
           </View>
 
-          <View style={styles.detailItem}>
+          <TouchableOpacity style={styles.detailItem} onPress={handleInstructorPress}>
             <Ionicons name="person-outline" size={20} color={COLORS.gray} />
             <View style={styles.detailContent}>
               <Text style={styles.detailLabel}>Instructor</Text>
-              <Text style={styles.detailValue}>
+              <Text style={[styles.detailValue, styles.clickableInstructor]}>
                 {lesson.teacher_first_name} {lesson.teacher_last_name}
               </Text>
             </View>
-          </View>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.gray} />
+          </TouchableOpacity>
 
           <View style={styles.detailItem}>
             <Ionicons name="calendar-outline" size={20} color={COLORS.gray} />
@@ -265,7 +260,6 @@ export default function StudentLesson({ navigation, route }: Props) {
         </View>
       </ScrollView>
 
-      {/* Bottom Action Bar */}
       <View style={styles.bottomBar}>
         <TouchableOpacity
           style={[styles.markCompleteButton, isCompleted && styles.markCompletedButton]}
@@ -542,6 +536,10 @@ function getStyles() {
       fontSize: 16,
       color: COLORS.black,
       fontWeight: "500",
+    },
+    clickableInstructor: {
+      color: COLORS.purple,
+      textDecorationLine: "underline",
     },
     bottomBar: {
       padding: 16,

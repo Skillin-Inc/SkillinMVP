@@ -18,7 +18,6 @@ export default function CategoryCard({ label, image, onPress, disabled = false }
       disabled={disabled}
       activeOpacity={0.7}
     >
-      {/* Image Section */}
       <View style={styles.imageContainer}>
         <Image source={image} style={styles.image} />
         <View style={styles.imageOverlay}>
@@ -26,7 +25,6 @@ export default function CategoryCard({ label, image, onPress, disabled = false }
         </View>
       </View>
 
-      {/* Content Section */}
       <View style={styles.contentContainer}>
         <Text style={styles.cardTitle} numberOfLines={2}>
           {label}

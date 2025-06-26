@@ -18,20 +18,18 @@ import { ImagePickerAvatar } from "../../components/forms";
 import { StatsCard, QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { TeacherTabsParamList } from "../../types/navigation";
-import { User } from "../../services/api";
+import { User, apiService, transformBackendUserToUser } from "../../services/api";
 
 type Props = BottomTabScreenProps<TeacherTabsParamList, "TeacherProfile">;
 
 export default function TeacherProfile({ navigation, route }: Props) {
   const { logout, user: currentUser } = useContext(AuthContext);
-  // If no userId is provided (tab navigation), use current user's ID
   const userId = route.params?.userId ?? currentUser?.id ?? 0;
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Check if this is the current user's profile
   const isOwnProfile = currentUser?.id === userId;
 
   useEffect(() => {
@@ -42,16 +40,18 @@ export default function TeacherProfile({ navigation, route }: Props) {
     try {
       setLoading(true);
       if (isOwnProfile && currentUser) {
-        // If viewing own profile, use current user data
         setProfileUser(currentUser);
       } else {
-        // TODO: Fetch user data from API using userId
-        // For now, we'll use current user data as fallback
-        setProfileUser(currentUser);
+        const backendUser = await apiService.getUserById(userId);
+        const transformedUser = transformBackendUserToUser(backendUser);
+        setProfileUser(transformedUser);
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
       Alert.alert("Error", "Failed to load profile. Please try again.");
+      if (currentUser) {
+        setProfileUser(currentUser);
+      }
     } finally {
       setLoading(false);
     }
@@ -129,7 +129,6 @@ export default function TeacherProfile({ navigation, route }: Props) {
   );
 
   const getTeacherBadgeColor = () => {
-    // You can customize this based on teacher level/experience
     return COLORS.blue;
   };
 
@@ -145,14 +144,13 @@ export default function TeacherProfile({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
           <Text style={styles.headerTitle}>
-            {isOwnProfile ? "Teacher Profile" : `${profileUser?.firstName || "Teacher"}'s Profile`}
+            {isOwnProfile ? "Teacher Profile" : `${profileUser?.firstName} ${profileUser?.lastName}'s Profile`}
           </Text>
         </View>
         {isOwnProfile && (
@@ -167,7 +165,6 @@ export default function TeacherProfile({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Profile Header */}
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <ImagePickerAvatar initialUri={avatarUri} onChange={isOwnProfile ? setAvatarUri : undefined} size={100} />
@@ -184,7 +181,6 @@ export default function TeacherProfile({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Teaching Stats */}
         <View style={styles.section}>
           <SectionHeader title="Teaching Statistics" />
 
@@ -193,15 +189,8 @@ export default function TeacherProfile({ navigation, route }: Props) {
 
             <StatsCard icon="people-outline" label="Students" value="0" color={COLORS.green} />
           </View>
-          {/* 
-          <View style={styles.statsGrid}>
-            <StatsCard icon="star-outline" label="Rating" value="--" color={COLORS.blue} />
-
-            <StatsCard icon="cash-outline" label="Earnings" value="$0" color="#FFD700" />
-          </View> */}
         </View>
 
-        {/* Personal Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
 
@@ -216,7 +205,6 @@ export default function TeacherProfile({ navigation, route }: Props) {
           <InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />
         </View>
 
-        {/* Teacher Actions - Only show for own profile */}
         {isOwnProfile && (
           <View style={styles.section}>
             <SectionHeader title="Teacher Actions" />
@@ -271,7 +259,6 @@ export default function TeacherProfile({ navigation, route }: Props) {
                 onPress={handleSupport}
               />
             </View>
-            {/* Sign Out - Only show for own profile */}
             <View style={styles.section}>
               <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
                 <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
@@ -281,7 +268,6 @@ export default function TeacherProfile({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* App Version */}
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Skillin Teacher v1.0.0</Text>
         </View>

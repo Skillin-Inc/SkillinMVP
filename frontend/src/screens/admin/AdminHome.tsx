@@ -78,7 +78,6 @@ export default function AdminHome() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View>
@@ -96,7 +95,6 @@ export default function AdminHome() {
         </View>
       </View>
 
-      {/* Delete User Section */}
       <View style={styles.card}>
         <SectionHeader title="Delete User by Email" />
         <TextInput
@@ -117,7 +115,6 @@ export default function AdminHome() {
         </TouchableOpacity>
       </View>
 
-      {/* Update User Type Section */}
       <View style={styles.card}>
         <SectionHeader title="Update User Type by Email" />
         <TextInput

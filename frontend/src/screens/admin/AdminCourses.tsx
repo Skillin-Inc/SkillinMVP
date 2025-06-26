@@ -135,7 +135,6 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ visible, course, cate
           </TouchableOpacity>
         </View>
 
-        {/* Category Selection Modal */}
         <Modal visible={showCategoryModal} transparent animationType="fade">
           <View style={styles.categoryModalOverlay}>
             <View style={styles.categoryModalContent}>
