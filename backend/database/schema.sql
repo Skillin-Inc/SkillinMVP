@@ -22,6 +22,7 @@ CREATE TABLE "users" (
   "username" text UNIQUE NOT NULL,
   "hashed_password" text NOT NULL,
   "postal_code" integer NOT NULL,
+  "is_paid" boolean NOT NULL DEFAULT false,
   "user_type" user_type NOT NULL DEFAULT 'student',
   "created_at" timestamptz(3) default current_timestamp
 );

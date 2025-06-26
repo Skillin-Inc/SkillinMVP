@@ -56,9 +56,11 @@ export default function WelcomeScreen({ navigation }: Props) {
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
 
+          {/*
           <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handlePaymentPress}>
             <Text style={styles.buttonText}>Handle payments</Text>
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
+
         </View>
       </View>
     </View>
