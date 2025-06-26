@@ -75,7 +75,7 @@ export default function StudentLesson({ navigation, route }: Props) {
   };
 
   const handleTakeNotes = () => {
-    Alert.alert("Take Notes", "Note-taking feature will be available soon!");
+    Alert.alert("Take Notes", "This feature is premium-only and coming soon!");
   };
 
   const handleDownload = () => {

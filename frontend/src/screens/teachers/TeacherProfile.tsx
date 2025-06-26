@@ -193,12 +193,12 @@ export default function TeacherProfile({ navigation, route }: Props) {
 
             <StatsCard icon="people-outline" label="Students" value="0" color={COLORS.green} />
           </View>
-
+          {/* 
           <View style={styles.statsGrid}>
             <StatsCard icon="star-outline" label="Rating" value="--" color={COLORS.blue} />
 
             <StatsCard icon="cash-outline" label="Earnings" value="$0" color="#FFD700" />
-          </View>
+          </View> */}
         </View>
 
         {/* Personal Information */}
