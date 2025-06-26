@@ -1,7 +1,6 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
-import { TouchableOpacity, Alert } from "react-native";
 
 import StudentHome from "../screens/students/StudentHome";
 import StudentProgress from "../screens/students/StudentProgress";
@@ -43,21 +42,7 @@ export default function StudentTabs() {
       })}
     >
       <Tab.Screen name="StudentHome" component={StudentHome} options={{ tabBarLabel: "Home" }} />
-      <Tab.Screen
-        name="StudentProgress"
-        component={StudentProgress} // still required by type system
-        options={{
-          tabBarLabel: "Progress",
-          title: "My Progress",
-          tabBarButton: (props: any) => (
-            <TouchableOpacity
-              {...props}
-              onPress={() => Alert.alert("Premium Feature", "This feature is premium-only and coming soon!")}
-            />
-          ),
-        }}
-      />
-
+      <Tab.Screen name="StudentProgress" component={StudentProgress} options={{ tabBarLabel: "Progress" }} />
       <Tab.Screen name="Messages" component={Messages} />
       <Tab.Screen name="StudentProfile" component={StudentProfile} options={{ tabBarLabel: "Profile" }} />
       <Tab.Screen name="Temp" component={Temp} />
