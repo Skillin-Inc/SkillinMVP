@@ -2,12 +2,12 @@ import React, { useState, useMemo, useEffect, useContext } from "react";
 import {
   View,
   Text,
-  FlatList,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   RefreshControl,
+  SectionList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps } from "@react-navigation/native";
@@ -37,6 +37,7 @@ export default function Messages({ navigation }: Props) {
   const { user: currentUser } = useContext(AuthContext);
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<ChatUser[]>([]);
+  const [allUsers, setAllUsers] = useState<ChatUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -47,28 +48,42 @@ export default function Messages({ navigation }: Props) {
 
     try {
       setLoading(true);
-      const [allUsers, conversations] = await Promise.all([
+      const [allUsersData, conversations] = await Promise.all([
         apiService.getAllUsers(),
         apiService.getConversationsForUser(currentUser.id),
       ]);
 
       const conversationMap = new Map(conversations.map((conv) => [conv.other_user_id, conv]));
 
-      const otherUsers = allUsers
+      // Users with conversations
+      const conversationUsers = allUsersData
         .filter((user) => user.id !== currentUser?.id)
+        .filter((user) => conversationMap.has(user.id))
         .map((user) => {
-          const conversation = conversationMap.get(user.id);
+          const conversation = conversationMap.get(user.id)!;
 
           return {
             id: user.id.toString(),
             name: `${user.first_name} ${user.last_name}`,
-            lastMessage: conversation ? conversation.last_message : "Start a conversation!",
-            timestamp: conversation ? formatTimestamp(conversation.last_message_time) : "Now",
-            unreadCount: conversation ? conversation.unread_count : 0,
+            lastMessage: conversation.last_message,
+            timestamp: formatTimestamp(conversation.last_message_time),
+            unreadCount: conversation.unread_count,
           };
         });
 
-      setUsers(otherUsers);
+      // All users (for search)
+      const allOtherUsers = allUsersData
+        .filter((user) => user.id !== currentUser?.id)
+        .map((user) => ({
+          id: user.id.toString(),
+          name: `${user.first_name} ${user.last_name}`,
+          lastMessage: "Start a conversation!",
+          timestamp: "Now",
+          unreadCount: 0,
+        }));
+
+      setUsers(conversationUsers);
+      setAllUsers(allOtherUsers);
     } catch (error) {
       console.error("Error fetching users and conversations:", error);
     } finally {
@@ -136,16 +151,82 @@ export default function Messages({ navigation }: Props) {
     }
   };
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(
-      (user) =>
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return {
+        conversations: users,
+        newUsers: [],
+      };
+    }
+
+    const query = searchQuery.toLowerCase();
+
+    // Filter existing conversations
+    const filteredConversations = users.filter(
+      (user) => user.name.toLowerCase().includes(query) || user.lastMessage.toLowerCase().includes(query)
     );
-  }, [searchQuery, users]);
+
+    // Filter new users (exclude users we already have conversations with)
+    const conversationUserIds = new Set(users.map((user) => user.id));
+    const filteredNewUsers = allUsers
+      .filter((user) => !conversationUserIds.has(user.id))
+      .filter((user) => user.name.toLowerCase().includes(query));
+
+    return {
+      conversations: filteredConversations,
+      newUsers: filteredNewUsers,
+    };
+  }, [searchQuery, users, allUsers]);
 
   const handleUserPress = (user: ChatUser) => {
     navigation.navigate("Chat", { id: user.id });
+  };
+
+  const renderSearchResults = () => {
+    const { conversations, newUsers } = searchResults;
+    const sections = [];
+
+    if (conversations.length > 0) {
+      sections.push({
+        title: "Your Conversations",
+        data: conversations,
+      });
+    }
+
+    if (newUsers.length > 0) {
+      sections.push({
+        title: "Find New Users",
+        data: newUsers,
+      });
+    }
+
+    if (sections.length === 0) {
+      return (
+        <EmptyState
+          icon="search-outline"
+          title="No Results"
+          subtitle={searchQuery ? `No users found matching "${searchQuery}"` : "Start chatting with other users!"}
+        />
+      );
+    }
+
+    return (
+      <SectionList
+        sections={sections}
+        renderItem={({ item }) => <UserItem user={item} onPress={handleUserPress} />}
+        renderSectionHeader={({ section: { title } }) => (
+          <View style={styles.sectionHeaderContainer}>
+            <Text style={styles.sectionHeaderText}>{title}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id}
+        style={styles.conversationsList}
+        showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        SectionSeparatorComponent={() => <View style={styles.sectionSeparator} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      />
+    );
   };
 
   if (loading) {
@@ -190,8 +271,12 @@ export default function Messages({ navigation }: Props) {
         </View>
         <View style={styles.messagesInfo}>
           <SectionHeader
-            title="Your Conversations"
-            subtitle={`${filteredUsers.length} ${filteredUsers.length === 1 ? "conversation" : "conversations"}`}
+            title="Your Messages"
+            subtitle={
+              searchQuery
+                ? `${searchResults.conversations.length + searchResults.newUsers.length} results`
+                : `${users.length} ${users.length === 1 ? "conversation" : "conversations"}`
+            }
           />
         </View>
       </View>
@@ -201,7 +286,7 @@ export default function Messages({ navigation }: Props) {
           <Ionicons name="search" size={20} color={COLORS.gray} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search conversations..."
+            placeholder="Search conversations or find new users..."
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor={COLORS.gray}
@@ -214,25 +299,7 @@ export default function Messages({ navigation }: Props) {
         </View>
       </View>
 
-      <View style={styles.conversationsSection}>
-        {filteredUsers.length === 0 ? (
-          <EmptyState
-            icon="chatbubble-outline"
-            title="No Conversations"
-            subtitle={searchQuery ? "No conversations match your search." : "Start chatting with other users!"}
-          />
-        ) : (
-          <FlatList
-            data={filteredUsers}
-            renderItem={({ item }) => <UserItem user={item} onPress={handleUserPress} />}
-            keyExtractor={(item) => item.id}
-            style={styles.conversationsList}
-            showsVerticalScrollIndicator={false}
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          />
-        )}
-      </View>
+      <View style={styles.conversationsSection}>{renderSearchResults()}</View>
     </SafeAreaView>
   );
 }
@@ -363,6 +430,22 @@ function getStyles() {
       color: COLORS.gray,
       textAlign: "center",
       lineHeight: 24,
+    },
+    sectionSeparator: {
+      height: 16,
+      backgroundColor: COLORS.white,
+    },
+    sectionHeaderContainer: {
+      backgroundColor: COLORS.white,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.lightGray,
+    },
+    sectionHeaderText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: COLORS.black,
     },
   });
 }
