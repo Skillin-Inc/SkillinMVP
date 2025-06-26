@@ -101,6 +101,13 @@ export default function TeacherProfile({ navigation, route }: Props) {
     Alert.alert("Support", "Support center will be available soon!");
   };
 
+  const handleSendMessage = () => {
+    if (profileUser) {
+      // @ts-expect-error - Navigation type issue with shared profile component
+      navigation.navigate("Chat", { id: profileUser.id.toString() });
+    }
+  };
+
   const handleViewStats = () => {
     navigation.navigate("TeacherHome");
   };
@@ -179,6 +186,13 @@ export default function TeacherProfile({ navigation, route }: Props) {
               <Text style={styles.teacherText}>Certified Teacher</Text>
             </View>
           </View>
+
+          {!isOwnProfile && (
+            <TouchableOpacity style={styles.messageButton} onPress={handleSendMessage}>
+              <Ionicons name="chatbubble-outline" size={20} color={COLORS.white} />
+              <Text style={styles.messageButtonText}>Send Message</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.section}>
@@ -494,6 +508,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACINGS.large,
   },
   signOutText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: SPACINGS.small,
+  },
+  messageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.purple,
+    borderRadius: 12,
+    paddingVertical: SPACINGS.base,
+    paddingHorizontal: SPACINGS.large,
+    marginTop: SPACINGS.base,
+  },
+  messageButtonText: {
     color: COLORS.white,
     fontSize: 16,
     fontWeight: "600",

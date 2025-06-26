@@ -56,15 +56,16 @@ export default function Messages({ navigation }: Props) {
 
       const otherUsers = allUsers
         .filter((user) => user.id !== currentUser?.id)
+        .filter((user) => conversationMap.has(user.id)) // Only show users with actual conversations
         .map((user) => {
-          const conversation = conversationMap.get(user.id);
+          const conversation = conversationMap.get(user.id)!; // We know conversation exists now
 
           return {
             id: user.id.toString(),
             name: `${user.first_name} ${user.last_name}`,
-            lastMessage: conversation ? conversation.last_message : "Start a conversation!",
-            timestamp: conversation ? formatTimestamp(conversation.last_message_time) : "Now",
-            unreadCount: conversation ? conversation.unread_count : 0,
+            lastMessage: conversation.last_message,
+            timestamp: formatTimestamp(conversation.last_message_time),
+            unreadCount: conversation.unread_count,
           };
         });
 
