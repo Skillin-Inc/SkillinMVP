@@ -74,6 +74,14 @@ export default function StudentCourse({ navigation, route }: Props) {
     Alert.alert("Enroll in Course", "Course enrollment will be available soon!");
   };
 
+  const handleInstructorPress = () => {
+    if (course?.teacher_id) {
+      navigation.navigate("TeacherProfile", { userId: course.teacher_id });
+    } else {
+      Alert.alert("Instructor", "Instructor profile not available.");
+    }
+  };
+
   if (!user || user.userType !== "student") {
     return (
       <SafeAreaView style={styles.container}>
@@ -130,19 +138,19 @@ export default function StudentCourse({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Course Header */}
         <View style={styles.courseHeader}>
           <View style={styles.courseIcon}>
             <Ionicons name="book" size={32} color={COLORS.purple} />
           </View>
           <View style={styles.courseInfo}>
             <Text style={styles.courseTitle}>{course.title}</Text>
-            <View style={styles.teacherInfo}>
+            <TouchableOpacity style={styles.teacherInfo} onPress={handleInstructorPress}>
               <Ionicons name="person-outline" size={16} color={COLORS.gray} />
               <Text style={styles.teacherName}>
                 By {course.teacher_first_name} {course.teacher_last_name}
               </Text>
-            </View>
+              <Ionicons name="chevron-forward" size={16} color={COLORS.gray} />
+            </TouchableOpacity>
             <Text style={styles.courseDate}>Created {formatDate(course.created_at)}</Text>
             <View style={styles.courseStats}>
               <View style={styles.statItem}>
@@ -159,13 +167,11 @@ export default function StudentCourse({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Course Description */}
         <View style={styles.descriptionSection}>
           <SectionHeader title="About this course" />
           <Text style={styles.courseDescription}>{course.description}</Text>
         </View>
 
-        {/* Enroll Button */}
         <View style={styles.enrollSection}>
           <TouchableOpacity style={styles.enrollButton} onPress={handleEnrollCourse}>
             <Ionicons name="add-circle-outline" size={20} color={COLORS.white} />
@@ -173,7 +179,6 @@ export default function StudentCourse({ navigation, route }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Course Content */}
         <View style={styles.contentSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Course Content</Text>
@@ -220,7 +225,6 @@ export default function StudentCourse({ navigation, route }: Props) {
           )}
         </View>
 
-        {/* Course Details */}
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Course Details</Text>
           <View style={styles.detailItem}>
@@ -349,8 +353,9 @@ function getStyles() {
     },
     teacherName: {
       fontSize: 14,
-      color: COLORS.gray,
+      color: COLORS.purple,
       marginLeft: 6,
+      textDecorationLine: "underline",
     },
     courseDate: {
       fontSize: 14,

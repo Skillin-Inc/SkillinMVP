@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,13 +18,44 @@ import { ImagePickerAvatar } from "../../components/forms";
 import { StatsCard, QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { TeacherTabsParamList } from "../../types/navigation";
+import { User, apiService, transformBackendUserToUser } from "../../services/api";
 
 type Props = BottomTabScreenProps<TeacherTabsParamList, "TeacherProfile">;
 
-export default function TeacherProfile({ navigation }: Props) {
-  const { logout, user } = useContext(AuthContext);
+export default function TeacherProfile({ navigation, route }: Props) {
+  const { logout, user: currentUser } = useContext(AuthContext);
+  const userId = route.params?.userId ?? currentUser?.id ?? 0;
+  const [profileUser, setProfileUser] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const isOwnProfile = currentUser?.id === userId;
+
+  useEffect(() => {
+    loadUserProfile();
+  }, [userId]);
+
+  const loadUserProfile = async () => {
+    try {
+      setLoading(true);
+      if (isOwnProfile && currentUser) {
+        setProfileUser(currentUser);
+      } else {
+        const backendUser = await apiService.getUserById(userId);
+        const transformedUser = transformBackendUserToUser(backendUser);
+        setProfileUser(transformedUser);
+      }
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+      Alert.alert("Error", "Failed to load profile. Please try again.");
+      if (currentUser) {
+        setProfileUser(currentUser);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -46,15 +77,23 @@ export default function TeacherProfile({ navigation }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // TODO: Refresh teacher data and stats
-    setTimeout(() => setRefreshing(false), 1000);
+    await loadUserProfile();
+    setRefreshing(false);
   };
 
   const handleEditProfile = () => {
+    if (!isOwnProfile) {
+      Alert.alert("Not Allowed", "You can only edit your own profile.");
+      return;
+    }
     Alert.alert("Edit Profile", "Profile editing will be available soon!");
   };
 
   const handleSettings = () => {
+    if (!isOwnProfile) {
+      Alert.alert("Not Allowed", "You can only access your own settings.");
+      return;
+    }
     Alert.alert("Settings", "Settings page will be available soon!");
   };
 
@@ -90,23 +129,35 @@ export default function TeacherProfile({ navigation }: Props) {
   );
 
   const getTeacherBadgeColor = () => {
-    // You can customize this based on teacher level/experience
     return COLORS.blue;
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+          <Text>Loading profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>Teacher Profile</Text>
+          <Text style={styles.headerTitle}>
+            {isOwnProfile ? "Teacher Profile" : `${profileUser?.firstName} ${profileUser?.lastName}'s Profile`}
+          </Text>
         </View>
-        <TouchableOpacity style={styles.settingsButton} onPress={handleSettings}>
-          <Ionicons name="settings-outline" size={24} color={COLORS.black} />
-        </TouchableOpacity>
+        {isOwnProfile && (
+          <TouchableOpacity style={styles.settingsButton} onPress={handleSettings}>
+            <Ionicons name="settings-outline" size={24} color={COLORS.black} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView
@@ -114,15 +165,14 @@ export default function TeacherProfile({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Profile Header */}
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
-            <ImagePickerAvatar initialUri={avatarUri} onChange={setAvatarUri} size={100} />
+            <ImagePickerAvatar initialUri={avatarUri} onChange={isOwnProfile ? setAvatarUri : undefined} size={100} />
           </View>
 
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user?.username ?? "Unknown Teacher"}</Text>
-            <Text style={styles.userEmail}>{user?.email ?? ""}</Text>
+            <Text style={styles.userName}>{profileUser?.username ?? "Unknown Teacher"}</Text>
+            <Text style={styles.userEmail}>{profileUser?.email ?? ""}</Text>
 
             <View style={[styles.teacherBadge, { backgroundColor: getTeacherBadgeColor() }]}>
               <Ionicons name="school" size={14} color={COLORS.white} />
@@ -131,7 +181,6 @@ export default function TeacherProfile({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Teaching Stats */}
         <View style={styles.section}>
           <SectionHeader title="Teaching Statistics" />
 
@@ -140,90 +189,85 @@ export default function TeacherProfile({ navigation }: Props) {
 
             <StatsCard icon="people-outline" label="Students" value="0" color={COLORS.green} />
           </View>
-          {/* 
-          <View style={styles.statsGrid}>
-            <StatsCard icon="star-outline" label="Rating" value="--" color={COLORS.blue} />
-
-            <StatsCard icon="cash-outline" label="Earnings" value="$0" color="#FFD700" />
-          </View> */}
         </View>
 
-        {/* Personal Information */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
 
-          <InfoCard icon="calendar-outline" label="Date of Birth" value={user?.dOB ?? "Not provided"} />
+          <InfoCard icon="calendar-outline" label="Date of Birth" value={profileUser?.dOB ?? "Not provided"} />
 
-          <InfoCard icon="location-outline" label="Location" value={user?.postalCode?.toString() ?? "Not provided"} />
+          <InfoCard
+            icon="location-outline"
+            label="Location"
+            value={profileUser?.postalCode?.toString() ?? "Not provided"}
+          />
 
-          <InfoCard icon="call-outline" label="Phone Number" value={user?.phoneNumber ?? "Not provided"} />
+          <InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />
         </View>
 
-        {/* Teacher Actions */}
-        <View style={styles.section}>
-          <SectionHeader title="Teacher Actions" />
+        {isOwnProfile && (
+          <View style={styles.section}>
+            <SectionHeader title="Teacher Actions" />
 
-          <View style={styles.quickActions}>
-            <QuickActionCard
-              icon="create-outline"
-              title="Edit Profile"
-              subtitle="Update your profile information"
-              onPress={handleEditProfile}
-            />
+            <View style={styles.quickActions}>
+              <QuickActionCard
+                icon="create-outline"
+                title="Edit Profile"
+                subtitle="Update your profile information"
+                onPress={handleEditProfile}
+              />
 
-            <QuickActionCard
-              icon="add-circle-outline"
-              title="Create Course"
-              subtitle="Design a new course"
-              onPress={() => navigation.navigate("TeacherCreateLesson")}
-              iconColor={COLORS.green}
-            />
+              <QuickActionCard
+                icon="add-circle-outline"
+                title="Create Course"
+                subtitle="Design a new course"
+                onPress={() => navigation.navigate("TeacherCreateLesson")}
+                iconColor={COLORS.green}
+              />
+            </View>
+
+            <View style={styles.quickActions}>
+              <QuickActionCard
+                icon="library-outline"
+                title="My Courses"
+                subtitle="Manage your courses"
+                onPress={() => Alert.alert("My Courses", "Feature coming soon!")}
+              />
+
+              <QuickActionCard
+                icon="stats-chart-outline"
+                title="Analytics"
+                subtitle="View detailed statistics"
+                onPress={handleViewStats}
+                iconColor={COLORS.blue}
+              />
+            </View>
+
+            <View style={styles.quickActions}>
+              <QuickActionCard
+                icon="card-outline"
+                title="Payouts"
+                subtitle="Manage earnings and payments"
+                onPress={() => Alert.alert("Payouts", "Feature coming soon!")}
+                iconColor="#FFD700"
+              />
+
+              <QuickActionCard
+                icon="help-circle-outline"
+                title="Teacher Support"
+                subtitle="Get help with teaching"
+                onPress={handleSupport}
+              />
+            </View>
+            <View style={styles.section}>
+              <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+                <Text style={styles.signOutText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+        )}
 
-          <View style={styles.quickActions}>
-            <QuickActionCard
-              icon="library-outline"
-              title="My Courses"
-              subtitle="Manage your courses"
-              onPress={() => Alert.alert("My Courses", "Feature coming soon!")}
-            />
-
-            {/* <QuickActionCard
-              icon="stats-chart-outline"
-              title="Analytics"
-              subtitle="View detailed statistics"
-              onPress={handleViewStats}
-              iconColor={COLORS.blue}
-            /> */}
-          </View>
-
-          <View style={styles.quickActions}>
-            {/* <QuickActionCard
-              icon="card-outline"
-              title="Payouts"
-              subtitle="Manage earnings and payments"
-              onPress={() => Alert.alert("Payouts", "Feature coming soon!")}
-              iconColor="#FFD700"
-            /> */}
-
-            <QuickActionCard
-              icon="help-circle-outline"
-              title="Teacher Support"
-              subtitle="Get help with teaching"
-              onPress={handleSupport}
-            />
-          </View>
-        </View>
-
-        {/* Sign Out */}
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
-            <Text style={styles.signOutText}>Sign Out</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* App Version */}
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Skillin Teacher v1.0.0</Text>
         </View>

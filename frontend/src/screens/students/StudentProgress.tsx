@@ -88,7 +88,6 @@ export default function StudentProgress({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
         <View style={styles.headerTitleContainer}>
@@ -104,7 +103,6 @@ export default function StudentProgress({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Progress Overview */}
         <View style={styles.overviewSection}>
           <View style={styles.overviewHeader}>
             <View style={styles.overviewIcon}>
@@ -120,7 +118,6 @@ export default function StudentProgress({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Progress Lessons */}
         <View style={styles.section}>
           <SectionHeader
             title="Continue Watching"
@@ -144,7 +141,6 @@ export default function StudentProgress({ navigation }: Props) {
           )}
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
 
@@ -157,7 +153,10 @@ export default function StudentProgress({ navigation }: Props) {
               <Text style={styles.actionSubtitle}>Discover new content</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("StudentProfile")}>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id || 0 })}
+            >
               <View style={styles.actionIcon}>
                 <Ionicons name="person-outline" size={24} color={COLORS.purple} />
               </View>

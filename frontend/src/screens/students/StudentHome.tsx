@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
 
+import { AuthContext } from "../../hooks/AuthContext";
+
 import { COLORS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
@@ -27,6 +29,7 @@ type Props = CompositeScreenProps<
 >;
 
 export default function StudentHome({ navigation }: Props) {
+  const { user } = useContext(AuthContext);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,7 +62,7 @@ export default function StudentHome({ navigation }: Props) {
   };
 
   const handleViewProfile = () => {
-    navigation.navigate("StudentProfile");
+    navigation.navigate("StudentProfile", { userId: user?.id || 0 });
   };
 
   if (loading) {
@@ -96,7 +99,6 @@ export default function StudentHome({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <View style={styles.welcomeIcon}>
             <Ionicons name="school" size={32} color={COLORS.purple} />
@@ -105,7 +107,6 @@ export default function StudentHome({ navigation }: Props) {
           <Text style={styles.welcomeDescription}>Explore our topics and start your learning journey today!</Text>
         </View>
 
-        {/* Topics Section */}
         <View style={styles.section}>
           <SectionHeader
             title="Topics"
@@ -137,7 +138,6 @@ export default function StudentHome({ navigation }: Props) {
           )}
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
@@ -145,7 +145,7 @@ export default function StudentHome({ navigation }: Props) {
               icon="person-outline"
               title="My Profile"
               subtitle="View and edit your profile"
-              onPress={() => navigation.navigate("StudentProfile")}
+              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id || 0 })}
             />
 
             <QuickActionCard

@@ -135,7 +135,6 @@ export default function TeacherLesson({ navigation, route }: Props) {
       />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Course Context */}
         {course && (
           <View style={styles.courseContext}>
             <View style={styles.courseContextHeader}>
@@ -145,10 +144,8 @@ export default function TeacherLesson({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* Video Section */}
         <VideoSection title="Video Preview" onPlayPress={handlePlayVideo} hasVideo={!!lesson.video_url} />
 
-        {/* Lesson Information */}
         <View style={styles.lessonInfo}>
           <View style={styles.lessonHeader}>
             <View style={styles.lessonIcon}>
@@ -174,7 +171,6 @@ export default function TeacherLesson({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Action Buttons */}
         <ActionButtons
           primaryAction={{
             icon: "create-outline",

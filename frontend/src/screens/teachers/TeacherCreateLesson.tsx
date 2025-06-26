@@ -321,7 +321,6 @@ export default function TeacherCreateLesson({ navigation }: Props) {
             maxCharacters={500}
           />
 
-          {/* Video Upload Section */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Lesson Video</Text>
             <Text style={styles.helperText}>Upload a video for your lesson (optional)</Text>

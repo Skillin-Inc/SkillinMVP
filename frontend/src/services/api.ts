@@ -425,4 +425,18 @@ function createApiService() {
   };
 }
 
+export const transformBackendUserToUser = (backendUser: BackendUser): User => {
+  return {
+    id: backendUser.id,
+    firstName: backendUser.first_name,
+    lastName: backendUser.last_name,
+    email: backendUser.email,
+    phoneNumber: backendUser.phone_number,
+    username: backendUser.username,
+    postalCode: backendUser.postal_code,
+    createdAt: backendUser.created_at,
+    userType: backendUser.user_type,
+  };
+};
+
 export const apiService = createApiService();

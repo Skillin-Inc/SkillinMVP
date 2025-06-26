@@ -79,7 +79,6 @@ export default function Temp() {
           navigation stacks.
         </Text>
 
-        {/* Debugging Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Debug Tools</Text>
 
@@ -99,7 +98,6 @@ export default function Temp() {
           </TouchableOpacity>
         </View>
 
-        {/* Switch Mode Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Navigation</Text>
 

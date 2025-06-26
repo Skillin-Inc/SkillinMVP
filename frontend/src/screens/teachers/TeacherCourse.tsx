@@ -68,7 +68,6 @@ export default function TeacherCourse({ navigation, route }: Props) {
   };
 
   const handleCreateLesson = () => {
-    // Navigate to create lesson screen - the course will be available in the dropdown
     navigation.navigate("TeacherTabs", {
       screen: "TeacherCreateLesson",
     });
@@ -155,7 +154,6 @@ export default function TeacherCourse({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Course Header */}
         <View style={styles.courseHeader}>
           <View style={styles.courseIcon}>
             <Ionicons name="book" size={32} color={COLORS.purple} />
@@ -178,13 +176,11 @@ export default function TeacherCourse({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Course Description */}
         <View style={styles.descriptionSection}>
           <Text style={styles.sectionTitle}>About this course</Text>
           <Text style={styles.courseDescription}>{course.description}</Text>
         </View>
 
-        {/* Course Actions */}
         <ActionButtons
           primaryAction={{
             icon: "add-circle-outline",
@@ -205,7 +201,6 @@ export default function TeacherCourse({ navigation, route }: Props) {
           }}
         />
 
-        {/* Lessons Section */}
         <View style={styles.lessonsSection}>
           <View style={styles.sectionHeaderContainer}>
             <SectionHeader title={`Lessons (${lessons.length})`} />

@@ -184,7 +184,6 @@ export default function Messages({ navigation }: Props) {
         </View>
       </View>
 
-      {/* Messages Header Info */}
       <View style={styles.messagesHeader}>
         <View style={styles.messagesIcon}>
           <Ionicons name="chatbubbles" size={32} color={COLORS.purple} />
@@ -197,7 +196,6 @@ export default function Messages({ navigation }: Props) {
         </View>
       </View>
 
-      {/* Search Section */}
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color={COLORS.gray} style={styles.searchIcon} />
@@ -216,7 +214,6 @@ export default function Messages({ navigation }: Props) {
         </View>
       </View>
 
-      {/* Conversations List */}
       <View style={styles.conversationsSection}>
         {filteredUsers.length === 0 ? (
           <EmptyState
