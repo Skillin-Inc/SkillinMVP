@@ -9,7 +9,6 @@ export const API_CONFIG = {
     COURSES: "/courses",
     CATEGORIES: "/categories",
     PROGRESS: "/progress",
-    DATABASE_HEALTH: "/health/db",
   },
   TIMEOUT: 10000,
 };

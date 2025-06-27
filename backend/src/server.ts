@@ -4,7 +4,6 @@ import cors from "cors";
 import "dotenv/config";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { pool } from "./db";
 
 // Import route handlers
 import userRoutes from "./routes/users";
@@ -40,39 +39,6 @@ app.use(
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
-});
-
-// Health check endpoint
-app.get("/health", (req: Request, res: Response) => {
-  res.json({
-    status: "ok",
-    message: "Server is running",
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Database health check endpoint
-app.get("/database-health", async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query("SELECT 1");
-    if (result.rows.length > 0) {
-      res.json({
-        status: "ok",
-        message: "Database connection is healthy",
-        timestamp: new Date().toISOString(),
-      });
-    } else {
-      throw new Error("No rows returned");
-    }
-  } catch (error) {
-    console.error("Database health check failed:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Database connection failed",
-      timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
 });
 
 // Serve favicon to prevent 404s

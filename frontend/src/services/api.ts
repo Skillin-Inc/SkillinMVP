@@ -343,36 +343,6 @@ function createApiService() {
     });
   };
 
-  const checkBackendConnection = async (): Promise<{ status: string; message: string; timestamp?: string }> => {
-    try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/health`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response.json();
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Unknown error");
-    }
-  };
-
-  const checkDatabaseConnection = async (): Promise<{
-    status: string;
-    message: string;
-    timestamp?: string;
-    error?: string;
-  }> => {
-    return makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>(
-      API_CONFIG.ENDPOINTS.DATABASE_HEALTH
-    );
-  };
-
   const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
     const encodedEmail = encodeURIComponent(email);
     return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`, {
@@ -422,8 +392,6 @@ function createApiService() {
     getCategoryById,
     updateCategory,
     deleteCategory,
-    checkBackendConnection,
-    checkDatabaseConnection,
     deleteUser,
     updateUserType,
   };

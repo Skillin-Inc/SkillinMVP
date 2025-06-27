@@ -50,19 +50,6 @@ export default function Temp() {
     }
   };
 
-  const handleTestBackendConnection = async () => {
-    try {
-      const result = await api.checkBackendConnection();
-      console.log("Backend Connection Test:", result);
-      Alert.alert("Backend Connection", `Status: ${result.status}\n${result.message}`, [{ text: "OK" }]);
-    } catch (error) {
-      console.error("Backend connection test failed:", error);
-      Alert.alert("Backend Connection Failed", error instanceof Error ? error.message : "Unknown error occurred", [
-        { text: "OK" },
-      ]);
-    }
-  };
-
   const handleSwitchMode = () => {
     switchMode();
   };
@@ -90,11 +77,6 @@ export default function Temp() {
           <TouchableOpacity style={styles.button} onPress={handleLogCurrentUserMessages}>
             <Ionicons name="person-circle-outline" size={24} color={COLORS.white} />
             <Text style={styles.buttonText}>Log Current User Messages</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button} onPress={handleTestBackendConnection}>
-            <Ionicons name="server-outline" size={24} color={COLORS.white} />
-            <Text style={styles.buttonText}>Test Backend Connection</Text>
           </TouchableOpacity>
         </View>
 
