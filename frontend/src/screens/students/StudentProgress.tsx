@@ -12,7 +12,7 @@ import { StatsCard } from "../../components/cards";
 type Props = BottomTabScreenProps<StudentTabsParamList, "StudentProgress">;
 
 interface ProgressLesson {
-  id: number;
+  id: string;
   title: string;
   courseTitle: string;
   progress: number; // 0-100
@@ -29,7 +29,7 @@ export default function StudentProgress({ navigation }: Props) {
   const onRefresh = async () => {
     setRefreshing(true);
     // TODO: Fetch progress lessons from API
-    // const lessons = await apiService.getStudentProgressLessons(user?.id);
+    // const lessons = await api.getStudentProgressLessons(user?.id);
     // setProgressLessons(lessons);
     console.log(user);
     setProgressLessons([]);
@@ -155,7 +155,7 @@ export default function StudentProgress({ navigation }: Props) {
 
             <TouchableOpacity
               style={styles.actionCard}
-              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id || 0 })}
+              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id || "" })}
             >
               <View style={styles.actionIcon}>
                 <Ionicons name="person-outline" size={24} color={COLORS.purple} />

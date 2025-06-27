@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useScreenDimensions } from "../../hooks";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService } from "../../services/api";
+import { api } from "../../services/api";
 import { COLORS } from "../../styles";
 
 export default function Temp() {
@@ -14,7 +14,7 @@ export default function Temp() {
 
   const handleLogAllUsers = async () => {
     try {
-      const users = await apiService.getAllUsers();
+      const users = await api.getAllUsers();
       console.log("All Users:", users);
       Alert.alert("Success", `Logged ${users.length} users to console`);
     } catch (error) {
@@ -30,12 +30,12 @@ export default function Temp() {
         return;
       }
 
-      const conversations = await apiService.getConversationsForUser(currentUser.id);
+      const conversations = await api.getConversationsForUser(currentUser.id);
 
       const detailedMessages = [];
       for (const conv of conversations) {
         try {
-          const messages = await apiService.getMessagesBetweenUsers(currentUser.id, conv.other_user_id);
+          const messages = await api.getMessagesBetweenUsers(currentUser.id, conv.other_user_id);
           detailedMessages.push(...messages);
         } catch (error) {
           console.error(`Error fetching messages with user ${conv.other_user_id}:`, error);
@@ -52,7 +52,7 @@ export default function Temp() {
 
   const handleTestBackendConnection = async () => {
     try {
-      const result = await apiService.checkBackendConnection();
+      const result = await api.checkBackendConnection();
       console.log("Backend Connection Test:", result);
       Alert.alert("Backend Connection", `Status: ${result.status}\n${result.message}`, [{ text: "OK" }]);
     } catch (error) {

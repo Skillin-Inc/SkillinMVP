@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps } from "@react-navigation/native";
@@ -40,7 +41,7 @@ export default function TeacherHome({ navigation }: Props) {
   };
 
   const handleViewProfile = () => {
-    navigation.navigate("TeacherProfile", { userId: user?.id || 0 });
+    navigation.navigate("TeacherProfile", { userId: user?.id });
   };
 
   if (loading) {
@@ -122,14 +123,14 @@ export default function TeacherHome({ navigation }: Props) {
             icon="calendar-outline"
             title="Schedule"
             subtitle="Manage your timetable"
-            onPress={() => {}}
+            onPress={() => Alert.alert("Coming Soon", "This feature is coming soon!")}
           />
 
           <QuickActionCard
             icon="stats-chart-outline"
             title="Analytics"
             subtitle="View performance stats"
-            onPress={() => {}}
+            onPress={() => Alert.alert("Coming Soon", "This feature is coming soon!")}
           />
         </View>
 

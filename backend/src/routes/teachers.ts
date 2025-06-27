@@ -4,6 +4,12 @@ import { pool } from "../db";
 
 const router = Router();
 
+// Helper function to validate UUID
+function isValidUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
 const readRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 read requests per windowMs
@@ -48,7 +54,13 @@ router.get("/", readRateLimiter, async (req: Request, res: Response) => {
 
 // GET /teachers/:id - Single teacher object
 router.get("/:id", readRateLimiter, async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
+
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid teacher ID format" });
+    return;
+  }
+
   try {
     const result = await pool.query(
       `SELECT t.*, u.first_name, u.last_name, u.username, u.email, c.title AS category_title
@@ -71,8 +83,18 @@ router.get("/:id", readRateLimiter, async (req: Request, res: Response) => {
 
 // PATCH /teachers/:id — update category
 router.patch("/:id", writeRateLimiter, async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
   const { category_id } = req.body;
+
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid teacher ID format" });
+    return;
+  }
+
+  if (category_id && (!isValidUUID(category_id) || typeof category_id !== "string")) {
+    res.status(400).json({ error: "category_id must be a valid UUID" });
+    return;
+  }
 
   try {
     const result = await pool.query(
@@ -94,7 +116,13 @@ router.patch("/:id", writeRateLimiter, async (req: Request, res: Response) => {
 
 // DELETE /teachers/:id
 router.delete("/:id", deleteRateLimiter, async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
+
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid teacher ID format" });
+    return;
+  }
+
   try {
     const result = await pool.query(`DELETE FROM public.teachers WHERE id = $1 RETURNING *`, [id]);
     if (result.rowCount === 0) {

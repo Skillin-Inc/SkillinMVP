@@ -2,9 +2,9 @@ import { io, Socket } from "socket.io-client";
 import { WEBSOCKET_CONFIG } from "../config/websocket";
 
 export interface SocketMessage {
-  id: number;
-  sender_id: number;
-  receiver_id: number;
+  id: string;
+  sender_id: string;
+  receiver_id: string;
   content: string;
   is_read: boolean;
   created_at: string;
@@ -12,7 +12,7 @@ export interface SocketMessage {
 
 function createWebSocketService() {
   let socket: Socket | null = null;
-  let currentUserId: number | null = null;
+  let currentUserId: string | null = null;
 
   const connect = (baseUrl: string = WEBSOCKET_CONFIG.baseUrl): Socket => {
     if (socket?.connected) {
@@ -47,14 +47,14 @@ function createWebSocketService() {
     }
   };
 
-  const registerUser = (userId: number): void => {
+  const registerUser = (userId: string): void => {
     currentUserId = userId;
     if (socket?.connected) {
       socket.emit("register", userId);
     }
   };
 
-  const sendMessage = (senderId: number, receiverId: number, content: string): void => {
+  const sendMessage = (senderId: string, receiverId: string, content: string): void => {
     if (socket?.connected) {
       socket.emit("send_message", {
         sender_id: senderId,

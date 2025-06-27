@@ -24,7 +24,7 @@ import {
   TeacherStackParamList,
 } from "../../types/navigation";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService } from "../../services/api";
+import { api } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 import { LoadingState, EmptyState, SectionHeader } from "../../components/common";
 
@@ -49,13 +49,12 @@ export default function Messages({ navigation }: Props) {
     try {
       setLoading(true);
       const [allUsersData, conversations] = await Promise.all([
-        apiService.getAllUsers(),
-        apiService.getConversationsForUser(currentUser.id),
+        api.getAllUsers(),
+        api.getConversationsForUser(currentUser.id),
       ]);
 
       const conversationMap = new Map(conversations.map((conv) => [conv.other_user_id, conv]));
 
-      // Users with conversations
       const conversationUsers = allUsersData
         .filter((user) => user.id !== currentUser?.id)
         .filter((user) => conversationMap.has(user.id))
@@ -71,7 +70,6 @@ export default function Messages({ navigation }: Props) {
           };
         });
 
-      // All users (for search)
       const allOtherUsers = allUsersData
         .filter((user) => user.id !== currentUser?.id)
         .map((user) => ({
@@ -106,7 +104,6 @@ export default function Messages({ navigation }: Props) {
 
     const handleNewMessage = (socketMessage: SocketMessage) => {
       if (socketMessage.sender_id === currentUser.id || socketMessage.receiver_id === currentUser.id) {
-        // Refresh conversations to update unread counts and last message
         fetchUsersWithConversations();
       }
     };
@@ -161,12 +158,10 @@ export default function Messages({ navigation }: Props) {
 
     const query = searchQuery.toLowerCase();
 
-    // Filter existing conversations
     const filteredConversations = users.filter(
       (user) => user.name.toLowerCase().includes(query) || user.lastMessage.toLowerCase().includes(query)
     );
 
-    // Filter new users (exclude users we already have conversations with)
     const conversationUserIds = new Set(users.map((user) => user.id));
     const filteredNewUsers = allUsers
       .filter((user) => !conversationUserIds.has(user.id))

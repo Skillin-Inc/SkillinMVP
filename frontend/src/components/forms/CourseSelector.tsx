@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../styles";
 
 interface Course {
-  id: number;
+  id: string;
   title: string;
 }
 
@@ -43,7 +43,7 @@ const CourseSelector: React.FC<CourseSelectorProps> = ({
           ) : (
             <FlatList
               data={courses}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.courseItem}

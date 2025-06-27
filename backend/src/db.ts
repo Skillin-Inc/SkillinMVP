@@ -6,7 +6,7 @@ export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
-export async function getUserById(id: number) {
+export async function getUserById(id: string) {
   const result = await pool.query('SELECT * FROM public.users WHERE "id" = $1', [id]);
   return result.rows[0] ?? null;
 }
@@ -80,8 +80,8 @@ export async function verifyUser(emailOrPhone: string, password: string) {
 }
 
 export interface NewMessage {
-  sender_id: number;
-  receiver_id: number;
+  sender_id: string;
+  receiver_id: string;
   content: string;
 }
 
@@ -90,21 +90,21 @@ export interface NewCategory {
 }
 
 export interface Category {
-  id: number;
+  id: string;
   title: string;
 }
 
 export interface NewCourse {
-  teacher_id: number;
-  category_id: number;
+  teacher_id: string;
+  category_id: string;
   title: string;
   description: string;
 }
 
 export interface Course {
-  id: number;
-  teacher_id: number;
-  category_id: number;
+  id: string;
+  teacher_id: string;
+  category_id: string;
   title: string;
   description: string;
   created_at: string;
@@ -114,17 +114,17 @@ export interface Course {
 }
 
 export interface NewLesson {
-  teacher_id: number;
-  course_id: number;
+  teacher_id: string;
+  course_id: string;
   title: string;
   description: string;
   video_url: string;
 }
 
 export interface Lesson {
-  id: number;
-  teacher_id: number;
-  course_id: number;
+  id: string;
+  teacher_id: string;
+  course_id: string;
   title: string;
   description: string;
   video_url: string;
@@ -167,13 +167,13 @@ export async function getAllCategories(): Promise<Category[]> {
   return result.rows;
 }
 
-export async function getCategoryById(id: number): Promise<Category | null> {
+export async function getCategoryById(id: string): Promise<Category | null> {
   const result = await pool.query(`SELECT * FROM public.categories WHERE "id" = $1`, [id]);
 
   return result.rows[0] || null;
 }
 
-export async function updateCategory(id: number, data: Partial<NewCategory>): Promise<Category | null> {
+export async function updateCategory(id: string, data: Partial<NewCategory>): Promise<Category | null> {
   const fields = [];
   const values = [];
   let paramCount = 1;
@@ -201,7 +201,7 @@ export async function updateCategory(id: number, data: Partial<NewCategory>): Pr
   return result.rows[0] || null;
 }
 
-export async function deleteCategory(id: number): Promise<boolean> {
+export async function deleteCategory(id: string): Promise<boolean> {
   const result = await pool.query(`DELETE FROM public.categories WHERE "id" = $1`, [id]);
 
   return (result.rowCount ?? 0) > 0;
@@ -232,7 +232,7 @@ export async function getAllCourses(): Promise<Course[]> {
   return result.rows;
 }
 
-export async function getCourseById(id: number): Promise<Course | null> {
+export async function getCourseById(id: string): Promise<Course | null> {
   const result = await pool.query(
     `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
@@ -244,7 +244,7 @@ export async function getCourseById(id: number): Promise<Course | null> {
   return result.rows[0] || null;
 }
 
-export async function getCoursesByTeacher(teacherId: number): Promise<Course[]> {
+export async function getCoursesByTeacher(teacherId: string): Promise<Course[]> {
   const result = await pool.query(
     `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
@@ -257,7 +257,7 @@ export async function getCoursesByTeacher(teacherId: number): Promise<Course[]> 
   return result.rows;
 }
 
-export async function getCoursesByCategory(categoryId: number): Promise<Course[]> {
+export async function getCoursesByCategory(categoryId: string): Promise<Course[]> {
   const result = await pool.query(
     `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
@@ -270,7 +270,7 @@ export async function getCoursesByCategory(categoryId: number): Promise<Course[]
   return result.rows;
 }
 
-export async function updateCourse(id: number, data: Partial<NewCourse>): Promise<Course | null> {
+export async function updateCourse(id: string, data: Partial<NewCourse>): Promise<Course | null> {
   const fields = [];
   const values = [];
   let paramCount = 1;
@@ -310,7 +310,7 @@ export async function updateCourse(id: number, data: Partial<NewCourse>): Promis
   return result.rows[0] || null;
 }
 
-export async function deleteCourse(id: number): Promise<boolean> {
+export async function deleteCourse(id: string): Promise<boolean> {
   const result = await pool.query(`DELETE FROM public.courses WHERE "id" = $1`, [id]);
 
   return (result.rowCount ?? 0) > 0;
@@ -341,7 +341,7 @@ export async function getAllLessons(): Promise<Lesson[]> {
   return result.rows;
 }
 
-export async function getLessonById(id: number): Promise<Lesson | null> {
+export async function getLessonById(id: string): Promise<Lesson | null> {
   const result = await pool.query(
     `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
      FROM public.lessons l
@@ -353,7 +353,7 @@ export async function getLessonById(id: number): Promise<Lesson | null> {
   return result.rows[0] || null;
 }
 
-export async function getLessonsByTeacher(teacherId: number): Promise<Lesson[]> {
+export async function getLessonsByTeacher(teacherId: string): Promise<Lesson[]> {
   const result = await pool.query(
     `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
      FROM public.lessons l
@@ -366,7 +366,7 @@ export async function getLessonsByTeacher(teacherId: number): Promise<Lesson[]> 
   return result.rows;
 }
 
-export async function getLessonsByCourse(courseId: number): Promise<Lesson[]> {
+export async function getLessonsByCourse(courseId: string): Promise<Lesson[]> {
   const result = await pool.query(
     `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
      FROM public.lessons l
@@ -379,7 +379,7 @@ export async function getLessonsByCourse(courseId: number): Promise<Lesson[]> {
   return result.rows;
 }
 
-export async function updateLesson(id: number, data: Partial<NewLesson>): Promise<Lesson | null> {
+export async function updateLesson(id: string, data: Partial<NewLesson>): Promise<Lesson | null> {
   const fields = [];
   const values = [];
   let paramCount = 1;
@@ -425,13 +425,13 @@ export async function updateLesson(id: number, data: Partial<NewLesson>): Promis
   return result.rows[0] || null;
 }
 
-export async function deleteLesson(id: number): Promise<boolean> {
+export async function deleteLesson(id: string): Promise<boolean> {
   const result = await pool.query(`DELETE FROM public.lessons WHERE "id" = $1`, [id]);
 
   return (result.rowCount ?? 0) > 0;
 }
 
-export async function getMessagesBetweenUsers(userId1: number, userId2: number) {
+export async function getMessagesBetweenUsers(userId1: string, userId2: string) {
   const result = await pool.query(
     `SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.created_at,
             u1."first_name" as sender_first_name, u1."last_name" as sender_last_name,
@@ -448,7 +448,7 @@ export async function getMessagesBetweenUsers(userId1: number, userId2: number) 
   return result.rows;
 }
 
-export async function getConversationsForUser(userId: number) {
+export async function getConversationsForUser(userId: string) {
   const result = await pool.query(
     `SELECT DISTINCT 
             CASE 
@@ -484,7 +484,7 @@ export async function getConversationsForUser(userId: number) {
   return result.rows;
 }
 
-export async function markMessagesAsRead(userId: number, otherUserId: number) {
+export async function markMessagesAsRead(userId: string, otherUserId: string) {
   const result = await pool.query(
     `UPDATE public.messages 
      SET "is_read" = true 
@@ -496,7 +496,7 @@ export async function markMessagesAsRead(userId: number, otherUserId: number) {
   return result.rows;
 }
 
-export async function getUnreadCount(userId: number, otherUserId: number) {
+export async function getUnreadCount(userId: string, otherUserId: string) {
   const result = await pool.query(
     `SELECT COUNT(*) as unread_count
      FROM public.messages 
@@ -572,26 +572,26 @@ export async function updateUserTypeByEmail(email: string, newUserType: "student
 }
 
 export interface NewProgress {
-  user_id: number;
-  lesson_id: number;
+  user_id: string;
+  lesson_id: string;
 }
 
 export interface Progress {
-  id: number;
-  user_id: number;
-  lesson_id: number;
+  id: string;
+  user_id: string;
+  lesson_id: string;
   created_at: string;
 }
 
 export interface ProgressWithLessonDetails {
-  id: number;
-  user_id: number;
-  lesson_id: number;
+  id: string;
+  user_id: string;
+  lesson_id: string;
   created_at: string;
   lesson_title: string;
   lesson_description: string;
   lesson_video_url: string;
-  course_id: number;
+  course_id: string;
   course_title: string;
   teacher_first_name: string;
   teacher_last_name: string;
@@ -611,7 +611,7 @@ export async function createProgress(data: NewProgress): Promise<Progress> {
   return result.rows[0];
 }
 
-export async function getProgressByUser(userId: number): Promise<ProgressWithLessonDetails[]> {
+export async function getProgressByUser(userId: string): Promise<ProgressWithLessonDetails[]> {
   const result = await pool.query(
     `SELECT p.*, 
             l.title as lesson_title, 
@@ -633,13 +633,13 @@ export async function getProgressByUser(userId: number): Promise<ProgressWithLes
   return result.rows;
 }
 
-export async function getProgressById(id: number): Promise<Progress | null> {
+export async function getProgressById(id: string): Promise<Progress | null> {
   const result = await pool.query(`SELECT * FROM public.progress WHERE "id" = $1`, [id]);
 
   return result.rows[0] || null;
 }
 
-export async function getProgressByUserAndLesson(userId: number, lessonId: number): Promise<Progress | null> {
+export async function getProgressByUserAndLesson(userId: string, lessonId: string): Promise<Progress | null> {
   const result = await pool.query(`SELECT * FROM public.progress WHERE "user_id" = $1 AND "lesson_id" = $2`, [
     userId,
     lessonId,
@@ -648,13 +648,13 @@ export async function getProgressByUserAndLesson(userId: number, lessonId: numbe
   return result.rows[0] || null;
 }
 
-export async function deleteProgress(id: number): Promise<boolean> {
+export async function deleteProgress(id: string): Promise<boolean> {
   const result = await pool.query(`DELETE FROM public.progress WHERE "id" = $1`, [id]);
 
   return (result.rowCount ?? 0) > 0;
 }
 
-export async function deleteProgressByUserAndLesson(userId: number, lessonId: number): Promise<boolean> {
+export async function deleteProgressByUserAndLesson(userId: string, lessonId: string): Promise<boolean> {
   const result = await pool.query(`DELETE FROM public.progress WHERE "user_id" = $1 AND "lesson_id" = $2`, [
     userId,
     lessonId,
