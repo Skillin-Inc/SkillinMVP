@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
-import { apiService, Course, Category } from "../../services/api";
+import { api, Course, Category } from "../../services/api";
 import { StudentStackParamList } from "../../types/navigation";
 import { LoadingState, EmptyState } from "../../components/common";
 import { CourseCard } from "../../components/cards";
@@ -24,7 +24,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
     try {
       setLoading(true);
 
-      const categories = await apiService.getAllCategories();
+      const categories = await api.getAllCategories();
       const matchingCategory = categories.find(
         (category: Category) => category.title.toLowerCase() === id.toLowerCase()
       );
@@ -35,7 +35,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
         return;
       }
 
-      const coursesData = await apiService.getCoursesByCategory(matchingCategory.id);
+      const coursesData = await api.getCoursesByCategory(matchingCategory.id);
       setCourses(coursesData);
     } catch (error) {
       console.error("Error loading courses:", error);

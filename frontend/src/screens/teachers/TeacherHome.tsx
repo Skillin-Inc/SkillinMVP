@@ -40,7 +40,7 @@ export default function TeacherHome({ navigation }: Props) {
   };
 
   const handleViewProfile = () => {
-    navigation.navigate("TeacherProfile", { userId: user?.id || 0 });
+    navigation.navigate("TeacherProfile", { userId: user?.id });
   };
 
   if (loading) {

@@ -20,7 +20,7 @@ import { COLORS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
 import { CategoryCard, QuickActionCard } from "../../components/cards";
-import { apiService, Category } from "../../services/api";
+import { api, Category } from "../../services/api";
 import temp from "../../../assets/playingCards.png";
 
 type Props = CompositeScreenProps<
@@ -42,7 +42,7 @@ export default function StudentHome({ navigation }: Props) {
 
   const loadCategories = async () => {
     try {
-      const categoriesData = await apiService.getAllCategories();
+      const categoriesData = await api.getAllCategories();
       setCategories(categoriesData);
     } catch (error) {
       console.error("Error loading categories:", error);
@@ -62,7 +62,7 @@ export default function StudentHome({ navigation }: Props) {
   };
 
   const handleViewProfile = () => {
-    navigation.navigate("StudentProfile", { userId: user?.id || 0 });
+    navigation.navigate("StudentProfile", { userId: user?.id });
   };
 
   if (loading) {
@@ -145,7 +145,7 @@ export default function StudentHome({ navigation }: Props) {
               icon="person-outline"
               title="My Profile"
               subtitle="View and edit your profile"
-              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id || 0 })}
+              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id })}
             />
 
             <QuickActionCard

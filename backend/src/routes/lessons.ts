@@ -12,6 +12,12 @@ import {
 
 const router = Router();
 
+// Helper function to validate UUID
+function isValidUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
 router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response): Promise<void> => {
   const body = req.body;
 
@@ -24,13 +30,13 @@ router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response)
     }
   }
 
-  if (typeof body.teacher_id !== "number") {
-    res.status(400).json({ error: "teacher_id must be a number" });
+  if (typeof body.teacher_id !== "string" || !isValidUUID(body.teacher_id)) {
+    res.status(400).json({ error: "teacher_id must be a valid UUID" });
     return;
   }
 
-  if (typeof body.course_id !== "number") {
-    res.status(400).json({ error: "course_id must be a number" });
+  if (typeof body.course_id !== "string" || !isValidUUID(body.course_id)) {
+    res.status(400).json({ error: "course_id must be a valid UUID" });
     return;
   }
 
@@ -74,10 +80,10 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid lesson ID" });
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid lesson ID format" });
     return;
   }
 
@@ -95,10 +101,10 @@ router.get("/:id", async (req, res) => {
 });
 
 router.get("/teacher/:teacherId", async (req, res) => {
-  const teacherId = Number(req.params.teacherId);
+  const teacherId = String(req.params.teacherId);
 
-  if (isNaN(teacherId)) {
-    res.status(400).json({ error: "Invalid teacher ID" });
+  if (!isValidUUID(teacherId)) {
+    res.status(400).json({ error: "Invalid teacher ID format" });
     return;
   }
 
@@ -112,10 +118,10 @@ router.get("/teacher/:teacherId", async (req, res) => {
 });
 
 router.get("/course/:courseId", async (req, res) => {
-  const courseId = Number(req.params.courseId);
+  const courseId = String(req.params.courseId);
 
-  if (isNaN(courseId)) {
-    res.status(400).json({ error: "Invalid course ID" });
+  if (!isValidUUID(courseId)) {
+    res.status(400).json({ error: "Invalid course ID format" });
     return;
   }
 
@@ -129,11 +135,11 @@ router.get("/course/:courseId", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
   const updateData = req.body;
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid lesson ID" });
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid lesson ID format" });
     return;
   }
 
@@ -144,6 +150,12 @@ router.put("/:id", async (req, res) => {
     res
       .status(400)
       .json({ error: "At least one field (course_id, title, description, video_url) must be provided for update" });
+    return;
+  }
+
+  // Validate course_id if provided
+  if (updateData.course_id && (!isValidUUID(updateData.course_id) || typeof updateData.course_id !== "string")) {
+    res.status(400).json({ error: "course_id must be a valid UUID" });
     return;
   }
 
@@ -165,10 +177,10 @@ router.put("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid lesson ID" });
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid lesson ID format" });
     return;
   }
 

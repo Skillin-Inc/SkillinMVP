@@ -5,7 +5,7 @@ import { COLORS } from "../../styles";
 
 interface LessonCardProps {
   lesson: {
-    id: number;
+    id: string;
     title: string;
     description: string;
     created_at: string;

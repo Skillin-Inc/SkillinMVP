@@ -18,13 +18,13 @@ import { ImagePickerAvatar } from "../../components/forms";
 import { StatsCard, QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { TeacherTabsParamList } from "../../types/navigation";
-import { User, apiService, transformBackendUserToUser } from "../../services/api";
+import { User, api, transformBackendUserToUser } from "../../services/api";
 
 type Props = BottomTabScreenProps<TeacherTabsParamList, "TeacherProfile">;
 
 export default function TeacherProfile({ navigation, route }: Props) {
   const { logout, user: currentUser } = useContext(AuthContext);
-  const userId = route.params?.userId ?? currentUser?.id ?? 0;
+  const userId = route.params?.userId ?? currentUser?.id ?? "";
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
@@ -42,7 +42,7 @@ export default function TeacherProfile({ navigation, route }: Props) {
       if (isOwnProfile && currentUser) {
         setProfileUser(currentUser);
       } else {
-        const backendUser = await apiService.getUserById(userId);
+        const backendUser = await api.getUserById(userId);
         const transformedUser = transformBackendUserToUser(backendUser);
         setProfileUser(transformedUser);
       }

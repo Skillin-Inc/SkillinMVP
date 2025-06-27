@@ -4,6 +4,12 @@ import { createMessage, NewMessage, getMessagesBetweenUsers, getConversationsFor
 
 const router = Router();
 
+// Helper function to validate UUID
+function isValidUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
 router.post("/", async (req: Request<object, unknown, NewMessage>, res: Response): Promise<void> => {
   const body = req.body;
 
@@ -16,8 +22,13 @@ router.post("/", async (req: Request<object, unknown, NewMessage>, res: Response
     }
   }
 
-  if (typeof body.sender_id !== "number" || typeof body.receiver_id !== "number") {
-    res.status(400).json({ error: "sender_id and receiver_id must be numbers" });
+  if (typeof body.sender_id !== "string" || !isValidUUID(body.sender_id)) {
+    res.status(400).json({ error: "sender_id must be a valid UUID" });
+    return;
+  }
+
+  if (typeof body.receiver_id !== "string" || !isValidUUID(body.receiver_id)) {
+    res.status(400).json({ error: "receiver_id must be a valid UUID" });
     return;
   }
 
@@ -41,11 +52,11 @@ router.post("/", async (req: Request<object, unknown, NewMessage>, res: Response
 });
 
 router.get("/between/:userId1/:userId2", async (req, res) => {
-  const userId1 = Number(req.params.userId1);
-  const userId2 = Number(req.params.userId2);
+  const userId1 = String(req.params.userId1);
+  const userId2 = String(req.params.userId2);
 
-  if (isNaN(userId1) || isNaN(userId2)) {
-    res.status(400).json({ error: "Invalid user IDs" });
+  if (!isValidUUID(userId1) || !isValidUUID(userId2)) {
+    res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
 
@@ -60,10 +71,10 @@ router.get("/between/:userId1/:userId2", async (req, res) => {
 });
 
 router.get("/conversations/:userId", async (req, res) => {
-  const userId = Number(req.params.userId);
+  const userId = String(req.params.userId);
 
-  if (isNaN(userId)) {
-    res.status(400).json({ error: "Invalid user ID" });
+  if (!isValidUUID(userId)) {
+    res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
 
@@ -78,11 +89,11 @@ router.get("/conversations/:userId", async (req, res) => {
 });
 
 router.put("/mark-read/:userId/:otherUserId", async (req, res) => {
-  const userId = Number(req.params.userId);
-  const otherUserId = Number(req.params.otherUserId);
+  const userId = String(req.params.userId);
+  const otherUserId = String(req.params.otherUserId);
 
-  if (isNaN(userId) || isNaN(otherUserId)) {
-    res.status(400).json({ error: "Invalid user IDs" });
+  if (!isValidUUID(userId) || !isValidUUID(otherUserId)) {
+    res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
 

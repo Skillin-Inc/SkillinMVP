@@ -25,7 +25,7 @@ const io = new Server(server, {
 
 const PORT = Number(process.env.PORT) || 4000;
 
-const userSockets = new Map<number, string>();
+const userSockets = new Map<string, string>();
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" })); // change to 20mb if needed
@@ -38,12 +38,12 @@ app.get("/", (req: Request, res: Response) => {
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("register", (userId: number) => {
+  socket.on("register", (userId: string) => {
     userSockets.set(userId, socket.id);
     console.log(`User ${userId} registered with socket ${socket.id}`);
   });
 
-  socket.on("send_message", async (data: { sender_id: number; receiver_id: number; content: string }) => {
+  socket.on("send_message", async (data: { sender_id: string; receiver_id: string; content: string }) => {
     try {
       const { createMessage } = await import("./db");
       const newMessage = await createMessage({

@@ -14,7 +14,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, Course, Lesson } from "../../services/api";
+import { api, Course, Lesson } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
 import { HeaderWithBack, LoadingState, EmptyState, SectionHeader } from "../../components/common";
 import { LessonCard } from "../../components/cards";
@@ -39,8 +39,8 @@ export default function TeacherCourse({ navigation, route }: Props) {
   const loadCourseData = async () => {
     try {
       const [courseData, lessonsData] = await Promise.all([
-        apiService.getCourseById(courseId),
-        apiService.getLessonsByCourse(courseId),
+        api.getCourseById(courseId),
+        api.getLessonsByCourse(courseId),
       ]);
       setCourse(courseData);
       setLessons(lessonsData);
@@ -89,7 +89,7 @@ export default function TeacherCourse({ navigation, route }: Props) {
           style: "destructive",
           onPress: async () => {
             try {
-              await apiService.deleteCourse(courseId);
+              await api.deleteCourse(courseId);
               Alert.alert("Success", "Course deleted successfully.", [
                 { text: "OK", onPress: () => navigation.goBack() },
               ]);

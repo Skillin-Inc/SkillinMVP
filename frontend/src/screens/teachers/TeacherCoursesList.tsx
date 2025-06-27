@@ -14,7 +14,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, Course } from "../../services/api";
+import { api, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
 import { LoadingState, EmptyState } from "../../components/common";
 import { CourseCard } from "../../components/cards";
@@ -24,7 +24,7 @@ type Props = StackScreenProps<TeacherStackParamList, "TeacherCoursesList">;
 export default function TeacherCoursesList({ navigation }: Props) {
   const { user } = useContext(AuthContext);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [lessonCounts, setLessonCounts] = useState<{ [courseId: number]: number }>({});
+  const [lessonCounts, setLessonCounts] = useState<{ [courseId: string]: number }>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -38,15 +38,15 @@ export default function TeacherCoursesList({ navigation }: Props) {
     if (!user || user.userType !== "teacher") return;
 
     try {
-      const coursesData = await apiService.getCoursesByTeacher(user.id);
+      const coursesData = await api.getCoursesByTeacher(user.id);
       setCourses(coursesData);
 
       // Fetch lesson counts for each course
-      const counts: { [courseId: number]: number } = {};
+      const counts: { [courseId: string]: number } = {};
       await Promise.all(
         coursesData.map(async (course) => {
           try {
-            const lessons = await apiService.getLessonsByCourse(course.id);
+            const lessons = await api.getLessonsByCourse(course.id);
             counts[course.id] = lessons.length;
           } catch (error) {
             console.error(`Error loading lessons for course ${course.id}:`, error);

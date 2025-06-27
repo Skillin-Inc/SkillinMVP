@@ -5,7 +5,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, Lesson, Course } from "../../services/api";
+import { api, Lesson, Course } from "../../services/api";
 import { StudentStackParamList } from "../../types/navigation";
 import { HeaderWithBack, LoadingState, EmptyState } from "../../components/common";
 
@@ -27,10 +27,10 @@ export default function StudentLesson({ navigation, route }: Props) {
 
   const loadLessonData = async () => {
     try {
-      const lessonData = await apiService.getLessonById(lessonId);
+      const lessonData = await api.getLessonById(lessonId);
       setLesson(lessonData);
 
-      const courseData = await apiService.getCourseById(lessonData.course_id);
+      const courseData = await api.getCourseById(lessonData.course_id);
       setCourse(courseData);
     } catch (error) {
       console.error("Error loading lesson data:", error);

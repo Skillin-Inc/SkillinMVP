@@ -5,7 +5,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, Lesson, Course } from "../../services/api";
+import { api, Lesson, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
 import { HeaderWithBack, LoadingState, EmptyState, SectionHeader } from "../../components/common";
 import { VideoSection } from "../../components/media";
@@ -28,11 +28,11 @@ export default function TeacherLesson({ navigation, route }: Props) {
 
   const loadLessonData = async () => {
     try {
-      const lessonData = await apiService.getLessonById(lessonId);
+      const lessonData = await api.getLessonById(lessonId);
       setLesson(lessonData);
 
       // Also fetch the course data for context
-      const courseData = await apiService.getCourseById(lessonData.course_id);
+      const courseData = await api.getCourseById(lessonData.course_id);
       setCourse(courseData);
     } catch (error) {
       console.error("Error loading lesson data:", error);
@@ -66,7 +66,7 @@ export default function TeacherLesson({ navigation, route }: Props) {
         style: "destructive",
         onPress: async () => {
           try {
-            await apiService.deleteLesson(lessonId);
+            await api.deleteLesson(lessonId);
             Alert.alert("Success", "Lesson deleted successfully.", [
               { text: "OK", onPress: () => navigation.goBack() },
             ]);
