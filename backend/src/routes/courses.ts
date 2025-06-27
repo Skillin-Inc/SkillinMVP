@@ -115,14 +115,27 @@ router.get("/teacher/:teacherId", async (req, res) => {
 
 router.get("/category/:categoryId", async (req, res) => {
   const categoryId = String(req.params.categoryId);
+  const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+  const offset = req.query.offset ? parseInt(String(req.query.offset), 10) : undefined;
 
   if (!isValidUUID(categoryId)) {
     res.status(400).json({ error: "Invalid category ID format" });
     return;
   }
 
+  // Validate pagination parameters
+  if (limit !== undefined && (isNaN(limit) || limit <= 0 || limit > 100)) {
+    res.status(400).json({ error: "Limit must be a positive number between 1 and 100" });
+    return;
+  }
+
+  if (offset !== undefined && (isNaN(offset) || offset < 0)) {
+    res.status(400).json({ error: "Offset must be a non-negative number" });
+    return;
+  }
+
   try {
-    const courses = await getCoursesByCategory(categoryId);
+    const courses = await getCoursesByCategory(categoryId, limit, offset);
     res.json(courses);
   } catch (error: unknown) {
     console.error(error);

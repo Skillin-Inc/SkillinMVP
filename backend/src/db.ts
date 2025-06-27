@@ -257,15 +257,26 @@ export async function getCoursesByTeacher(teacherId: string): Promise<Course[]> 
   return result.rows;
 }
 
-export async function getCoursesByCategory(categoryId: string): Promise<Course[]> {
-  const result = await pool.query(
-    `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
+export async function getCoursesByCategory(categoryId: string, limit?: number, offset?: number): Promise<Course[]> {
+  let query = `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
      JOIN public.users u ON c.teacher_id = u."id"
      WHERE c.category_id = $1
-     ORDER BY c.created_at DESC`,
-    [categoryId]
-  );
+     ORDER BY c.created_at DESC`;
+
+  const params: (string | number)[] = [categoryId];
+
+  if (limit !== undefined) {
+    query += ` LIMIT $${params.length + 1}`;
+    params.push(limit);
+  }
+
+  if (offset !== undefined) {
+    query += ` OFFSET $${params.length + 1}`;
+    params.push(offset);
+  }
+
+  const result = await pool.query(query, params);
 
   return result.rows;
 }
@@ -518,57 +529,15 @@ export async function deleteUserByEmail(email: string) {
 }
 
 export async function updateUserTypeByEmail(email: string, newUserType: "student" | "teacher" | "admin") {
-  const client = await pool.connect();
-  try {
-    await client.query("BEGIN");
+  const result = await pool.query(
+    `UPDATE public.users
+     SET user_type = $1
+     WHERE email = $2
+     RETURNING *`,
+    [newUserType, email]
+  );
 
-    const current = await client.query(`SELECT id AS user_id, user_type FROM public.users WHERE email = $1`, [email]);
-
-    if (current.rows.length === 0) {
-      await client.query("ROLLBACK");
-      return null;
-    }
-
-    const { user_id, user_type: currentUserType } = current.rows[0];
-
-    // If the user type is already the same, no need to update
-    if (currentUserType === newUserType) {
-      await client.query("ROLLBACK");
-      return null;
-    }
-
-    const result = await client.query(
-      `UPDATE public.users
-       SET user_type = $1
-       WHERE email = $2
-       RETURNING *`,
-      [newUserType, email]
-    );
-
-    // Handle teachers table updates
-    if (newUserType === "teacher") {
-      // Promote: Add to teachers table if not already there
-      await client.query(
-        `INSERT INTO public.teachers (user_id, category_id)
-         SELECT $1, 1
-         WHERE NOT EXISTS (
-           SELECT 1 FROM public.teachers WHERE user_id = $1
-         )`,
-        [user_id]
-      );
-    } else if (currentUserType === "teacher") {
-      // Demote: Remove from teachers table if they were a teacher
-      await client.query(`DELETE FROM public.teachers WHERE user_id = $1`, [user_id]);
-    }
-
-    await client.query("COMMIT");
-    return result.rows[0];
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
-  }
+  return result.rows[0] ?? null;
 }
 
 export interface NewProgress {

@@ -130,16 +130,6 @@ export interface Lesson {
   teacher_first_name?: string;
   teacher_last_name?: string;
 }
-export interface Tutor {
-  teacher_id: string;
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  username: string;
-  email: string;
-  phone_number: string;
-  category: string;
-}
 
 function createApiService() {
   const transformBackendUserToUser = (backendUser: BackendUser): User => {
@@ -307,8 +297,22 @@ function createApiService() {
     });
   };
 
-  const getCoursesByCategory = async (categoryId: string): Promise<Course[]> => {
-    return makeRequest<Course[]>(`${API_CONFIG.ENDPOINTS.COURSES}/category/${categoryId}`);
+  const getCoursesByCategory = async (categoryId: string, limit?: number, offset?: number): Promise<Course[]> => {
+    let endpoint = `${API_CONFIG.ENDPOINTS.COURSES}/category/${categoryId}`;
+
+    const params = new URLSearchParams();
+    if (limit !== undefined) {
+      params.append("limit", limit.toString());
+    }
+    if (offset !== undefined) {
+      params.append("offset", offset.toString());
+    }
+
+    if (params.toString()) {
+      endpoint += `?${params.toString()}`;
+    }
+
+    return makeRequest<Course[]>(endpoint);
   };
 
   const createCategory = async (categoryData: NewCategory): Promise<Category> => {
@@ -337,40 +341,6 @@ function createApiService() {
     return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.CATEGORIES}/${id}`, {
       method: "DELETE",
     });
-  };
-
-  const checkBackendConnection = async (): Promise<{ status: string; message: string; timestamp?: string }> => {
-    try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/health`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response.json();
-    } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Unknown error");
-    }
-  };
-
-  const checkDatabaseConnection = async (): Promise<{
-    status: string;
-    message: string;
-    timestamp?: string;
-    error?: string;
-  }> => {
-    return makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>(
-      API_CONFIG.ENDPOINTS.DATABASE_HEALTH
-    );
-  };
-
-  const getAllTutors = async (): Promise<Tutor[]> => {
-    return makeRequest<Tutor[]>(API_CONFIG.ENDPOINTS.TEACHERS);
   };
 
   const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
@@ -422,9 +392,6 @@ function createApiService() {
     getCategoryById,
     updateCategory,
     deleteCategory,
-    checkBackendConnection,
-    checkDatabaseConnection,
-    getAllTutors,
     deleteUser,
     updateUserType,
   };

@@ -44,13 +44,6 @@ CREATE TABLE "categories" (
   "title" text NOT NULL
 );
 
--- TEACHERS (REQUIRES users AND categories)
-CREATE TABLE "teachers" (
-  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "user_id" uuid UNIQUE NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-  "category_id" uuid NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE
-);
-
 CREATE TABLE "courses" (
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   "teacher_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
