@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Alert,
   SafeAreaView,
   RefreshControl,
+  Linking,
+  Modal
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps } from "@react-navigation/native";
@@ -19,6 +21,8 @@ import { COLORS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
 import CategoryCard from "../../components/CategoryCard";
 import { apiService, Category } from "../../services/api";
+import { checkIfPaid } from "../../services/payments";
+import { AuthContext } from "../../hooks/AuthContext";
 import temp from "../../../assets/playingCards.png";
 
 type Props = CompositeScreenProps<
@@ -30,12 +34,54 @@ export default function StudentHome({ navigation }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const { user } = useContext(AuthContext); 
 
   const styles = getStyles();
 
   useEffect(() => {
     loadCategories();
+    verifyPayment();
   }, []);
+
+const verifyPayment = async () => {
+  if (!user?.id) return;
+
+  try {
+    const isPaid = await checkIfPaid(user.id);
+    if (!isPaid) {
+      setShowPaymentModal(true);
+    } else {
+      await loadCategories();
+    }
+  } catch (err) {
+    console.error("Failed to verify payment:", err);
+  } finally {
+    setLoading(false);  
+  }
+};
+
+useEffect(() => {
+  let interval: NodeJS.Timeout;
+
+  if (showPaymentModal && user?.id) {
+    interval = setInterval(async () => {
+      try {
+        const isPaid = await checkIfPaid(user.id);
+        if (isPaid) {
+          clearInterval(interval);
+          setShowPaymentModal(false);
+          loadCategories();
+        }
+      } catch (err) {
+        console.error("Polling failed:", err);
+      }
+    }, 5000); // check every 5 seconds
+  }
+
+  return () => clearInterval(interval); 
+}, [showPaymentModal, user?.id]);
+
 
   const loadCategories = async () => {
     try {
@@ -58,6 +104,45 @@ export default function StudentHome({ navigation }: Props) {
   const handleViewProfile = () => {
     navigation.navigate("StudentProfile");
   };
+
+  if (showPaymentModal) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "white",
+            padding: 20,
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+            Subscription Required
+          </Text>
+          <Text style={{ fontSize: 16, textAlign: "center", marginBottom: 20 }}>
+            You have not subscribed yet. Please complete your payment.
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              Linking.openURL("https://buy.stripe.com/test_28E7sKdikeIPcgPbHFgMw00");  // testing url
+            }}
+            style={{
+              backgroundColor: COLORS.purple,
+              padding: 12,
+              borderRadius: 8,
+              width: "100%",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "bold" }}>
+              Go to Payment
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (loading) {
     return (

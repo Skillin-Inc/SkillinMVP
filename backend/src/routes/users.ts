@@ -8,6 +8,7 @@ import {
   getUserByPhone,
   getUserByEmail,
   verifyUser,
+  getIsPaidByUserId ,
   getAllUsers,
   deleteUserByEmail,
   updateUserTypeByEmail,
@@ -25,6 +26,31 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
   return;
+});
+
+router.get("/check-paid-status", async (req, res) => {
+  const rawId = req.query.userId;
+  console.log("Raw userId:", rawId); 
+
+  const userId = parseInt(rawId as string, 10);
+  if (isNaN(userId)) {
+    res.status(400).json({ error: "Invalid userId" });
+    return;
+  }
+
+  try {
+    const isPaid = await getIsPaidByUserId(userId);
+
+    if (isPaid === null) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({ isPaid });
+  } catch (err) {
+    console.error("Error checking paid status:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 router.get("/:id", async (req, res) => {
@@ -76,6 +102,7 @@ router.get("/by-email/:email", async (req, res) => {
   return;
 });
 
+
 const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -107,6 +134,7 @@ router.post(
     }
   }
 );
+
 
 router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
   const body = req.body;

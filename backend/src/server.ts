@@ -14,6 +14,7 @@ import categoriesRouter from "./routes/categories";
 import progressRouter from "./routes/progress";
 import teacherRoutes from "./routes/teachers";
 
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -98,6 +99,7 @@ app.use("/categories", categoriesRouter);
 app.use("/progress", progressRouter);
 app.use("/teachers", teacherRoutes);
 app.use("/api", stripeRoutes);  
+
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Not Found" });
