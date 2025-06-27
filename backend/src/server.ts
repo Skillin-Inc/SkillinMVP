@@ -1,38 +1,83 @@
 // src/server.ts
-import express, { Request, Response } from "express";
+import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import "dotenv/config";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { pool } from "./db";
 
-import usersRouter from "./routes/users";
-import sendEmailRouter from "./routes/sendEmail";
-import messagesRouter from "./routes/messages";
-import lessonsRouter from "./routes/lessons";
-import coursesRouter from "./routes/courses";
-import categoriesRouter from "./routes/categories";
-import progressRouter from "./routes/progress";
-import teacherRoutes from "./routes/teachers";
+// Import route handlers
+import userRoutes from "./routes/users";
+import messageRoutes from "./routes/messages";
+import categoryRoutes from "./routes/categories";
+import courseRoutes from "./routes/courses";
+import lessonRoutes from "./routes/lessons";
+import progressRoutes from "./routes/progress";
 
-const app = express();
+const app: Express = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // change to frontend url in prod
+    origin: process.env.FRONTEND_URL || "http://localhost:8081",
     methods: ["GET", "POST"],
   },
 });
 
-const PORT = Number(process.env.PORT) || 4000;
+const port = process.env.PORT || 4040;
 
 const userSockets = new Map<string, string>();
 
-app.use(cors());
-app.use(express.json({ limit: "10mb" })); // change to 20mb if needed
+// Middleware
+app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:8081",
+    credentials: true,
+  })
+);
 
-// backend check
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello from Express + TypeScript!");
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+// Health check endpoint
+app.get("/health", (req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Database health check endpoint
+app.get("/database-health", async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query("SELECT 1");
+    if (result.rows.length > 0) {
+      res.json({
+        status: "ok",
+        message: "Database connection is healthy",
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      throw new Error("No rows returned");
+    }
+  } catch (error) {
+    console.error("Database health check failed:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Database connection failed",
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+// Serve favicon to prevent 404s
+app.get("/favicon.ico", (req: Request, res: Response) => {
+  res.status(204).end();
 });
 
 io.on("connection", (socket) => {
@@ -89,19 +134,32 @@ io.on("connection", (socket) => {
   });
 });
 
-app.use("/users", usersRouter);
-app.use("/send-email", sendEmailRouter);
-app.use("/messages", messagesRouter);
-app.use("/lessons", lessonsRouter);
-app.use("/courses", coursesRouter);
-app.use("/categories", categoriesRouter);
-app.use("/progress", progressRouter);
-app.use("/teachers", teacherRoutes);
+// API Routes
+app.use("/users", userRoutes);
+app.use("/messages", messageRoutes);
+app.use("/categories", categoryRoutes);
+app.use("/courses", courseRoutes);
+app.use("/lessons", lessonRoutes);
+app.use("/progress", progressRoutes);
 
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: "Not Found" });
+// 404 handler for unmatched routes
+app.use("*", (req: Request, res: Response) => {
+  res.status(404).json({
+    error: "Route not found",
+    path: req.originalUrl,
+    timestamp: new Date().toISOString(),
+  });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Global error handler
+app.use((err: Error, req: Request, res: Response) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({
+    error: "Internal server error",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+server.listen(port, () => {
+  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });

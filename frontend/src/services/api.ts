@@ -130,16 +130,6 @@ export interface Lesson {
   teacher_first_name?: string;
   teacher_last_name?: string;
 }
-export interface Tutor {
-  teacher_id: string;
-  user_id: string;
-  first_name: string;
-  last_name: string;
-  username: string;
-  email: string;
-  phone_number: string;
-  category: string;
-}
 
 function createApiService() {
   const transformBackendUserToUser = (backendUser: BackendUser): User => {
@@ -307,8 +297,22 @@ function createApiService() {
     });
   };
 
-  const getCoursesByCategory = async (categoryId: string): Promise<Course[]> => {
-    return makeRequest<Course[]>(`${API_CONFIG.ENDPOINTS.COURSES}/category/${categoryId}`);
+  const getCoursesByCategory = async (categoryId: string, limit?: number, offset?: number): Promise<Course[]> => {
+    let endpoint = `${API_CONFIG.ENDPOINTS.COURSES}/category/${categoryId}`;
+
+    const params = new URLSearchParams();
+    if (limit !== undefined) {
+      params.append("limit", limit.toString());
+    }
+    if (offset !== undefined) {
+      params.append("offset", offset.toString());
+    }
+
+    if (params.toString()) {
+      endpoint += `?${params.toString()}`;
+    }
+
+    return makeRequest<Course[]>(endpoint);
   };
 
   const createCategory = async (categoryData: NewCategory): Promise<Category> => {
@@ -369,10 +373,6 @@ function createApiService() {
     );
   };
 
-  const getAllTutors = async (): Promise<Tutor[]> => {
-    return makeRequest<Tutor[]>(API_CONFIG.ENDPOINTS.TEACHERS);
-  };
-
   const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
     const encodedEmail = encodeURIComponent(email);
     return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`, {
@@ -424,7 +424,6 @@ function createApiService() {
     deleteCategory,
     checkBackendConnection,
     checkDatabaseConnection,
-    getAllTutors,
     deleteUser,
     updateUserType,
   };
