@@ -1,5 +1,5 @@
 import { Image, ImageStyle, Platform, StyleProp, StyleSheet } from "react-native";
-import defaultAvatar from "../../assets/icons/Avatar_Placeholder.png";
+import defaultAvatar from "../../../assets/icons/Avatar_Placeholder.png";
 
 export type AvatarProps = {
   avatar?: string | number | null; // <- now accepts both require() and string URL

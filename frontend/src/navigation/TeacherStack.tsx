@@ -7,6 +7,7 @@ import TeacherCoursesList from "../screens/teachers/TeacherCoursesList";
 import TeacherCourse from "../screens/teachers/TeacherCourse";
 import TeacherLesson from "../screens/teachers/TeacherLesson";
 import TeacherStats from "../screens/teachers/TeacherStats";
+import StudentProfile from "../screens/students/StudentProfile";
 import Chat from "../screens/shared/Chat";
 import { TeacherStackParamList } from "../types/navigation";
 
@@ -25,6 +26,7 @@ export default function TeacherStack() {
       <Stack.Screen name="TeacherCourse" component={TeacherCourse} />
       <Stack.Screen name="TeacherLesson" component={TeacherLesson} />
       <Stack.Screen name="TeacherStats" component={TeacherStats} />
+      <Stack.Screen name="StudentProfile" component={StudentProfile} />
       <Stack.Screen name="Chat" component={Chat} />
     </Stack.Navigator>
   );

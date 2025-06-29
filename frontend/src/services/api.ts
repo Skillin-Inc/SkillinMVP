@@ -17,7 +17,7 @@ export interface LoginData {
 }
 
 export interface User {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -40,7 +40,7 @@ export interface User {
 }
 
 export interface BackendUser {
-  id: number;
+  id: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -58,9 +58,9 @@ export interface LoginResponse {
 }
 
 export interface BackendMessage {
-  id: number;
-  sender_id: number;
-  receiver_id: number;
+  id: string;
+  sender_id: string;
+  receiver_id: string;
   content: string;
   is_read: boolean;
   created_at: string;
@@ -71,13 +71,13 @@ export interface BackendMessage {
 }
 
 export interface NewMessage {
-  sender_id: number;
-  receiver_id: number;
+  sender_id: string;
+  receiver_id: string;
   content: string;
 }
 
 export interface Conversation {
-  other_user_id: number;
+  other_user_id: string;
   other_user_first_name: string;
   other_user_last_name: string;
   last_message: string;
@@ -90,56 +90,47 @@ export interface NewCategory {
 }
 
 export interface Category {
-  id: number;
+  id: string;
   title: string;
 }
 
 export interface NewCourse {
-  teacher_id: number;
-  category_id: number;
+  teacher_id: string;
+  category_id: string;
   title: string;
   description: string;
 }
 
 export interface Course {
-  id: number;
-  teacher_id: number;
-  category_id: number;
+  id: string;
+  teacher_id: string;
+  category_id: string;
   title: string;
   description: string;
   created_at: string;
   teacher_first_name?: string;
   teacher_last_name?: string;
+  teacher_username?: string;
 }
 
 export interface NewLesson {
-  teacher_id: number;
-  course_id: number;
+  teacher_id: string;
+  course_id: string;
   title: string;
   description: string;
   video_url: string;
 }
 
 export interface Lesson {
-  id: number;
-  teacher_id: number;
-  course_id: number;
+  id: string;
+  teacher_id: string;
+  course_id: string;
   title: string;
   description: string;
   video_url: string;
   created_at: string;
   teacher_first_name?: string;
   teacher_last_name?: string;
-}
-export interface Tutor {
-  teacher_id: number;
-  user_id: number;
-  first_name: string;
-  last_name: string;
-  username: string;
-  email: string;
-  phone_number: string;
-  category: string;
 }
 
 function createApiService() {
@@ -206,7 +197,7 @@ function createApiService() {
     };
   };
 
-  const getUserById = async (id: number): Promise<BackendUser> => {
+  const getUserById = async (id: string): Promise<BackendUser> => {
     return makeRequest<BackendUser>(`${API_CONFIG.ENDPOINTS.USERS}/${id}`);
   };
 
@@ -214,11 +205,11 @@ function createApiService() {
     return makeRequest<BackendUser[]>(API_CONFIG.ENDPOINTS.USERS);
   };
 
-  const getConversationsForUser = async (id: number): Promise<Conversation[]> => {
+  const getConversationsForUser = async (id: string): Promise<Conversation[]> => {
     return makeRequest<Conversation[]>(`${API_CONFIG.ENDPOINTS.MESSAGES}/conversations/${id}`);
   };
 
-  const getMessagesBetweenUsers = async (id1: number, id2: number): Promise<BackendMessage[]> => {
+  const getMessagesBetweenUsers = async (id1: string, id2: string): Promise<BackendMessage[]> => {
     return makeRequest<BackendMessage[]>(`${API_CONFIG.ENDPOINTS.MESSAGES}/between/${id1}/${id2}`);
   };
 
@@ -230,8 +221,8 @@ function createApiService() {
   };
 
   const markMessagesAsRead = async (
-    userId: number,
-    otherUserId: number
+    userId: string,
+    otherUserId: string
   ): Promise<{ message: string; count: number }> => {
     return makeRequest<{ message: string; count: number }>(
       `${API_CONFIG.ENDPOINTS.MESSAGES}/mark-read/${userId}/${otherUserId}`,
@@ -252,28 +243,28 @@ function createApiService() {
     return makeRequest<Lesson[]>(API_CONFIG.ENDPOINTS.LESSONS);
   };
 
-  const getLessonById = async (id: number): Promise<Lesson> => {
+  const getLessonById = async (id: string): Promise<Lesson> => {
     return makeRequest<Lesson>(`${API_CONFIG.ENDPOINTS.LESSONS}/${id}`);
   };
 
-  const getLessonsByTeacher = async (teacherId: number): Promise<Lesson[]> => {
+  const getLessonsByTeacher = async (teacherId: string): Promise<Lesson[]> => {
     return makeRequest<Lesson[]>(`${API_CONFIG.ENDPOINTS.LESSONS}/teacher/${teacherId}`);
   };
 
-  const updateLesson = async (id: number, updateData: Partial<NewLesson>): Promise<Lesson> => {
+  const updateLesson = async (id: string, updateData: Partial<NewLesson>): Promise<Lesson> => {
     return makeRequest<Lesson>(`${API_CONFIG.ENDPOINTS.LESSONS}/${id}`, {
       method: "PUT",
       body: JSON.stringify(updateData),
     });
   };
 
-  const deleteLesson = async (id: number): Promise<{ success: boolean; message: string }> => {
+  const deleteLesson = async (id: string): Promise<{ success: boolean; message: string }> => {
     return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.LESSONS}/${id}`, {
       method: "DELETE",
     });
   };
 
-  const getLessonsByCourse = async (courseId: number): Promise<Lesson[]> => {
+  const getLessonsByCourse = async (courseId: string): Promise<Lesson[]> => {
     return makeRequest<Lesson[]>(`${API_CONFIG.ENDPOINTS.LESSONS}/course/${courseId}`);
   };
 
@@ -288,29 +279,43 @@ function createApiService() {
     return makeRequest<Course[]>(API_CONFIG.ENDPOINTS.COURSES);
   };
 
-  const getCourseById = async (id: number): Promise<Course> => {
+  const getCourseById = async (id: string): Promise<Course> => {
     return makeRequest<Course>(`${API_CONFIG.ENDPOINTS.COURSES}/${id}`);
   };
 
-  const getCoursesByTeacher = async (teacherId: number): Promise<Course[]> => {
+  const getCoursesByTeacher = async (teacherId: string): Promise<Course[]> => {
     return makeRequest<Course[]>(`${API_CONFIG.ENDPOINTS.COURSES}/teacher/${teacherId}`);
   };
 
-  const updateCourse = async (id: number, updateData: Partial<NewCourse>): Promise<Course> => {
+  const updateCourse = async (id: string, updateData: Partial<NewCourse>): Promise<Course> => {
     return makeRequest<Course>(`${API_CONFIG.ENDPOINTS.COURSES}/${id}`, {
       method: "PUT",
       body: JSON.stringify(updateData),
     });
   };
 
-  const deleteCourse = async (id: number): Promise<{ success: boolean; message: string }> => {
+  const deleteCourse = async (id: string): Promise<{ success: boolean; message: string }> => {
     return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.COURSES}/${id}`, {
       method: "DELETE",
     });
   };
 
-  const getCoursesByCategory = async (categoryId: number): Promise<Course[]> => {
-    return makeRequest<Course[]>(`${API_CONFIG.ENDPOINTS.COURSES}/category/${categoryId}`);
+  const getCoursesByCategory = async (categoryId: string, limit?: number, offset?: number): Promise<Course[]> => {
+    let endpoint = `${API_CONFIG.ENDPOINTS.COURSES}/category/${categoryId}`;
+
+    const params = new URLSearchParams();
+    if (limit !== undefined) {
+      params.append("limit", limit.toString());
+    }
+    if (offset !== undefined) {
+      params.append("offset", offset.toString());
+    }
+
+    if (params.toString()) {
+      endpoint += `?${params.toString()}`;
+    }
+
+    return makeRequest<Course[]>(endpoint);
   };
 
   const createCategory = async (categoryData: NewCategory): Promise<Category> => {
@@ -324,50 +329,21 @@ function createApiService() {
     return makeRequest<Category[]>(API_CONFIG.ENDPOINTS.CATEGORIES);
   };
 
-  const getCategoryById = async (id: number): Promise<Category> => {
+  const getCategoryById = async (id: string): Promise<Category> => {
     return makeRequest<Category>(`${API_CONFIG.ENDPOINTS.CATEGORIES}/${id}`);
   };
 
-  const updateCategory = async (id: number, updateData: Partial<NewCategory>): Promise<Category> => {
+  const updateCategory = async (id: string, updateData: Partial<NewCategory>): Promise<Category> => {
     return makeRequest<Category>(`${API_CONFIG.ENDPOINTS.CATEGORIES}/${id}`, {
       method: "PUT",
       body: JSON.stringify(updateData),
     });
   };
 
-  const deleteCategory = async (id: number): Promise<{ success: boolean; message: string }> => {
+  const deleteCategory = async (id: string): Promise<{ success: boolean; message: string }> => {
     return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.CATEGORIES}/${id}`, {
       method: "DELETE",
     });
-  };
-
-  const checkBackendConnection = async (): Promise<{ status: string; message: string; timestamp?: string }> => {
-    try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/`);
-      if (response.ok) {
-        return {
-          status: "healthy",
-          message: "Backend connection successful",
-          timestamp: new Date().toISOString(),
-        };
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (error) {
-      throw new Error(`Backend connection failed: ${error instanceof Error ? error.message : "Unknown error"}`);
-    }
-  };
-
-  const checkDatabaseConnection = async (): Promise<{
-    status: string;
-    message: string;
-    timestamp?: string;
-    error?: string;
-  }> => {
-    return makeRequest<{ status: string; message: string; timestamp?: string; error?: string }>("/health/db");
-  };
-  const getAllTutors = async (): Promise<Tutor[]> => {
-    return makeRequest<Tutor[]>("/teachers");
   };
 
   const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
@@ -404,27 +380,38 @@ function createApiService() {
     getAllLessons,
     getLessonById,
     getLessonsByTeacher,
-    getLessonsByCourse,
     updateLesson,
     deleteLesson,
+    getLessonsByCourse,
     createCourse,
     getAllCourses,
     getCourseById,
     getCoursesByTeacher,
-    getCoursesByCategory,
     updateCourse,
     deleteCourse,
+    getCoursesByCategory,
     createCategory,
     getAllCategories,
     getCategoryById,
     updateCategory,
     deleteCategory,
-    checkBackendConnection,
-    checkDatabaseConnection,
-    getAllTutors,
     deleteUser,
     updateUserType,
   };
 }
 
-export const apiService = createApiService();
+export const api = createApiService();
+
+export const transformBackendUserToUser = (backendUser: BackendUser): User => {
+  return {
+    id: backendUser.id,
+    firstName: backendUser.first_name,
+    lastName: backendUser.last_name,
+    email: backendUser.email,
+    phoneNumber: backendUser.phone_number,
+    username: backendUser.username,
+    postalCode: backendUser.postal_code,
+    createdAt: backendUser.created_at,
+    userType: backendUser.user_type,
+  };
+};

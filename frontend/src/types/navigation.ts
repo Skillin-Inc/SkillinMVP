@@ -6,7 +6,7 @@ export type StudentTabsParamList = {
   StudentHome: undefined;
   StudentProgress: undefined;
   Messages: undefined;
-  StudentProfile: undefined;
+  StudentProfile: { userId?: string };
   Temp: undefined;
   
 };
@@ -15,7 +15,7 @@ export type TeacherTabsParamList = {
   TeacherHome: undefined;
   TeacherCreateLesson: undefined;
   Messages: undefined;
-  TeacherProfile: undefined;
+  TeacherProfile: { userId?: string };
   Temp: undefined;
 };
 
@@ -29,8 +29,9 @@ export type AdminTabsParamList = {
 export type StudentStackParamList = {
   StudentTabs: NavigatorScreenParams<StudentTabsParamList>;
   StudentTopicDetail: { id: string };
-  StudentCourse: { courseId: number };
-  StudentLesson: { lessonId: number };
+  StudentCourse: { courseId: string };
+  StudentLesson: { lessonId: string };
+  TeacherProfile: { userId: string };
   Chat: { id: string };
   StudentSubscription: undefined;
 };
@@ -40,8 +41,9 @@ export type TeacherStackParamList = {
   TeacherStats: undefined;
   TeacherCreateCourse: undefined;
   TeacherCoursesList: undefined;
-  TeacherCourse: { courseId: number };
-  TeacherLesson: { lessonId: number };
+  TeacherCourse: { courseId: string };
+  TeacherLesson: { lessonId: string };
+  StudentProfile: { userId: string };
   Chat: { id: string };
 };
 

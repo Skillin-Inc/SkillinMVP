@@ -41,17 +41,10 @@ export default function StudentTabs() {
         headerShown: false,
       })}
     >
-      <Tab.Screen name="StudentHome" component={StudentHome} />
-      <Tab.Screen
-        name="StudentProgress"
-        component={StudentProgress}
-        options={{
-          tabBarLabel: "Progress",
-          title: "My Progress",
-        }}
-      />
+      <Tab.Screen name="StudentHome" component={StudentHome} options={{ tabBarLabel: "Home" }} />
+      <Tab.Screen name="StudentProgress" component={StudentProgress} options={{ tabBarLabel: "Progress" }} />
       <Tab.Screen name="Messages" component={Messages} />
-      <Tab.Screen name="StudentProfile" component={StudentProfile} />
+      <Tab.Screen name="StudentProfile" component={StudentProfile} options={{ tabBarLabel: "Profile" }} />
       <Tab.Screen name="Temp" component={Temp} />
     </Tab.Navigator>
   );

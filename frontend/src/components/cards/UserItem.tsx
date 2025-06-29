@@ -2,9 +2,9 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-import { useScreenDimensions } from "../hooks";
-import { COLORS } from "../styles";
-import AvatarPlaceholder from "../../assets/icons/Avatar_Placeholder.png";
+import { useScreenDimensions } from "../../hooks";
+import { COLORS } from "../../styles";
+import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 
 export interface ChatUser {
   id: string;

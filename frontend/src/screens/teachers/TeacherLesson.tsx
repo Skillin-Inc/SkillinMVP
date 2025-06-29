@@ -1,21 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, Lesson, Course } from "../../services/api";
+import { api, Lesson, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
+import { HeaderWithBack, LoadingState, EmptyState, SectionHeader } from "../../components/common";
+import { VideoSection } from "../../components/media";
+import { ActionButtons } from "../../components/actions";
 
 type Props = StackScreenProps<TeacherStackParamList, "TeacherLesson">;
 
@@ -34,11 +28,11 @@ export default function TeacherLesson({ navigation, route }: Props) {
 
   const loadLessonData = async () => {
     try {
-      const lessonData = await apiService.getLessonById(lessonId);
+      const lessonData = await api.getLessonById(lessonId);
       setLesson(lessonData);
 
       // Also fetch the course data for context
-      const courseData = await apiService.getCourseById(lessonData.course_id);
+      const courseData = await api.getCourseById(lessonData.course_id);
       setCourse(courseData);
     } catch (error) {
       console.error("Error loading lesson data:", error);
@@ -72,7 +66,7 @@ export default function TeacherLesson({ navigation, route }: Props) {
         style: "destructive",
         onPress: async () => {
           try {
-            await apiService.deleteLesson(lessonId);
+            await api.deleteLesson(lessonId);
             Alert.alert("Success", "Lesson deleted successfully.", [
               { text: "OK", onPress: () => navigation.goBack() },
             ]);
@@ -109,19 +103,8 @@ export default function TeacherLesson({ navigation, route }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleText}>Lesson Details</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.purple} />
-          <Text style={styles.loadingText}>Loading lesson details...</Text>
-        </View>
+        <HeaderWithBack title="Lesson Details" onBackPress={() => navigation.goBack()} />
+        <LoadingState text="Loading lesson details..." />
       </SafeAreaView>
     );
   }
@@ -129,42 +112,29 @@ export default function TeacherLesson({ navigation, route }: Props) {
   if (!lesson) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleText}>Lesson Not Found</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color={COLORS.error} />
-          <Text style={styles.errorTitle}>Lesson Not Found</Text>
-          <Text style={styles.errorText}>The requested lesson could not be found.</Text>
-        </View>
+        <HeaderWithBack title="Lesson Not Found" onBackPress={() => navigation.goBack()} />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Lesson Not Found"
+          subtitle="The requested lesson could not be found."
+        />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitleText} numberOfLines={1}>
-            {lesson.title}
-          </Text>
-        </View>
-        <TouchableOpacity style={styles.menuButton} onPress={handleEditLesson}>
-          <Ionicons name="ellipsis-vertical" size={24} color={COLORS.black} />
-        </TouchableOpacity>
-      </View>
+      <HeaderWithBack
+        title={lesson.title}
+        onBackPress={() => navigation.goBack()}
+        rightComponent={
+          <TouchableOpacity style={styles.menuButton} onPress={handleEditLesson}>
+            <Ionicons name="ellipsis-vertical" size={24} color={COLORS.black} />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Course Context */}
         {course && (
           <View style={styles.courseContext}>
             <View style={styles.courseContextHeader}>
@@ -174,19 +144,8 @@ export default function TeacherLesson({ navigation, route }: Props) {
           </View>
         )}
 
-        {/* Video Section */}
-        <View style={styles.videoSection}>
-          <View style={styles.videoPlaceholder}>
-            <Ionicons name="play-circle" size={64} color={COLORS.purple} />
-            <Text style={styles.videoPlaceholderText}>Video Preview</Text>
-            <TouchableOpacity style={styles.playButton} onPress={handlePlayVideo}>
-              <Ionicons name="play" size={20} color={COLORS.white} />
-              <Text style={styles.playButtonText}>Play Video</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <VideoSection title="Video Preview" onPlayPress={handlePlayVideo} hasVideo={!!lesson.video_url} />
 
-        {/* Lesson Information */}
         <View style={styles.lessonInfo}>
           <View style={styles.lessonHeader}>
             <View style={styles.lessonIcon}>
@@ -199,12 +158,12 @@ export default function TeacherLesson({ navigation, route }: Props) {
           </View>
 
           <View style={styles.descriptionSection}>
-            <Text style={styles.sectionTitle}>Description</Text>
+            <SectionHeader title="Description" />
             <Text style={styles.lessonDescription}>{lesson.description}</Text>
           </View>
 
           <View style={styles.videoInfoSection}>
-            <Text style={styles.sectionTitle}>Video Information</Text>
+            <SectionHeader title="Video Information" />
             <View style={styles.videoInfoItem}>
               <Ionicons name="link-outline" size={16} color={COLORS.gray} />
               <Text style={styles.videoInfoText}>{lesson.video_url || "No video uploaded yet"}</Text>
@@ -212,24 +171,25 @@ export default function TeacherLesson({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionsSection}>
-          <TouchableOpacity style={styles.primaryAction} onPress={handleEditLesson}>
-            <Ionicons name="create-outline" size={20} color={COLORS.white} />
-            <Text style={styles.primaryActionText}>Edit Lesson</Text>
-          </TouchableOpacity>
-
-          <View style={styles.secondaryActions}>
-            <TouchableOpacity style={styles.secondaryAction} onPress={handlePlayVideo}>
-              <Ionicons name="play-outline" size={20} color={COLORS.purple} />
-              <Text style={styles.secondaryActionText}>Preview</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.dangerAction} onPress={handleDeleteLesson}>
-              <Ionicons name="trash-outline" size={20} color={COLORS.error} />
-              <Text style={styles.dangerActionText}>Delete</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <ActionButtons
+          primaryAction={{
+            icon: "create-outline",
+            title: "Edit Lesson",
+            onPress: handleEditLesson,
+          }}
+          secondaryActions={[
+            {
+              icon: "play-outline",
+              title: "Preview",
+              onPress: handlePlayVideo,
+            },
+          ]}
+          dangerAction={{
+            icon: "trash-outline",
+            title: "Delete",
+            onPress: handleDeleteLesson,
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

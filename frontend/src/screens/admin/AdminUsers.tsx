@@ -14,7 +14,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { apiService, BackendUser } from "../../services/api";
+import { api, BackendUser } from "../../services/api";
+import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditUserModalProps {
   visible: boolean;
@@ -46,7 +47,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ visible, user, onClose, o
 
     setLoading(true);
     try {
-      await apiService.updateUserType(user.email, userType);
+      await api.updateUserType(user.email, userType);
       Alert.alert("Success", "User updated successfully");
       onUpdate();
       onClose();
@@ -109,7 +110,6 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ visible, user, onClose, o
           </TouchableOpacity>
         </View>
 
-        {/* User Type Selection Modal */}
         <Modal visible={showUserTypeModal} transparent animationType="fade">
           <View style={styles.typeModalOverlay}>
             <View style={styles.typeModalContent}>
@@ -149,7 +149,7 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const allUsers = await apiService.getAllUsers();
+      const allUsers = await api.getAllUsers();
       setUsers(allUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -171,7 +171,7 @@ export default function AdminUsers() {
         style: "destructive",
         onPress: async () => {
           try {
-            await apiService.deleteUser(user.email);
+            await api.deleteUser(user.email);
             Alert.alert("Success", "User deleted successfully");
             fetchUsers();
           } catch (error) {
@@ -237,19 +237,13 @@ export default function AdminUsers() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.purple} />
-        <Text style={styles.loadingText}>Loading users...</Text>
-      </View>
-    );
+    return <LoadingState text="Loading users..." />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>User Management</Text>
-        <Text style={styles.headerSubtitle}>{users.length} users total</Text>
+        <SectionHeader title="User Management" subtitle={`${users.length} users total`} />
       </View>
 
       <View style={styles.searchContainer}>

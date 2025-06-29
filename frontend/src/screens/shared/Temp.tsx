@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useScreenDimensions } from "../../hooks";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService } from "../../services/api";
+import { api } from "../../services/api";
 import { COLORS } from "../../styles";
 
 export default function Temp() {
@@ -14,7 +14,7 @@ export default function Temp() {
 
   const handleLogAllUsers = async () => {
     try {
-      const users = await apiService.getAllUsers();
+      const users = await api.getAllUsers();
       console.log("All Users:", users);
       Alert.alert("Success", `Logged ${users.length} users to console`);
     } catch (error) {
@@ -30,12 +30,12 @@ export default function Temp() {
         return;
       }
 
-      const conversations = await apiService.getConversationsForUser(currentUser.id);
+      const conversations = await api.getConversationsForUser(currentUser.id);
 
       const detailedMessages = [];
       for (const conv of conversations) {
         try {
-          const messages = await apiService.getMessagesBetweenUsers(currentUser.id, conv.other_user_id);
+          const messages = await api.getMessagesBetweenUsers(currentUser.id, conv.other_user_id);
           detailedMessages.push(...messages);
         } catch (error) {
           console.error(`Error fetching messages with user ${conv.other_user_id}:`, error);
@@ -47,19 +47,6 @@ export default function Temp() {
     } catch (error) {
       console.error("Error fetching current user messages:", error);
       Alert.alert("Error", "Failed to fetch current user messages");
-    }
-  };
-
-  const handleTestBackendConnection = async () => {
-    try {
-      const result = await apiService.checkBackendConnection();
-      console.log("Backend Connection Test:", result);
-      Alert.alert("Backend Connection", `Status: ${result.status}\n${result.message}`, [{ text: "OK" }]);
-    } catch (error) {
-      console.error("Backend connection test failed:", error);
-      Alert.alert("Backend Connection Failed", error instanceof Error ? error.message : "Unknown error occurred", [
-        { text: "OK" },
-      ]);
     }
   };
 
@@ -79,7 +66,6 @@ export default function Temp() {
           navigation stacks.
         </Text>
 
-        {/* Debugging Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Debug Tools</Text>
 
@@ -92,14 +78,8 @@ export default function Temp() {
             <Ionicons name="person-circle-outline" size={24} color={COLORS.white} />
             <Text style={styles.buttonText}>Log Current User Messages</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button} onPress={handleTestBackendConnection}>
-            <Ionicons name="server-outline" size={24} color={COLORS.white} />
-            <Text style={styles.buttonText}>Test Backend Connection</Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Switch Mode Section */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Navigation</Text>
 

@@ -5,6 +5,10 @@ SET client_min_messages TO warning;
 DROP SCHEMA "public" CASCADE;
 
 CREATE SCHEMA "public";
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Maybe Membership Tiers?
 -- Create the ENUM type first
 --CREATE TYPE membership_tier AS ENUM ('bronze', 'silver', 'gold');
@@ -14,7 +18,7 @@ CREATE SCHEMA "public";
 CREATE TYPE user_type AS ENUM ('student', 'teacher', 'admin');
 
 CREATE TABLE "users" (
-  "id" serial PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   "first_name" text NOT NULL,
   "last_name" text NOT NULL,
   "email" text UNIQUE NOT NULL,
@@ -28,39 +32,32 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "messages" (
-  "id" serial PRIMARY KEY,
-  "sender_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-  "receiver_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "sender_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "receiver_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
   "content" text NOT NULL,
   "is_read" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz(3) default current_timestamp
 );
 
 CREATE TABLE "categories" (
-  "id" serial PRIMARY KEY,
+  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   "title" text NOT NULL
 );
 
--- TEACHERS (REQUIRES users AND categories)
-CREATE TABLE "teachers" (
-  "id" serial PRIMARY KEY,
-  "user_id" integer UNIQUE NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-  "category_id" integer NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE
-);
-
 CREATE TABLE "courses" (
-  "id" serial PRIMARY KEY,
-  "teacher_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-  "category_id" integer NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE,
+  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "teacher_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "category_id" uuid NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE,
   "title" text NOT NULL,
   "description" text NOT NULL,
   "created_at" timestamptz(3) default current_timestamp
 );
 
 CREATE TABLE "lessons" (
-  "id" serial PRIMARY KEY,
-  "teacher_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-  "course_id" integer NOT NULL REFERENCES "courses"("id") ON DELETE CASCADE,
+  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "teacher_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "course_id" uuid NOT NULL REFERENCES "courses"("id") ON DELETE CASCADE,
   "title" text NOT NULL,
   "description" text NOT NULL,
   "video_url" text,
@@ -68,9 +65,9 @@ CREATE TABLE "lessons" (
 );
 
 CREATE TABLE "progress" (
-  "id" serial PRIMARY KEY,
-  "user_id" integer NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-  "lesson_id" integer NOT NULL REFERENCES "lessons"("id") ON DELETE CASCADE,
+  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "lesson_id" uuid NOT NULL REFERENCES "lessons"("id") ON DELETE CASCADE,
   "created_at" timestamptz(3) default current_timestamp,
   UNIQUE("user_id", "lesson_id")
 );

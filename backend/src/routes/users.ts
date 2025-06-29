@@ -17,6 +17,12 @@ import rateLimit from "express-rate-limit";
 
 const router = Router();
 
+// Helper function to validate UUID
+function isValidUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
 router.get("/", async (req, res) => {
   try {
     const users = await getAllUsers();
@@ -54,7 +60,13 @@ router.get("/check-paid-status", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
+
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid user ID format" });
+    return;
+  }
+
   const user = await getUserById(id);
 
   if (!user) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Text,
   TouchableOpacity,
@@ -8,28 +8,26 @@ import {
   SafeAreaView,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
 
+import { AuthContext } from "../../hooks/AuthContext";
+
 import { COLORS } from "../../styles";
 import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
+import { QuickActionCard } from "../../components/cards";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TeacherTabsParamList, "TeacherHome">,
   StackScreenProps<TeacherStackParamList>
 >;
 
-const upcomingSessions = [
-  { title: "1-on-1 with John", time: "2:00 PM", type: "private" },
-  { title: "Group Training", time: "4:30 PM", type: "group" },
-  { title: "Math Review with Sarah", time: "6:00 PM", type: "private" },
-  { title: "Office Hours", time: "7:15 PM", type: "office" },
-];
-
 export default function TeacherHome({ navigation }: Props) {
+  const { user } = useContext(AuthContext);
   const [loading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -37,32 +35,13 @@ export default function TeacherHome({ navigation }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Simulate loading
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
   };
 
   const handleViewProfile = () => {
-    navigation.navigate("TeacherProfile");
-  };
-
-  const handleSessionPress = (session: { title: string; time: string; type: string }) => {
-    console.log("Tapped:", session.title);
-    // TODO: Navigate to session details
-  };
-
-  const getSessionIcon = (type: string) => {
-    switch (type) {
-      case "private":
-        return "person-outline";
-      case "group":
-        return "people-outline";
-      case "office":
-        return "time-outline";
-      default:
-        return "calendar-outline";
-    }
+    navigation.navigate("TeacherProfile", { userId: user?.id });
   };
 
   if (loading) {
@@ -102,7 +81,6 @@ export default function TeacherHome({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Teacher Header */}
         <View style={styles.teacherHeader}>
           <View style={styles.teacherIcon}>
             <Ionicons name="school" size={32} color={COLORS.purple} />
@@ -123,82 +101,39 @@ export default function TeacherHome({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("TeacherCoursesList")}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="library-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>My Courses</Text>
-              <Text style={styles.quickActionSubtitle}>View and manage courses</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="library-outline"
+              title="My Courses"
+              subtitle="View and manage courses"
+              onPress={() => navigation.navigate("TeacherCoursesList")}
+            />
 
-            <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("TeacherCreateCourse")}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="add-circle-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Create Course</Text>
-              <Text style={styles.quickActionSubtitle}>Add new course content</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="add-circle-outline"
+              title="Create Course"
+              subtitle="Add new course content"
+              onPress={() => navigation.navigate("TeacherCreateCourse")}
+            />
           </View>
 
-          <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="calendar-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Schedule</Text>
-              <Text style={styles.quickActionSubtitle}>Manage your timetable</Text>
-            </TouchableOpacity>
+          <QuickActionCard
+            icon="calendar-outline"
+            title="Schedule"
+            subtitle="Manage your timetable"
+            onPress={() => Alert.alert("Coming Soon", "This feature is coming soon!")}
+          />
 
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="stats-chart-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Analytics</Text>
-              <Text style={styles.quickActionSubtitle}>View performance stats</Text>
-            </TouchableOpacity>
-          </View>
+          <QuickActionCard
+            icon="stats-chart-outline"
+            title="Analytics"
+            subtitle="View performance stats"
+            onPress={() => Alert.alert("Coming Soon", "This feature is coming soon!")}
+          />
         </View>
 
-        {/* Upcoming Sessions */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Upcoming Sessions</Text>
-            <Text style={styles.sectionSubtitle}>
-              {upcomingSessions.length} {upcomingSessions.length === 1 ? "session" : "sessions"} today
-            </Text>
-          </View>
-
-          {upcomingSessions.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="calendar-outline" size={64} color={COLORS.gray} />
-              <Text style={styles.emptyTitle}>No Sessions Today</Text>
-              <Text style={styles.emptyText}>Your schedule is clear. Take some time to prepare new content!</Text>
-            </View>
-          ) : (
-            <View style={styles.sessionsContainer}>
-              {upcomingSessions.map((session, index) => (
-                <TouchableOpacity key={index} style={styles.sessionCard} onPress={() => handleSessionPress(session)}>
-                  <View style={styles.sessionIcon}>
-                    <Ionicons name={getSessionIcon(session.type)} size={20} color={COLORS.purple} />
-                  </View>
-                  <View style={styles.sessionInfo}>
-                    <Text style={styles.sessionTitle}>{session.title}</Text>
-                    <Text style={styles.sessionTime}>{session.time}</Text>
-                  </View>
-                  <View style={styles.sessionActions}>
-                    <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
-
-        {/* Recent Activity */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <View style={styles.activityCard}>

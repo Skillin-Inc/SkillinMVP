@@ -1,6 +1,6 @@
 // File: src/screens/students/StudentProfile.tsx
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Linking,
   View,
@@ -19,18 +19,51 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 
 import { AuthContext } from "../../hooks/AuthContext";
-import ImagePickerAvatar from "../../components/ImagePickerAvatar";
+import { SectionHeader } from "../../components/common";
+import { ImagePickerAvatar } from "../../components/forms";
+import { QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
+import { User, api, transformBackendUserToUser } from "../../services/api";
 
 type Props = BottomTabScreenProps<StudentTabsParamList, "StudentProfile">;
 type StackNav = StackNavigationProp<StudentStackParamList>;
 
-export default function StudentProfile({ navigation }: Props) {
-  const stackNavigation = useNavigation<StackNav>();
-  const { logout, user } = useContext(AuthContext);
+
+export default function StudentProfile({ navigation, route }: Props) {
+  const { logout, user: currentUser } = useContext(AuthContext);
+  const userId = route.params?.userId ?? currentUser?.id ?? "";
+  const [profileUser, setProfileUser] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const isOwnProfile = currentUser?.id === userId;
+
+  useEffect(() => {
+    loadUserProfile();
+  }, [userId]);
+
+  const loadUserProfile = async () => {
+    try {
+      setLoading(true);
+      if (isOwnProfile && currentUser) {
+        setProfileUser(currentUser);
+      } else {
+        const backendUser = await api.getUserById(userId);
+        const transformedUser = transformBackendUserToUser(backendUser);
+        setProfileUser(transformedUser);
+      }
+    } catch (error) {
+      console.error("Error loading user profile:", error);
+      Alert.alert("Error", "Failed to load profile. Please try again.");
+      if (currentUser) {
+        setProfileUser(currentUser);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     Alert.alert("Sign Out", "Are you sure you want to sign out?", [
@@ -52,19 +85,36 @@ export default function StudentProfile({ navigation }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
+
+    await loadUserProfile();
+    setRefreshing(false);
   };
 
   const handleEditProfile = () => {
+    if (!isOwnProfile) {
+      Alert.alert("Not Allowed", "You can only edit your own profile.");
+      return;
+    }
     Alert.alert("Edit Profile", "Profile editing will be available soon!");
   };
 
   const handleSettings = () => {
+    if (!isOwnProfile) {
+      Alert.alert("Not Allowed", "You can only access your own settings.");
+      return;
+    }
     Alert.alert("Settings", "Settings page will be available soon!");
   };
 
   const handleSupport = () => {
     Alert.alert("Support", "Support center will be available soon!");
+  };
+
+  const handleSendMessage = () => {
+    if (profileUser) {
+      // @ts-expect-error - Navigation type issue with shared profile component
+      navigation.navigate("Chat", { id: profileUser.id.toString() });
+    }
   };
 
   const InfoCard = ({
@@ -90,31 +140,6 @@ export default function StudentProfile({ navigation }: Props) {
     </TouchableOpacity>
   );
 
-  const ActionCard = ({
-    icon,
-    title,
-    subtitle,
-    onPress,
-    color = COLORS.purple,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    title: string;
-    subtitle: string;
-    onPress: () => void;
-    color?: string;
-  }) => (
-    <TouchableOpacity style={styles.actionCard} onPress={onPress}>
-      <View style={[styles.actionIcon, { backgroundColor: color }]}>
-        <Ionicons name={icon} size={24} color={COLORS.white} />
-      </View>
-      <View style={styles.actionContent}>
-        <Text style={styles.actionTitle}>{title}</Text>
-        <Text style={styles.actionSubtitle}>{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
-    </TouchableOpacity>
-  );
-
   const getMembershipBadgeColor = (tier: string | undefined) => {
     switch (tier?.toLowerCase()) {
       case "gold":
@@ -130,17 +155,16 @@ export default function StudentProfile({ navigation }: Props) {
 
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-
 const handleOpenStripePortal = async () => {
-  if (!user?.email) {
+  if (!currentUser?.email) {
     Alert.alert("Error", "Missing user email");
     return;
   }
 
   try {
     const response = await axios.post(`${apiUrl}/api/create-billing-portal-session`, {
-      email: user.email,
-      name: `${user.firstName} ${user.lastName}`,
+      email: currentUser.email,
+      name: `${currentUser.firstName} ${currentUser.lastName}`,
     });
 
     const { url } = response.data;
@@ -158,6 +182,16 @@ const handleOpenStripePortal = async () => {
   }
 };
 
+if (loading) {
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <Text>Loading profile...</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -166,11 +200,15 @@ const handleOpenStripePortal = async () => {
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
         </TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>My Profile</Text>
+          <Text style={styles.headerTitle}>
+            {isOwnProfile ? "My Profile" : `${profileUser?.firstName} ${profileUser?.lastName}'s Profile`}
+          </Text>
         </View>
-        <TouchableOpacity style={styles.settingsButton} onPress={handleSettings}>
-          <Ionicons name="settings-outline" size={24} color={COLORS.black} />
-        </TouchableOpacity>
+        {isOwnProfile && (
+          <TouchableOpacity style={styles.settingsButton} onPress={handleSettings}>
+            <Ionicons name="settings-outline" size={24} color={COLORS.black} />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView
@@ -180,79 +218,100 @@ const handleOpenStripePortal = async () => {
       >
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
-            <ImagePickerAvatar initialUri={avatarUri} onChange={setAvatarUri} size={100} />
+            <ImagePickerAvatar initialUri={avatarUri} onChange={isOwnProfile ? setAvatarUri : undefined} size={100} />
           </View>
 
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user?.username ?? "Unknown User"}</Text>
-            <Text style={styles.userEmail}>{user?.email ?? ""}</Text>
+            <Text style={styles.userName}>{profileUser?.username ?? "Unknown User"}</Text>
+            <Text style={styles.userEmail}>{profileUser?.email ?? ""}</Text>
 
             <View
               style={[
                 styles.membershipBadge,
-                { backgroundColor: getMembershipBadgeColor(user?.membershipTier) },
+
+                { backgroundColor: getMembershipBadgeColor(profileUser?.membershipTier) },
               ]}
             >
               <Ionicons name="star" size={14} color={COLORS.white} />
-              <Text style={styles.membershipText}>{user?.membershipTier ?? "Bronze"} Member</Text>
+              <Text style={styles.membershipText}>{profileUser?.membershipTier ?? "Bronze"} Member</Text>
             </View>
           </View>
+
+          {!isOwnProfile && (
+            <TouchableOpacity style={styles.messageButton} onPress={handleSendMessage}>
+              <Ionicons name="chatbubble-outline" size={20} color={COLORS.white} />
+              <Text style={styles.messageButtonText}>Send Message</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
+          <SectionHeader title="Personal Information" />
 
-          <InfoCard icon="calendar-outline" label="Date of Birth" value={user?.dOB ?? "Not provided"} />
-          <InfoCard icon="location-outline" label="Location" value={user?.postalCode?.toString() ?? "Not provided"} />
-          <InfoCard icon="call-outline" label="Phone Number" value={user?.phoneNumber ?? "Not provided"} />
-        </View>
+<InfoCard icon="calendar-outline" label="Date of Birth" value={profileUser?.dOB ?? "Not provided"} />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Actions</Text>
+<InfoCard
+  icon="location-outline"
+  label="Location"
+  value={profileUser?.postalCode?.toString() ?? "Not provided"}
+/>
 
-          <ActionCard
-            icon="create-outline"
-            title="Edit Profile"
-            subtitle="Update your personal information"
-            onPress={handleEditProfile}
-          />
+<InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />
+</View>
 
-          <ActionCard
-            icon="bookmark-outline"
-            title="Saved Courses"
-            subtitle="View your bookmarked content"
-            onPress={() => Alert.alert("Saved Courses", "Feature coming soon!")}
-          />
+{isOwnProfile && (
+  <View style={styles.section}>
+    <SectionHeader title="Account Actions" />
 
-          <ActionCard
-            icon="stats-chart-outline"
-            title="Learning Progress"
-            subtitle="Track your achievements"
-            onPress={() => Alert.alert("Progress", "Feature coming soon!")}
-          />
 
-          <ActionCard
-            icon="help-circle-outline"
-            title="Help & Support"
-            subtitle="Get assistance and FAQ"
-            onPress={handleSupport}
-          />
+            <View style={styles.quickActions}>
+              <QuickActionCard
+                icon="create-outline"
+                title="Edit Profile"
+                subtitle="Update your personal information"
+                onPress={handleEditProfile}
+              />
 
-          
-          <ActionCard
-            icon="wallet-outline"
-            title="Subscription"
-            subtitle="Handle your payments"
-            onPress={handleOpenStripePortal}
-          />
-        </View>
+              <QuickActionCard
+                icon="bookmark-outline"
+                title="Saved Courses"
+                subtitle="View your bookmarked content"
+                onPress={() => Alert.alert("Saved Courses", "Feature coming soon!")}
+              />
+            </View>
 
-        <View style={styles.section}>
-          <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
-            <Text style={styles.signOutText}>Sign Out</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.quickActions}>
+              <QuickActionCard
+                icon="stats-chart-outline"
+                title="Learning Progress"
+                subtitle="Track your achievements"
+                onPress={() => Alert.alert("Progress", "Feature coming soon!")}
+              />
+
+      <QuickActionCard
+        icon="help-circle-outline"
+        title="Help & Support"
+        subtitle="Get assistance and FAQ"
+        onPress={handleSupport}
+      />
+
+      <QuickActionCard
+        icon="wallet-outline"
+        title="Subscription"
+        subtitle="Handle your payments"
+        onPress={handleOpenStripePortal}
+      />
+    </View>
+
+    <View style={styles.section}>
+      <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+)}
+
 
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Skillin v1.0.0</Text>
@@ -339,6 +398,12 @@ const styles = StyleSheet.create({
     padding: SPACINGS.base,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.lightGray,
+  },
+  quickActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SPACINGS.small,
+    gap: 8,
   },
   sectionTitle: {
     fontSize: 20,
@@ -436,6 +501,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACINGS.large,
   },
   signOutText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: SPACINGS.small,
+  },
+  messageButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: COLORS.purple,
+    borderRadius: 12,
+    paddingVertical: SPACINGS.base,
+    paddingHorizontal: SPACINGS.large,
+    marginTop: SPACINGS.base,
+  },
+  messageButtonText: {
     color: COLORS.white,
     fontSize: 16,
     fontWeight: "600",

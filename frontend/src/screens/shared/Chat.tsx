@@ -17,10 +17,11 @@ import { StackScreenProps } from "@react-navigation/stack";
 import { useScreenDimensions } from "../../hooks";
 import { COLORS } from "../../styles";
 import { StudentStackParamList, TeacherStackParamList, AdminStackParamList } from "../../types/navigation";
-import { MessageBubble, Message } from "../../components/MessageBubble";
+import { MessageBubble, Message } from "../../components/media/MessageBubble";
+import { LoadingState } from "../../components/common";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, BackendMessage, BackendUser } from "../../services/api";
+import { api, BackendMessage, BackendUser } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 
 // Dynamic type that works with both StudentStack and TeacherStack
@@ -42,10 +43,10 @@ export default function Chat({ route, navigation }: Props) {
       if (!currentUser) return;
 
       try {
-        const userInfo = await apiService.getUserById(Number(id));
+        const userInfo = await api.getUserById(id);
         setOtherUser(userInfo);
 
-        const backendMessages = await apiService.getMessagesBetweenUsers(currentUser.id, Number(id));
+        const backendMessages = await api.getMessagesBetweenUsers(currentUser.id, id);
 
         const formattedMessages: Message[] = backendMessages.map((msg: BackendMessage) => ({
           id: msg.id.toString(),
@@ -57,7 +58,7 @@ export default function Chat({ route, navigation }: Props) {
         setMessages(formattedMessages);
 
         // Mark messages as read when user opens chat
-        await apiService.markMessagesAsRead(currentUser.id, Number(id));
+        await api.markMessagesAsRead(currentUser.id, id);
       } catch (error) {
         console.error("Error fetching chat data:", error);
       } finally {
@@ -76,8 +77,8 @@ export default function Chat({ route, navigation }: Props) {
 
     const handleNewMessage = (socketMessage: SocketMessage) => {
       if (
-        (socketMessage.sender_id === Number(id) && socketMessage.receiver_id === currentUser.id) ||
-        (socketMessage.sender_id === currentUser.id && socketMessage.receiver_id === Number(id))
+        (socketMessage.sender_id === id && socketMessage.receiver_id === currentUser.id) ||
+        (socketMessage.sender_id === currentUser.id && socketMessage.receiver_id === id)
       ) {
         const newMessage: Message = {
           id: socketMessage.id.toString(),
@@ -139,6 +140,27 @@ export default function Chat({ route, navigation }: Props) {
     };
   }, [currentUser, id]);
 
+  const handleUserPress = () => {
+    if (!otherUser || !currentUser) return;
+
+    try {
+      // Navigate to appropriate profile based on the other user's type
+      if (otherUser.user_type === "teacher") {
+        // @ts-expect-error - Navigation type issue with shared Chat component
+        navigation.navigate("TeacherProfile", { userId: id });
+      } else if (otherUser.user_type === "student") {
+        // @ts-expect-error - Navigation type issue with shared Chat component
+        navigation.navigate("StudentProfile", { userId: id });
+      } else {
+        // For admin or unknown types, show an alert
+        alert("Profile not available for this user type.");
+      }
+    } catch (error) {
+      console.error("Navigation error:", error);
+      alert("Unable to view profile.");
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!messageText.trim() || !currentUser) return;
 
@@ -146,13 +168,13 @@ export default function Chat({ route, navigation }: Props) {
     setMessageText("");
 
     if (websocketService.isConnected()) {
-      websocketService.sendMessage(currentUser.id, Number(id), messageContent);
+      websocketService.sendMessage(currentUser.id, id, messageContent);
     } else {
       // fallback to http if ws doesnt work
       try {
-        const newBackendMessage = await apiService.createMessage({
+        const newBackendMessage = await api.createMessage({
           sender_id: currentUser.id,
-          receiver_id: Number(id),
+          receiver_id: id,
           content: messageContent,
         });
 
@@ -187,9 +209,7 @@ export default function Chat({ route, navigation }: Props) {
           </TouchableOpacity>
           <Text style={styles.headerName}>Loading...</Text>
         </View>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading messages...</Text>
-        </View>
+        <LoadingState text="Loading messages..." />
       </SafeAreaView>
     );
   }
@@ -201,7 +221,7 @@ export default function Chat({ route, navigation }: Props) {
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
         </TouchableOpacity>
 
-        <View style={styles.headerInfo}>
+        <TouchableOpacity style={styles.headerInfo} onPress={handleUserPress}>
           <Image source={AvatarPlaceholder} style={styles.headerAvatar} />
           <View>
             <Text style={styles.headerName}>
@@ -209,7 +229,8 @@ export default function Chat({ route, navigation }: Props) {
             </Text>
             <Text style={styles.headerStatus}>{websocketService.isConnected() ? "Online" : "Offline"}</Text>
           </View>
-        </View>
+          <Ionicons name="chevron-forward" size={16} color={COLORS.gray} style={styles.headerChevron} />
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.moreButton}>
           <Ionicons name="ellipsis-vertical" size={24} color={COLORS.black} />
@@ -288,6 +309,9 @@ function getStyles() {
     headerStatus: {
       fontSize: 12,
       color: COLORS.green,
+    },
+    headerChevron: {
+      marginLeft: 8,
     },
     moreButton: {
       padding: 4,

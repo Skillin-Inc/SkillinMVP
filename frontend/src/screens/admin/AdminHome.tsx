@@ -5,7 +5,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
-import { apiService } from "../../services/api";
+import { api } from "../../services/api";
+import { SectionHeader } from "../../components/common";
 
 export default function AdminHome() {
   const { user, logout } = useContext(AuthContext);
@@ -44,7 +45,7 @@ export default function AdminHome() {
     }
     setLoading(true);
     try {
-      const res = await apiService.deleteUser(email);
+      const res = await api.deleteUser(email);
       Alert.alert("Success", res.message || "User deleted successfully.");
       setEmail("");
     } catch (err) {
@@ -62,7 +63,7 @@ export default function AdminHome() {
     }
     setUpdateLoading(true);
     try {
-      const res = await apiService.updateUserType(updateEmail, selectedType);
+      const res = await api.updateUserType(updateEmail, selectedType);
       Alert.alert("Success", res.message || "User type updated successfully.");
       setUpdateEmail("");
     } catch (err) {
@@ -77,7 +78,6 @@ export default function AdminHome() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.white} />
 
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View>
@@ -95,9 +95,8 @@ export default function AdminHome() {
         </View>
       </View>
 
-      {/* Delete User Section */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Delete User by Email</Text>
+        <SectionHeader title="Delete User by Email" />
         <TextInput
           style={styles.input}
           placeholder="Enter user email"
@@ -116,9 +115,8 @@ export default function AdminHome() {
         </TouchableOpacity>
       </View>
 
-      {/* Update User Type Section */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Update User Type by Email</Text>
+        <SectionHeader title="Update User Type by Email" />
         <TextInput
           style={styles.input}
           placeholder="Enter user email"

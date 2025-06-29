@@ -17,8 +17,9 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, NewCourse, Category, Course } from "../../services/api";
+import { api, NewCourse, Category, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
+import { HeaderWithBack, EmptyState } from "../../components/common";
 
 type Props = StackScreenProps<TeacherStackParamList, "TeacherCreateCourse">;
 
@@ -51,7 +52,7 @@ export default function TeacherCreateCourse({ navigation }: Props) {
 
   const loadCategories = async () => {
     try {
-      const categoriesData = await apiService.getAllCategories();
+      const categoriesData = await api.getAllCategories();
       setCategories(categoriesData);
     } catch (error) {
       console.error("Error loading categories:", error);
@@ -68,7 +69,7 @@ export default function TeacherCreateCourse({ navigation }: Props) {
     }
 
     try {
-      const courses = await apiService.getCoursesByTeacher(user.id);
+      const courses = await api.getCoursesByTeacher(user.id);
       setTeacherCourses(courses);
     } catch (error) {
       console.error("Error loading teacher courses:", error);
@@ -125,12 +126,12 @@ export default function TeacherCreateCourse({ navigation }: Props) {
     try {
       const courseData: NewCourse = {
         teacher_id: user.id,
-        category_id: parseInt(formData.categoryId),
+        category_id: formData.categoryId,
         title: formData.title.trim(),
         description: formData.description.trim(),
       };
 
-      await apiService.createCourse(courseData);
+      await api.createCourse(courseData);
 
       Alert.alert("Success", "Course created successfully!", [
         {
@@ -177,26 +178,19 @@ export default function TeacherCreateCourse({ navigation }: Props) {
   if (!user || user.userType !== "teacher") {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="warning-outline" size={64} color={COLORS.error} />
-          <Text style={styles.errorTitle}>Access Denied</Text>
-          <Text style={styles.errorText}>Only teachers can create courses.</Text>
-        </View>
+        <EmptyState
+          icon="warning-outline"
+          title="Access Denied"
+          subtitle="Only teachers can create courses."
+          iconColor={COLORS.error}
+        />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitleText}>Create Course</Text>
-        </View>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithBack title="Create Course" onBackPress={() => navigation.goBack()} />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>

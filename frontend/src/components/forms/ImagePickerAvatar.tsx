@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { View, Image, StyleSheet, TouchableOpacity, Text, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
-import AvatarPlaceholder from "../../assets/icons/Avatar_Placeholder.png";
+import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 
 type Props = {
   initialUri?: string | undefined;

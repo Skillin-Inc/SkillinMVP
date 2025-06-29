@@ -8,6 +8,7 @@ export const API_CONFIG = {
     LESSONS: "/lessons",
     COURSES: "/courses",
     CATEGORIES: "/categories",
+    PROGRESS: "/progress",
   },
   TIMEOUT: 10000,
 };

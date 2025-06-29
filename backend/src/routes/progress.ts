@@ -11,6 +11,12 @@ import {
 
 const router = Router();
 
+// Helper function to validate UUID
+function isValidUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(uuid);
+}
+
 router.post("/", async (req: Request<object, unknown, NewProgress>, res: Response): Promise<void> => {
   const body = req.body;
 
@@ -23,13 +29,13 @@ router.post("/", async (req: Request<object, unknown, NewProgress>, res: Respons
     }
   }
 
-  if (typeof body.user_id !== "number") {
-    res.status(400).json({ error: "user_id must be a number" });
+  if (typeof body.user_id !== "string" || !isValidUUID(body.user_id)) {
+    res.status(400).json({ error: "user_id must be a valid UUID" });
     return;
   }
 
-  if (typeof body.lesson_id !== "number") {
-    res.status(400).json({ error: "lesson_id must be a number" });
+  if (typeof body.lesson_id !== "string" || !isValidUUID(body.lesson_id)) {
+    res.status(400).json({ error: "lesson_id must be a valid UUID" });
     return;
   }
 
@@ -59,10 +65,10 @@ router.post("/", async (req: Request<object, unknown, NewProgress>, res: Respons
 });
 
 router.get("/user/:userId", async (req, res) => {
-  const userId = Number(req.params.userId);
+  const userId = String(req.params.userId);
 
-  if (isNaN(userId)) {
-    res.status(400).json({ error: "Invalid user ID" });
+  if (!isValidUUID(userId)) {
+    res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
 
@@ -76,10 +82,10 @@ router.get("/user/:userId", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid progress ID" });
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid progress ID format" });
     return;
   }
 
@@ -97,10 +103,10 @@ router.get("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid progress ID" });
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid progress ID format" });
     return;
   }
 
@@ -118,16 +124,16 @@ router.delete("/:id", async (req, res) => {
 });
 
 router.delete("/user/:userId/lesson/:lessonId", async (req, res) => {
-  const userId = Number(req.params.userId);
-  const lessonId = Number(req.params.lessonId);
+  const userId = String(req.params.userId);
+  const lessonId = String(req.params.lessonId);
 
-  if (isNaN(userId)) {
-    res.status(400).json({ error: "Invalid user ID" });
+  if (!isValidUUID(userId)) {
+    res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
 
-  if (isNaN(lessonId)) {
-    res.status(400).json({ error: "Invalid lesson ID" });
+  if (!isValidUUID(lessonId)) {
+    res.status(400).json({ error: "Invalid lesson ID format" });
     return;
   }
 
