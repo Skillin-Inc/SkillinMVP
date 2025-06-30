@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
-import { useScreenDimensions, formatDOB, formatPhoneNumber, formatZipCode, isValidEmail } from "../../hooks";
+import { useScreenDimensions, formatDateOfBirth, formatPhoneNumber, isValidEmail } from "../../hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
@@ -16,21 +16,13 @@ export default function StudentInfo({ navigation }: Props) {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [dOB, setDOB] = useState("");
-  const [zipCode, setZipCode] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleNext = () => {
-    if (
-      !firstName.trim() ||
-      !lastName.trim() ||
-      !dOB.trim() ||
-      !zipCode.trim() ||
-      !email.trim() ||
-      !phoneNumber.trim()
-    ) {
-      alert("Please fill out all fields.");
+    if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim() || !email.trim()) {
+      alert("Please fill out all required fields.");
       return;
     }
 
@@ -39,20 +31,12 @@ export default function StudentInfo({ navigation }: Props) {
       return;
     }
 
-    const postalCode = parseInt(zipCode.replace(/\D/g, ""), 10);
-    if (isNaN(postalCode)) {
-      alert("Please enter a valid zip code.");
-      return;
-    }
-
     navigation.navigate("StudentAccount", {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      dOB: dOB.trim(),
-      zipCode: zipCode.trim(),
+      date_of_birth: dateOfBirth.trim(),
       email: email.trim().toLowerCase(),
-      phoneNumber: phoneNumber.replace(/\D/g, ""),
-      postalCode,
+      phoneNumber: phoneNumber.trim() || undefined,
     });
   };
 
@@ -98,20 +82,8 @@ export default function StudentInfo({ navigation }: Props) {
             placeholder="Date of Birth (MM/DD/YYYY)"
             placeholderTextColor={COLORS.gray}
             keyboardType="number-pad"
-            value={dOB}
-            onChangeText={(text) => setDOB(formatDOB(text))}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Ionicons name="location-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Zip Code"
-            placeholderTextColor={COLORS.gray}
-            keyboardType="number-pad"
-            value={zipCode}
-            onChangeText={(text) => setZipCode(formatZipCode(text))}
+            value={dateOfBirth}
+            onChangeText={(text) => setDateOfBirth(formatDateOfBirth(text))}
           />
         </View>
 
@@ -132,7 +104,7 @@ export default function StudentInfo({ navigation }: Props) {
           <Ionicons name="call-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
-            placeholder="Phone Number"
+            placeholder="Phone Number (Optional)"
             placeholderTextColor={COLORS.gray}
             keyboardType="phone-pad"
             value={phoneNumber}

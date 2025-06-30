@@ -4,10 +4,9 @@ export interface RegisterData {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   username: string;
   password: string;
-  postalCode: number;
   userType?: "student" | "teacher" | "admin";
 }
 
@@ -21,18 +20,16 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   username: string;
-  postalCode: number;
   createdAt: string;
   userType: "student" | "teacher" | "admin";
   membershipTier?: string;
-  dOB?: string;
+  date_of_birth?: string;
   hashedPassword?: string;
   first_name?: string;
   last_name?: string;
   phone_number?: string;
-  postal_code?: number;
   created_at?: string;
   user_type?: "student" | "teacher" | "admin";
   hashed_password?: string;
@@ -43,11 +40,11 @@ export interface BackendUser {
   first_name: string;
   last_name: string;
   email: string;
-  phone_number: string;
+  phone_number?: string;
   username: string;
-  postal_code: number;
   created_at: string;
   user_type: "student" | "teacher" | "admin";
+  date_of_birth?: string;
 }
 
 export interface LoginResponse {
@@ -140,9 +137,9 @@ function createApiService() {
       email: backendUser.email,
       phoneNumber: backendUser.phone_number,
       username: backendUser.username,
-      postalCode: backendUser.postal_code,
       createdAt: backendUser.created_at,
       userType: backendUser.user_type,
+      date_of_birth: backendUser.date_of_birth,
     };
   };
 
@@ -407,8 +404,8 @@ export const transformBackendUserToUser = (backendUser: BackendUser): User => {
     email: backendUser.email,
     phoneNumber: backendUser.phone_number,
     username: backendUser.username,
-    postalCode: backendUser.postal_code,
     createdAt: backendUser.created_at,
     userType: backendUser.user_type,
+    date_of_birth: backendUser.date_of_birth,
   };
 };

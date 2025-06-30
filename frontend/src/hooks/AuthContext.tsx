@@ -12,7 +12,6 @@ type StoredUserData = {
   email?: string;
   phoneNumber?: string;
   username?: string;
-  postalCode?: number;
   createdAt?: string;
   userType?: "student" | "teacher" | "admin";
 
@@ -20,7 +19,6 @@ type StoredUserData = {
   first_name?: string;
   last_name?: string;
   phone_number?: string;
-  postal_code?: number;
   created_at?: string;
   user_type?: "student" | "teacher" | "admin";
 };
@@ -60,10 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userObj.first_name &&
         userObj.last_name &&
         userObj.email &&
-        userObj.phone_number &&
         userObj.username &&
         userObj.id !== undefined &&
-        userObj.postal_code !== undefined &&
         userObj.created_at
       ) {
         return {
@@ -73,7 +69,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: userObj.email,
           phoneNumber: userObj.phone_number,
           username: userObj.username,
-          postalCode: userObj.postal_code,
           createdAt: userObj.created_at,
           userType: userObj.user_type ?? "student",
         };
@@ -83,10 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userObj.firstName &&
         userObj.lastName &&
         userObj.email &&
-        userObj.phoneNumber &&
         userObj.username &&
         userObj.id !== undefined &&
-        userObj.postalCode !== undefined &&
         userObj.createdAt
       ) {
         return {
@@ -96,7 +89,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: userObj.email,
           phoneNumber: userObj.phoneNumber,
           username: userObj.username,
-          postalCode: userObj.postalCode,
           createdAt: userObj.createdAt,
           userType: userObj.userType ?? "student",
         };

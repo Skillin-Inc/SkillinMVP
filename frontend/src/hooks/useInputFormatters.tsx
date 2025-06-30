@@ -1,60 +1,46 @@
 // /hooks/useInputFormatters.ts
 
 // ========== Date of Birth ==========
-export function formatDOB(text: string): string {
-  const cleaned = text.replace(/[^0-9]/g, "");
-  const limited = cleaned.slice(0, 8);
+export function formatDateOfBirth(text: string): string {
+  const numeric = text.replace(/\D/g, "");
 
-  const month = limited.slice(0, 2);
-  const day = limited.slice(2, 4);
-  const year = limited.slice(4, 8);
-
-  if (limited.length < 3) {
-    return month;
-  } else if (limited.length < 5) {
-    return `${month}/${day}`;
+  if (numeric.length <= 2) {
+    return numeric;
+  } else if (numeric.length <= 4) {
+    return `${numeric.slice(0, 2)}/${numeric.slice(2)}`;
   } else {
-    return `${month}/${day}/${year}`;
+    return `${numeric.slice(0, 2)}/${numeric.slice(2, 4)}/${numeric.slice(4, 8)}`;
   }
 }
 
-export function isValidDate(dob: string): boolean {
-  const [month, day, year] = dob.split("/").map(Number);
+export function isValidDate(dateOfBirth: string): boolean {
+  const [month, day, year] = dateOfBirth.split("/").map(Number);
   if (!month || !day || !year) return false;
 
-  const date = new Date(year, month - 1, day);
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+  if (month < 1 || month > 12) return false;
+  if (day < 1 || day > 31) return false;
+  if (year < 1900 || year > new Date().getFullYear()) return false;
+
+  return true;
 }
 
 // ========== Email ==========
 export function isValidEmail(email: string): boolean {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
-}
-
-// ========== Zip Code ==========
-export function formatZipCode(text: string): string {
-  return text.replace(/[^0-9]/g, "").slice(0, 5); // Only 5 digits allowed
-}
-
-export function isValidZipCode(zip: string): boolean {
-  return /^\d{5}$/.test(zip);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
 
 // ========== Phone Number ==========
 export function formatPhoneNumber(text: string): string {
-  const cleaned = text.replace(/[^0-9]/g, "").slice(0, 10); // Limit to 10 digits
+  const cleaned = text.replace(/[^0-9]/g, "");
+  const limited = cleaned.slice(0, 10);
 
-  const areaCode = cleaned.slice(0, 3);
-  const centralOffice = cleaned.slice(3, 6);
-  const lineNumber = cleaned.slice(6, 10);
-
-  if (cleaned.length < 4) {
-    return areaCode;
-  } else if (cleaned.length < 7) {
-    return `(${areaCode}) ${centralOffice}`;
+  if (limited.length < 4) {
+    return limited;
+  } else if (limited.length < 7) {
+    return `(${limited.slice(0, 3)}) ${limited.slice(3)}`;
   } else {
-    return `(${areaCode}) ${centralOffice}-${lineNumber}`;
+    return `(${limited.slice(0, 3)}) ${limited.slice(3, 6)}-${limited.slice(6)}`;
   }
 }
 
