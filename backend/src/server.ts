@@ -12,6 +12,7 @@ import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import lessonRoutes from "./routes/lessons";
 import progressRoutes from "./routes/progress";
+import sendEmailRoutes from "./routes/sendEmail";
 
 const app: Express = express();
 const server = createServer(app);
@@ -107,9 +108,10 @@ app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);
 app.use("/lessons", lessonRoutes);
 app.use("/progress", progressRoutes);
+app.use("/send-email", sendEmailRoutes);
 
 // 404 handler for unmatched routes
-app.use("*", (req: Request, res: Response) => {
+app.use((req: Request, res: Response) => {
   res.status(404).json({
     error: "Route not found",
     path: req.originalUrl,
