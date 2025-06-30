@@ -9,6 +9,7 @@ import TeacherLesson from "../screens/teachers/TeacherLesson";
 import TeacherStats from "../screens/teachers/TeacherStats";
 import StudentProfile from "../screens/students/StudentProfile";
 import Chat from "../screens/shared/Chat";
+import EditProfile from "../screens/shared/EditProfile";
 import { TeacherStackParamList } from "../types/navigation";
 
 const Stack = createStackNavigator<TeacherStackParamList>();
@@ -28,6 +29,7 @@ export default function TeacherStack() {
       <Stack.Screen name="TeacherStats" component={TeacherStats} />
       <Stack.Screen name="StudentProfile" component={StudentProfile} />
       <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
     </Stack.Navigator>
   );
 }

@@ -7,6 +7,7 @@ import StudentCourse from "../screens/students/StudentCourse";
 import StudentLesson from "../screens/students/StudentLesson";
 import TeacherProfile from "../screens/teachers/TeacherProfile";
 import Chat from "../screens/shared/Chat";
+import EditProfile from "../screens/shared/EditProfile";
 import { StudentStackParamList } from "../types/navigation";
 
 const Stack = createStackNavigator<StudentStackParamList>();
@@ -24,6 +25,7 @@ export default function StudentStack() {
       <Stack.Screen name="StudentLesson" component={StudentLesson} />
       <Stack.Screen name="TeacherProfile" component={TeacherProfile} />
       <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="EditProfile" component={EditProfile} />
     </Stack.Navigator>
   );
 }
