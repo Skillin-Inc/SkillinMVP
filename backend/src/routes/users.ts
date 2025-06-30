@@ -123,15 +123,7 @@ router.post(
 router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
   const body = req.body;
 
-  const required: (keyof NewUser)[] = [
-    "firstName",
-    "lastName",
-    "email",
-    "phoneNumber",
-    "username",
-    "password",
-    "postalCode",
-  ];
+  const required: (keyof NewUser)[] = ["firstName", "lastName", "email", "username", "password"];
 
   for (const key of required) {
     if (body[key] === undefined) {
