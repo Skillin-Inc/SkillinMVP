@@ -47,6 +47,14 @@ export interface BackendUser {
   date_of_birth?: string;
 }
 
+export interface UpdateUserProfileData {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  username?: string;
+}
+
 export interface LoginResponse {
   success: boolean;
   user: User;
@@ -361,6 +369,28 @@ function createApiService() {
     );
   };
 
+  const updateUserProfile = async (userId: string, updateData: UpdateUserProfileData): Promise<BackendUser> => {
+    const response = await makeRequest<{ message: string; user: BackendUser }>(
+      `${API_CONFIG.ENDPOINTS.USERS}/${userId}/profile`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(updateData),
+      }
+    );
+    return response.user;
+  };
+
+  const checkUsernameAvailability = async (username: string, excludeUserId?: string): Promise<boolean> => {
+    const response = await makeRequest<{ available: boolean }>(
+      `${API_CONFIG.ENDPOINTS.USERS}/check-username/${encodeURIComponent(username)}`,
+      {
+        method: "POST",
+        body: JSON.stringify({ excludeUserId }),
+      }
+    );
+    return response.available;
+  };
+
   return {
     register,
     login,
@@ -391,6 +421,8 @@ function createApiService() {
     deleteCategory,
     deleteUser,
     updateUserType,
+    updateUserProfile,
+    checkUsernameAvailability,
   };
 }
 

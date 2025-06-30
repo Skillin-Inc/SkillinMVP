@@ -540,6 +540,74 @@ export async function updateUserTypeByEmail(email: string, newUserType: "student
   return result.rows[0] ?? null;
 }
 
+export interface UpdateUserProfileData {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  username?: string;
+}
+
+export async function updateUserProfile(userId: string, updateData: UpdateUserProfileData) {
+  const fields: string[] = [];
+  const values: (string | null)[] = [];
+  let paramCount = 1;
+
+  if (updateData.firstName !== undefined) {
+    fields.push(`first_name = $${paramCount++}`);
+    values.push(updateData.firstName);
+  }
+
+  if (updateData.lastName !== undefined) {
+    fields.push(`last_name = $${paramCount++}`);
+    values.push(updateData.lastName);
+  }
+
+  if (updateData.phoneNumber !== undefined) {
+    fields.push(`phone_number = $${paramCount++}`);
+    values.push(updateData.phoneNumber);
+  }
+
+  if (updateData.dateOfBirth !== undefined) {
+    fields.push(`date_of_birth = $${paramCount++}`);
+    values.push(updateData.dateOfBirth);
+  }
+
+  if (updateData.username !== undefined) {
+    fields.push(`username = $${paramCount++}`);
+    values.push(updateData.username);
+  }
+
+  if (fields.length === 0) {
+    throw new Error("No fields to update");
+  }
+
+  values.push(userId);
+
+  const result = await pool.query(
+    `UPDATE public.users
+     SET ${fields.join(", ")}
+     WHERE id = $${paramCount}
+     RETURNING *`,
+    values
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function checkUsernameAvailability(username: string, excludeUserId?: string) {
+  let query = `SELECT id FROM public.users WHERE username = $1`;
+  const values: string[] = [username];
+
+  if (excludeUserId) {
+    query += ` AND id != $2`;
+    values.push(excludeUserId);
+  }
+
+  const result = await pool.query(query, values);
+  return result.rows.length === 0;
+}
+
 export interface NewProgress {
   user_id: string;
   lesson_id: string;
