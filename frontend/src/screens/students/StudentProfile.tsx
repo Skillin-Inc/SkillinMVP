@@ -208,12 +208,10 @@ export default function StudentProfile({ navigation, route }: Props) {
         <View style={styles.section}>
           <SectionHeader title="Personal Information" />
 
-          <InfoCard icon="calendar-outline" label="Date of Birth" value={profileUser?.dOB ?? "Not provided"} />
-
           <InfoCard
-            icon="location-outline"
-            label="Location"
-            value={profileUser?.postalCode?.toString() ?? "Not provided"}
+            icon="calendar-outline"
+            label="Date of Birth"
+            value={profileUser?.date_of_birth ?? "Not provided"}
           />
 
           <InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />

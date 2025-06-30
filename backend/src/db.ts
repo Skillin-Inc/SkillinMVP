@@ -28,7 +28,7 @@ export async function getUserByEmail(email: string) {
 
 export async function getAllUsers() {
   const result = await pool.query(
-    'SELECT "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "created_at" FROM public.users ORDER BY "created_at" DESC'
+    'SELECT "id", "first_name", "last_name", email, "phone_number", username, "date_of_birth", "created_at" FROM public.users ORDER BY "created_at" DESC'
   );
   return result.rows;
 }
@@ -37,22 +37,22 @@ export interface NewUser {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   username: string;
   password: string;
-  postalCode: number;
   userType: "student" | "teacher" | "admin";
+  dateOfBirth?: string;
 }
 
 export async function createUser(data: NewUser) {
-  const { firstName, lastName, email, phoneNumber, username, password, postalCode, userType = "student" } = data;
+  const { firstName, lastName, email, phoneNumber, username, password, userType = "student", dateOfBirth } = data;
 
   const result = await pool.query(
     `INSERT INTO public.users
-    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "postal_code", "user_type")
+    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "user_type", "date_of_birth")
    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-   RETURNING "id", "first_name", "last_name", email, "phone_number", username, "postal_code", "user_type", "created_at"`,
-    [firstName, lastName, email, phoneNumber, username, password, postalCode, userType]
+   RETURNING "id", "first_name", "last_name", email, "phone_number", username, "user_type", "date_of_birth", "created_at"`,
+    [firstName, lastName, email, phoneNumber, username, password, userType, dateOfBirth]
   );
 
   return result.rows[0];

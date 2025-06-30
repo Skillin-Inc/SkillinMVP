@@ -4,7 +4,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 
-import { useScreenDimensions, formatPhoneNumber, formatZipCode } from "../../hooks";
+import { useScreenDimensions, formatPhoneNumber } from "../../hooks";
 import { TeacherAuthStackParamList } from "../../types/navigation";
 import { COLORS } from "../../styles";
 
@@ -18,7 +18,6 @@ const TeacherInfo = ({ navigation }: Props) => {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [zipCode, setZipCode] = useState("");
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   const pickImage = async () => {
@@ -46,7 +45,6 @@ const TeacherInfo = ({ navigation }: Props) => {
       lastName,
       email,
       phoneNumber,
-      zipCode,
       profileImage,
     });
   };
@@ -84,18 +82,10 @@ const TeacherInfo = ({ navigation }: Props) => {
       />
       <TextInput
         style={styles.input}
-        placeholder="Phone Number"
+        placeholder="Phone Number (Optional)"
         value={phoneNumber}
         onChangeText={(text) => setPhoneNumber(formatPhoneNumber(text))}
         keyboardType="phone-pad"
-        placeholderTextColor={COLORS.darkGray}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Zip Code"
-        value={zipCode}
-        onChangeText={(text) => setZipCode(formatZipCode(text))}
-        keyboardType="number-pad"
         placeholderTextColor={COLORS.darkGray}
       />
 

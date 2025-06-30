@@ -70,11 +70,9 @@ export type AuthStackParamList = {
   StudentAccount: {
     firstName: string;
     lastName: string;
-    dOB: string;
-    zipCode: string;
+    date_of_birth: string;
     email: string;
-    phoneNumber: string;
-    postalCode: number;
+    phoneNumber?: string;
   };
   TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };
