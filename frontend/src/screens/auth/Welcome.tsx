@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, TextStyle, StatusBar, Linking } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, TextStyle, StatusBar } from "react-native";
 import { StackScreenProps } from "@react-navigation/stack";
 
 import SkillinLogo from "../../../assets/icons/skillin-logo.png";
