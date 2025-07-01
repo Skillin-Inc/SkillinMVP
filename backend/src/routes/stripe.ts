@@ -13,7 +13,7 @@ interface BillingPortalRequestBody {
 }
 
 const createBillingPortalSession = async (
-  req: Request<{}, {}, BillingPortalRequestBody>,
+  req: Request<Record<string, unknown>, Record<string, unknown>, BillingPortalRequestBody>,
   res: Response
 ): Promise<void> => {
   console.log("🔥 [POST] /create-billing-portal-session triggered");
