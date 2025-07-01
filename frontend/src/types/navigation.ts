@@ -8,6 +8,7 @@ export type StudentTabsParamList = {
   Messages: undefined;
   StudentProfile: { userId?: string };
   Temp: undefined;
+  
 };
 
 export type TeacherTabsParamList = {
@@ -32,6 +33,7 @@ export type StudentStackParamList = {
   StudentLesson: { lessonId: string };
   TeacherProfile: { userId: string };
   Chat: { id: string };
+  StudentSubscription: undefined;
   EditProfile: undefined;
 };
 

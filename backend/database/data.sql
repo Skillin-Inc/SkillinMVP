@@ -18,6 +18,7 @@ INSERT INTO "categories" ("id", "title") VALUES
 
 -- STEP 2: Insert users (student, teacher, and admin)
 INSERT INTO "users" (
+
   "id", "first_name", "last_name", "email", "phone_number", "username", 
   "hashed_password", "user_type", "date_of_birth"
 ) VALUES

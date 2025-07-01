@@ -25,6 +25,7 @@ CREATE TABLE "users" (
   "phone_number" VARCHAR(15) UNIQUE,
   "username" text UNIQUE NOT NULL,
   "hashed_password" text NOT NULL,
+  "is_paid" boolean NOT NULL DEFAULT false,
   "date_of_birth" DATE,
   "user_type" user_type NOT NULL DEFAULT 'student',
   "created_at" timestamptz(3) default current_timestamp

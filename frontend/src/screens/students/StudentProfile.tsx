@@ -1,5 +1,8 @@
+// File: src/screens/students/StudentProfile.tsx
+
 import React, { useContext, useState, useEffect } from "react";
 import {
+  Linking,
   View,
   Text,
   StyleSheet,
@@ -9,6 +12,7 @@ import {
   Alert,
   RefreshControl,
 } from "react-native";
+import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
@@ -26,6 +30,7 @@ type Props = CompositeScreenProps<
   BottomTabScreenProps<StudentTabsParamList, "StudentProfile">,
   StackScreenProps<StudentStackParamList>
 >;
+
 
 export default function StudentProfile({ navigation, route }: Props) {
   const { logout, user: currentUser } = useContext(AuthContext);
@@ -82,6 +87,7 @@ export default function StudentProfile({ navigation, route }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true);
+
     await loadUserProfile();
     setRefreshing(false);
   };
@@ -148,15 +154,45 @@ export default function StudentProfile({ navigation, route }: Props) {
     }
   };
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-          <Text>Loading profile...</Text>
-        </View>
-      </SafeAreaView>
-    );
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+const handleOpenStripePortal = async () => {
+  if (!currentUser?.email) {
+    Alert.alert("Error", "Missing user email");
+    return;
   }
+
+  try {
+    const response = await axios.post(`${apiUrl}/api/create-billing-portal-session`, {
+      email: currentUser.email,
+      name: `${currentUser.firstName} ${currentUser.lastName}`,
+    });
+
+    const { url } = response.data;
+    console.log("Received portal URL:", url);
+
+    if (!url || typeof url !== "string") {
+      Alert.alert("Error", "Stripe portal URL not found.");
+      return;
+    }
+
+    Linking.openURL(url);
+  } catch (error) {
+    console.error("Portal open error:", error);
+    Alert.alert("Error", "Unable to open Stripe portal.");
+  }
+};
+
+if (loading) {
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <Text>Loading profile...</Text>
+      </View>
+    </SafeAreaView>
+  );
+}
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -193,6 +229,7 @@ export default function StudentProfile({ navigation, route }: Props) {
             <View
               style={[
                 styles.membershipBadge,
+
                 { backgroundColor: getMembershipBadgeColor(profileUser?.membershipTier) },
               ]}
             >
@@ -212,18 +249,20 @@ export default function StudentProfile({ navigation, route }: Props) {
         <View style={styles.section}>
           <SectionHeader title="Personal Information" />
 
+
           <InfoCard
             icon="calendar-outline"
             label="Date of Birth"
             value={profileUser?.date_of_birth ?? "Not provided"}
           />
 
-          <InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />
-        </View>
+<InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />
+</View>
 
-        {isOwnProfile && (
-          <View style={styles.section}>
-            <SectionHeader title="Account Actions" />
+{isOwnProfile && (
+  <View style={styles.section}>
+    <SectionHeader title="Account Actions" />
+
 
             <View style={styles.quickActions}>
               <QuickActionCard
@@ -249,22 +288,30 @@ export default function StudentProfile({ navigation, route }: Props) {
                 onPress={() => Alert.alert("Progress", "Feature coming soon!")}
               />
 
-              <QuickActionCard
-                icon="help-circle-outline"
-                title="Help & Support"
-                subtitle="Get assistance and FAQ"
-                onPress={handleSupport}
-              />
-            </View>
+      <QuickActionCard
+        icon="help-circle-outline"
+        title="Help & Support"
+        subtitle="Get assistance and FAQ"
+        onPress={handleSupport}
+      />
 
-            <View style={styles.section}>
-              <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
-                <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
-                <Text style={styles.signOutText}>Sign Out</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+      <QuickActionCard
+        icon="wallet-outline"
+        title="Subscription"
+        subtitle="Handle your payments"
+        onPress={handleOpenStripePortal}
+      />
+    </View>
+
+    <View style={styles.section}>
+      <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+)}
+
 
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Skillin v1.0.0</Text>
@@ -273,6 +320,9 @@ export default function StudentProfile({ navigation, route }: Props) {
     </SafeAreaView>
   );
 }
+
+
+
 
 const styles = StyleSheet.create({
   container: {

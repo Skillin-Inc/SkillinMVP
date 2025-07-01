@@ -33,6 +33,7 @@ export interface User {
   created_at?: string;
   user_type?: "student" | "teacher" | "admin";
   hashed_password?: string;
+  stripeCustomerId?:string;
 }
 
 export interface BackendUser {
@@ -43,6 +44,7 @@ export interface BackendUser {
   phone_number?: string;
   username: string;
   created_at: string;
+  stripe_customer_id?: string;
   user_type: "student" | "teacher" | "admin";
   date_of_birth?: string;
 }
@@ -147,6 +149,7 @@ function createApiService() {
       username: backendUser.username,
       createdAt: backendUser.created_at,
       userType: backendUser.user_type,
+      stripeCustomerId: backendUser.stripe_customer_id,
       date_of_birth: backendUser.date_of_birth,
     };
   };

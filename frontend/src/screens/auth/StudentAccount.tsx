@@ -53,6 +53,7 @@ export default function StudentAccount({ navigation, route }: Props) {
         password,
       });
 
+
       Alert.alert("Success", "Account created successfully! You are now logged in.", [
         {
           text: "OK",
