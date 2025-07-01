@@ -250,11 +250,6 @@ if (loading) {
           <SectionHeader title="Personal Information" />
 
 
-<InfoCard
-  icon="location-outline"
-  label="Location"
-  value={profileUser?.postalCode?.toString() ?? "Not provided"}
-/>
           <InfoCard
             icon="calendar-outline"
             label="Date of Birth"
