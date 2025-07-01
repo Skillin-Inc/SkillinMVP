@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import he from "he";
 import Stripe from "stripe";
 import bodyParser from "body-parser";
 import { updateUserPaymentStatus } from "../../controller/userController"; 
@@ -25,7 +26,7 @@ router.post(
     } catch (err: unknown) {
       if (err instanceof Error) {
         console.error("Webhook Error:", err.message);
-        res.status(400).send(`Webhook Error: ${err.message}`);
+        res.status(400).send(`Webhook Error: ${he.encode(err.message)}`);
         return;
       }
       console.error("Unknown Webhook Error:", err);

@@ -22,7 +22,8 @@
     "node-fetch": "^2.7.0",
     "pg": "^8.11.1",
     "socket.io": "^4.8.1",
-    "stripe": "^18.2.1"
+    "stripe": "^18.2.1",
+    "he": "^1.2.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
