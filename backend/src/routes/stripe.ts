@@ -42,13 +42,20 @@ const createBillingPortalSession = async (
 
     res.json({ url: session.url });
     console.log("✅ Created portal session:", session.url);
-  } catch (error: any) {
+  } catch (error: unknown) {
   console.error("❌ Error creating billing portal session:");
-  if (error?.raw) {
-    console.error("Stripe error:", error.raw);
+  
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "raw" in error
+  ) {
+    // TypeScript will allow this access now
+    console.error("Stripe error:", (error as any).raw); // optional: further refine this cast if needed
   } else {
     console.error(error);
   }
+
   res.status(500).json({ error: "Unable to create billing portal session" });
 }
 };

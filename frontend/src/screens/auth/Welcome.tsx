@@ -13,9 +13,6 @@ export default function WelcomeScreen({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const handlePaymentPress = () => {
-    Linking.openURL("https://buy.stripe.com/9AQ03wbg7ayg7SM288");
-  };
 
   return (
     <View style={styles.container}>

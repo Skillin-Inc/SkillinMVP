@@ -14,9 +14,8 @@ import sendEmailRouter from "./routes/sendEmail";
 import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
-import lessonRoutes from "./routes/lessons";
 import progressRoutes from "./routes/progress";
-import teacherRoutes from "./routes/teachers";
+//import teacherRoutes from "./routes/teachers";
 
 
 const app: Express = express();
@@ -111,10 +110,9 @@ io.on("connection", (socket) => {
 app.use("/users", userRoutes);
 app.use("/send-email", sendEmailRouter);
 app.use("/messages", messageRoutes);
-app.use("/lessons", lessonsRouter);
 app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);
-app.use("/teachers", teacherRoutes);
+//app.use("/teachers", teacherRoutes);
 app.use("/progress", progressRoutes);
 app.use("/api", stripeRoutes);  
 

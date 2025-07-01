@@ -2,8 +2,10 @@
 //Description: Page for managing subscription and all kinds of billing sht
 
 import React from 'react';
-import {View, Text, StyleSheet, SafeAreaView} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+//import {View, Text, StyleSheet, SafeAreaView} from "react-native";
+import {Text, StyleSheet, SafeAreaView} from "react-native";
+
+//import { Ionicons } from "@expo/vector-icons";
 import { COLORS, SPACINGS } from "../../styles";
 
 export default function StudentSubscription(){

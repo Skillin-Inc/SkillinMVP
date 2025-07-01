@@ -15,8 +15,6 @@ import {
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
 
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader } from "../../components/common";
@@ -27,7 +25,6 @@ import { StudentTabsParamList, StudentStackParamList } from "../../types/navigat
 import { User, api, transformBackendUserToUser } from "../../services/api";
 
 type Props = BottomTabScreenProps<StudentTabsParamList, "StudentProfile">;
-type StackNav = StackNavigationProp<StudentStackParamList>;
 
 
 export default function StudentProfile({ navigation, route }: Props) {

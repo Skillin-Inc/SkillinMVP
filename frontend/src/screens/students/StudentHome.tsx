@@ -8,25 +8,21 @@ import {
   Alert,
   SafeAreaView,
   RefreshControl,
-  Linking,
-  Modal
+  Linking
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
 
-import { AuthContext } from "../../hooks/AuthContext";
-
 import { COLORS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
 
-import CategoryCard from "../../components/CategoryCard";
 import { checkIfPaid } from "../../services/payments";
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
 import { CategoryCard, QuickActionCard } from "../../components/cards";
-import { api,apiService, Category } from "../../services/api";
+import { api, Category } from "../../services/api";
 import temp from "../../../assets/playingCards.png";
 
 type Props = CompositeScreenProps<
@@ -40,7 +36,6 @@ export default function StudentHome({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const { user } = useContext(AuthContext); 
 
   const styles = getStyles();
 
@@ -53,7 +48,7 @@ const verifyPayment = async () => {
   if (!user?.id) return;
 
   try {
-    const isPaid = await checkIfPaid(user.id);
+    const isPaid = await checkIfPaid(Number(user.id));
     if (!isPaid) {
       setShowPaymentModal(true);
     } else {
@@ -72,7 +67,7 @@ useEffect(() => {
   if (showPaymentModal && user?.id) {
     interval = setInterval(async () => {
       try {
-        const isPaid = await checkIfPaid(user.id);
+        const isPaid = await checkIfPaid(Number(user.id));
         if (isPaid) {
           clearInterval(interval);
           setShowPaymentModal(false);
