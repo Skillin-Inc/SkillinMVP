@@ -15,6 +15,8 @@ import {
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { StackScreenProps } from "@react-navigation/stack";
 
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader } from "../../components/common";
@@ -24,7 +26,10 @@ import { COLORS, SPACINGS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
 import { User, api, transformBackendUserToUser } from "../../services/api";
 
-type Props = BottomTabScreenProps<StudentTabsParamList, "StudentProfile">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<StudentTabsParamList, "StudentProfile">,
+  StackScreenProps<StudentStackParamList>
+>;
 
 
 export default function StudentProfile({ navigation, route }: Props) {
@@ -92,7 +97,7 @@ export default function StudentProfile({ navigation, route }: Props) {
       Alert.alert("Not Allowed", "You can only edit your own profile.");
       return;
     }
-    Alert.alert("Edit Profile", "Profile editing will be available soon!");
+    navigation.navigate("EditProfile");
   };
 
   const handleSettings = () => {
@@ -109,7 +114,6 @@ export default function StudentProfile({ navigation, route }: Props) {
 
   const handleSendMessage = () => {
     if (profileUser) {
-      // @ts-expect-error - Navigation type issue with shared profile component
       navigation.navigate("Chat", { id: profileUser.id.toString() });
     }
   };
@@ -245,13 +249,17 @@ if (loading) {
         <View style={styles.section}>
           <SectionHeader title="Personal Information" />
 
-<InfoCard icon="calendar-outline" label="Date of Birth" value={profileUser?.dOB ?? "Not provided"} />
 
 <InfoCard
   icon="location-outline"
   label="Location"
   value={profileUser?.postalCode?.toString() ?? "Not provided"}
 />
+          <InfoCard
+            icon="calendar-outline"
+            label="Date of Birth"
+            value={profileUser?.date_of_birth ?? "Not provided"}
+          />
 
 <InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />
 </View>

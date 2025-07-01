@@ -12,7 +12,6 @@ export interface PersonalInfo {
   address?: string;
   city?: string;
   state?: string;
-  zipCode?: string;
   profileImage?: string | null;
 }
 

@@ -11,16 +11,21 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { StackScreenProps } from "@react-navigation/stack";
 
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader } from "../../components/common";
 import { ImagePickerAvatar } from "../../components/forms";
 import { StatsCard, QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
-import { TeacherTabsParamList } from "../../types/navigation";
+import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
 import { User, api, transformBackendUserToUser } from "../../services/api";
 
-type Props = BottomTabScreenProps<TeacherTabsParamList, "TeacherProfile">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<TeacherTabsParamList, "TeacherProfile">,
+  StackScreenProps<TeacherStackParamList>
+>;
 
 export default function TeacherProfile({ navigation, route }: Props) {
   const { logout, user: currentUser } = useContext(AuthContext);
@@ -86,7 +91,7 @@ export default function TeacherProfile({ navigation, route }: Props) {
       Alert.alert("Not Allowed", "You can only edit your own profile.");
       return;
     }
-    Alert.alert("Edit Profile", "Profile editing will be available soon!");
+    navigation.navigate("EditProfile");
   };
 
   const handleSettings = () => {
@@ -103,7 +108,6 @@ export default function TeacherProfile({ navigation, route }: Props) {
 
   const handleSendMessage = () => {
     if (profileUser) {
-      // @ts-expect-error - Navigation type issue with shared profile component
       navigation.navigate("Chat", { id: profileUser.id.toString() });
     }
   };
@@ -208,12 +212,10 @@ export default function TeacherProfile({ navigation, route }: Props) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
 
-          <InfoCard icon="calendar-outline" label="Date of Birth" value={profileUser?.dOB ?? "Not provided"} />
-
           <InfoCard
-            icon="location-outline"
-            label="Location"
-            value={profileUser?.postalCode?.toString() ?? "Not provided"}
+            icon="calendar-outline"
+            label="Date of Birth"
+            value={profileUser?.date_of_birth ?? "Not provided"}
           />
 
           <InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />

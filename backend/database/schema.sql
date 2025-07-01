@@ -22,11 +22,11 @@ CREATE TABLE "users" (
   "first_name" text NOT NULL,
   "last_name" text NOT NULL,
   "email" text UNIQUE NOT NULL,
-  "phone_number" VARCHAR(15) UNIQUE NOT NULL,
+  "phone_number" VARCHAR(15) UNIQUE,
   "username" text UNIQUE NOT NULL,
   "hashed_password" text NOT NULL,
-  "postal_code" integer NOT NULL,
   "is_paid" boolean NOT NULL DEFAULT false,
+  "date_of_birth" DATE,
   "user_type" user_type NOT NULL DEFAULT 'student',
   "created_at" timestamptz(3) default current_timestamp
 );

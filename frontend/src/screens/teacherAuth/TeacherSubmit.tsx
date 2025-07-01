@@ -18,7 +18,6 @@ const TeacherSubmit = ({ navigation, route }: Props) => {
     lastName = "",
     email = "",
     phoneNumber = "",
-    zipCode = "",
     profileImage = null,
     experienceList = [],
     certifications = [],
@@ -56,7 +55,6 @@ const TeacherSubmit = ({ navigation, route }: Props) => {
     <p><strong>Last Name:</strong> ${lastName}</p>
     <p><strong>Email:</strong> ${email}</p>
     <p><strong>Phone:</strong> ${phoneNumber}</p>
-    <p><strong>Zip Code:</strong> ${zipCode}</p>
 
     <h2>🖼 Profile Image</h2>
     ${
@@ -149,9 +147,6 @@ const TeacherSubmit = ({ navigation, route }: Props) => {
         </Text>
         <Text style={styles.label}>
           Phone: <Text style={styles.value}>{phoneNumber}</Text>
-        </Text>
-        <Text style={styles.label}>
-          Zip Code: <Text style={styles.value}>{zipCode}</Text>
         </Text>
         {profileImage && <Image source={{ uri: profileImage }} style={styles.image} />}
         <TouchableOpacity onPress={() => handleEdit("TeacherInfo")}>

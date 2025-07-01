@@ -15,7 +15,6 @@ import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import progressRoutes from "./routes/progress";
-//import teacherRoutes from "./routes/teachers";
 
 
 const app: Express = express();
@@ -115,10 +114,10 @@ app.use("/courses", courseRoutes);
 //app.use("/teachers", teacherRoutes);
 app.use("/progress", progressRoutes);
 app.use("/api", stripeRoutes);  
-
+app.use("/send-email", sendEmailRoutes);
 
 // 404 handler for unmatched routes
-app.use("*", (req: Request, res: Response) => {
+app.use((req: Request, res: Response) => {
   res.status(404).json({
     error: "Route not found",
     path: req.originalUrl,

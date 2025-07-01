@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  SafeAreaView,
+  Alert,
+  TextInput,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 
@@ -19,6 +29,10 @@ export default function TeacherLesson({ navigation, route }: Props) {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [editingDescription, setEditingDescription] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const styles = getStyles();
 
@@ -54,8 +68,42 @@ export default function TeacherLesson({ navigation, route }: Props) {
   };
 
   const handleEditLesson = () => {
-    // TODO: Navigate to edit lesson screen
-    Alert.alert("Edit Lesson", "Lesson editing will be available soon!");
+    if (!lesson) return;
+    setEditingTitle(lesson.title);
+    setEditingDescription(lesson.description);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!lesson || !editingTitle.trim() || !editingDescription.trim()) {
+      Alert.alert("Error", "Title and description cannot be empty");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const updateData = {
+        title: editingTitle.trim(),
+        description: editingDescription.trim(),
+      };
+
+      await api.updateLesson(lessonId, updateData);
+
+      setLesson({ ...lesson, ...updateData });
+      setIsEditing(false);
+      Alert.alert("Success", "Lesson updated successfully!");
+    } catch (error) {
+      console.error("Error updating lesson:", error);
+      Alert.alert("Error", "Failed to update lesson. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingTitle("");
+    setEditingDescription("");
   };
 
   const handleDeleteLesson = () => {
@@ -152,14 +200,36 @@ export default function TeacherLesson({ navigation, route }: Props) {
               <Ionicons name="videocam" size={24} color={COLORS.purple} />
             </View>
             <View style={styles.lessonTitleSection}>
-              <Text style={styles.lessonTitle}>{lesson.title}</Text>
+              {isEditing ? (
+                <TextInput
+                  style={styles.editInput}
+                  value={editingTitle}
+                  onChangeText={setEditingTitle}
+                  placeholder="Lesson title"
+                  maxLength={100}
+                />
+              ) : (
+                <Text style={styles.lessonTitle}>{lesson.title}</Text>
+              )}
               <Text style={styles.lessonDate}>Created {formatDate(lesson.created_at)}</Text>
             </View>
           </View>
 
           <View style={styles.descriptionSection}>
             <SectionHeader title="Description" />
-            <Text style={styles.lessonDescription}>{lesson.description}</Text>
+            {isEditing ? (
+              <TextInput
+                style={styles.editTextArea}
+                value={editingDescription}
+                onChangeText={setEditingDescription}
+                placeholder="Lesson description"
+                multiline
+                numberOfLines={4}
+                maxLength={500}
+              />
+            ) : (
+              <Text style={styles.lessonDescription}>{lesson.description}</Text>
+            )}
           </View>
 
           <View style={styles.videoInfoSection}>
@@ -171,25 +241,47 @@ export default function TeacherLesson({ navigation, route }: Props) {
           </View>
         </View>
 
-        <ActionButtons
-          primaryAction={{
-            icon: "create-outline",
-            title: "Edit Lesson",
-            onPress: handleEditLesson,
-          }}
-          secondaryActions={[
-            {
-              icon: "play-outline",
-              title: "Preview",
-              onPress: handlePlayVideo,
-            },
-          ]}
-          dangerAction={{
-            icon: "trash-outline",
-            title: "Delete",
-            onPress: handleDeleteLesson,
-          }}
-        />
+        {isEditing ? (
+          <View style={styles.editActions}>
+            <TouchableOpacity style={styles.cancelButton} onPress={handleCancelEdit} disabled={saving}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+              onPress={handleSaveEdit}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="checkmark" size={16} color={COLORS.white} />
+                  <Text style={styles.saveButtonText}>Save</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ActionButtons
+            primaryAction={{
+              icon: "create-outline",
+              title: "Edit Lesson",
+              onPress: handleEditLesson,
+            }}
+            secondaryActions={[
+              {
+                icon: "play-outline",
+                title: "Preview",
+                onPress: handlePlayVideo,
+              },
+            ]}
+            dangerAction={{
+              icon: "trash-outline",
+              title: "Delete",
+              onPress: handleDeleteLesson,
+            }}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -424,6 +516,69 @@ function getStyles() {
       fontSize: 14,
       fontWeight: "600",
       marginLeft: 6,
+    },
+    editInput: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: COLORS.black,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: COLORS.lightGray,
+      borderRadius: 8,
+      padding: 12,
+      backgroundColor: COLORS.white,
+    },
+    editTextArea: {
+      fontSize: 16,
+      color: COLORS.black,
+      lineHeight: 24,
+      borderWidth: 1,
+      borderColor: COLORS.lightGray,
+      borderRadius: 8,
+      padding: 12,
+      backgroundColor: COLORS.white,
+      minHeight: 100,
+      textAlignVertical: "top",
+    },
+    editActions: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: COLORS.lightGray,
+      gap: 12,
+    },
+    cancelButton: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: COLORS.gray,
+      borderRadius: 12,
+      paddingVertical: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelButtonText: {
+      color: COLORS.gray,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    saveButton: {
+      flex: 1,
+      backgroundColor: COLORS.purple,
+      borderRadius: 12,
+      paddingVertical: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    saveButtonDisabled: {
+      opacity: 0.6,
+    },
+    saveButtonText: {
+      color: COLORS.white,
+      fontSize: 16,
+      fontWeight: "600",
+      marginLeft: 4,
     },
   });
 }

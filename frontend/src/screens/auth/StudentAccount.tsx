@@ -23,7 +23,7 @@ export default function StudentAccount({ navigation, route }: Props) {
   const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { firstName, lastName, email, phoneNumber, postalCode } = route.params;
+  const { firstName, lastName, email, phoneNumber } = route.params;
 
   async function handleSignUp() {
     if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -51,7 +51,6 @@ export default function StudentAccount({ navigation, route }: Props) {
         phoneNumber,
         username: username.trim(),
         password,
-        postalCode,
       });
 
 

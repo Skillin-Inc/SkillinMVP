@@ -4,10 +4,9 @@ export interface RegisterData {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   username: string;
   password: string;
-  postalCode: number;
   userType?: "student" | "teacher" | "admin";
 }
 
@@ -21,18 +20,16 @@ export interface User {
   firstName: string;
   lastName: string;
   email: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   username: string;
-  postalCode: number;
   createdAt: string;
   userType: "student" | "teacher" | "admin";
   membershipTier?: string;
-  dOB?: string;
+  date_of_birth?: string;
   hashedPassword?: string;
   first_name?: string;
   last_name?: string;
   phone_number?: string;
-  postal_code?: number;
   created_at?: string;
   user_type?: "student" | "teacher" | "admin";
   hashed_password?: string;
@@ -44,12 +41,20 @@ export interface BackendUser {
   first_name: string;
   last_name: string;
   email: string;
-  phone_number: string;
+  phone_number?: string;
   username: string;
-  postal_code: number;
   created_at: string;
   stripe_customer_id?: string;
   user_type: "student" | "teacher" | "admin";
+  date_of_birth?: string;
+}
+
+export interface UpdateUserProfileData {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+  dateOfBirth?: string;
+  username?: string;
 }
 
 export interface LoginResponse {
@@ -142,10 +147,10 @@ function createApiService() {
       email: backendUser.email,
       phoneNumber: backendUser.phone_number,
       username: backendUser.username,
-      postalCode: backendUser.postal_code,
       createdAt: backendUser.created_at,
       userType: backendUser.user_type,
       stripeCustomerId: backendUser.stripe_customer_id,
+      date_of_birth: backendUser.date_of_birth,
     };
   };
 
@@ -367,6 +372,28 @@ function createApiService() {
     );
   };
 
+  const updateUserProfile = async (userId: string, updateData: UpdateUserProfileData): Promise<BackendUser> => {
+    const response = await makeRequest<{ message: string; user: BackendUser }>(
+      `${API_CONFIG.ENDPOINTS.USERS}/${userId}/profile`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(updateData),
+      }
+    );
+    return response.user;
+  };
+
+  const checkUsernameAvailability = async (username: string, excludeUserId?: string): Promise<boolean> => {
+    const response = await makeRequest<{ available: boolean }>(
+      `${API_CONFIG.ENDPOINTS.USERS}/check-username/${encodeURIComponent(username)}`,
+      {
+        method: "POST",
+        body: JSON.stringify({ excludeUserId }),
+      }
+    );
+    return response.available;
+  };
+
   return {
     register,
     login,
@@ -397,6 +424,8 @@ function createApiService() {
     deleteCategory,
     deleteUser,
     updateUserType,
+    updateUserProfile,
+    checkUsernameAvailability,
   };
 }
 
@@ -410,8 +439,8 @@ export const transformBackendUserToUser = (backendUser: BackendUser): User => {
     email: backendUser.email,
     phoneNumber: backendUser.phone_number,
     username: backendUser.username,
-    postalCode: backendUser.postal_code,
     createdAt: backendUser.created_at,
     userType: backendUser.user_type,
+    date_of_birth: backendUser.date_of_birth,
   };
 };

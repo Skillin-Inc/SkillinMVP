@@ -20,11 +20,11 @@ INSERT INTO "categories" ("id", "title") VALUES
 INSERT INTO "users" (
 
   "id", "first_name", "last_name", "email", "phone_number", "username", 
-  "hashed_password", "postal_code", "user_type"
+  "hashed_password", "user_type", "date_of_birth"
 ) VALUES
-  ('110e8400-e29b-41d4-a716-446655440000', 'Demo', 'Student', 'student@email.com', '1231231234', 'studentdemo', 'Password', 99999, 'student'),
-  ('110e8400-e29b-41d4-a716-446655440001', 'Demo', 'Teacher', 'teacher@email.com', '5551234567', 'teacherdemo', 'Password', 99999, 'teacher'),
-  ('110e8400-e29b-41d4-a716-446655440002', 'Demo', 'Admin', 'admin@email.com', '9998887777', 'admindemo', 'Password', 99999, 'admin');
+  ('110e8400-e29b-41d4-a716-446655440000', 'Demo', 'Student', 'student@email.com', '1231231234', 'studentdemo', 'Password', 'student', '1995-03-15'),
+  ('110e8400-e29b-41d4-a716-446655440001', 'Demo', 'Teacher', 'teacher@email.com', '5551234567', 'teacherdemo', 'Password', 'teacher', '1988-07-22'),
+  ('110e8400-e29b-41d4-a716-446655440002', 'Demo', 'Admin', 'admin@email.com', '9998887777', 'admindemo', 'Password', 'admin', '1980-12-01');
 
 -- Insert dummy courses
 INSERT INTO "courses" ("id", "teacher_id", "category_id", "title", "description") VALUES

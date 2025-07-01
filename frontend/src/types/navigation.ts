@@ -34,6 +34,7 @@ export type StudentStackParamList = {
   TeacherProfile: { userId: string };
   Chat: { id: string };
   StudentSubscription: undefined;
+  EditProfile: undefined;
 };
 
 export type TeacherStackParamList = {
@@ -45,6 +46,7 @@ export type TeacherStackParamList = {
   TeacherLesson: { lessonId: string };
   StudentProfile: { userId: string };
   Chat: { id: string };
+  EditProfile: undefined;
 };
 
 export type AdminStackParamList = {
@@ -72,11 +74,9 @@ export type AuthStackParamList = {
   StudentAccount: {
     firstName: string;
     lastName: string;
-    dOB: string;
-    zipCode: string;
+    date_of_birth: string;
     email: string;
-    phoneNumber: string;
-    postalCode: number;
+    phoneNumber?: string;
   };
   TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };

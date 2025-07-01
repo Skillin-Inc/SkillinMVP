@@ -24,7 +24,6 @@ import { AuthContext } from "../../hooks/AuthContext";
 import { api, BackendMessage, BackendUser } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 
-// Dynamic type that works with both StudentStack and TeacherStack
 type Props = StackScreenProps<StudentStackParamList | TeacherStackParamList | AdminStackParamList, "Chat">;
 
 export default function Chat({ route, navigation }: Props) {
@@ -57,7 +56,6 @@ export default function Chat({ route, navigation }: Props) {
 
         setMessages(formattedMessages);
 
-        // Mark messages as read when user opens chat
         await api.markMessagesAsRead(currentUser.id, id);
       } catch (error) {
         console.error("Error fetching chat data:", error);
@@ -128,7 +126,6 @@ export default function Chat({ route, navigation }: Props) {
 
     const handleMessageError = (error: { error: string }) => {
       console.error("Message error:", error);
-      // add alert here
     };
 
     websocketService.onNewMessage(handleNewMessage);
@@ -144,7 +141,6 @@ export default function Chat({ route, navigation }: Props) {
     if (!otherUser || !currentUser) return;
 
     try {
-      // Navigate to appropriate profile based on the other user's type
       if (otherUser.user_type === "teacher") {
         // @ts-expect-error - Navigation type issue with shared Chat component
         navigation.navigate("TeacherProfile", { userId: id });
@@ -152,7 +148,6 @@ export default function Chat({ route, navigation }: Props) {
         // @ts-expect-error - Navigation type issue with shared Chat component
         navigation.navigate("StudentProfile", { userId: id });
       } else {
-        // For admin or unknown types, show an alert
         alert("Profile not available for this user type.");
       }
     } catch (error) {
@@ -170,7 +165,6 @@ export default function Chat({ route, navigation }: Props) {
     if (websocketService.isConnected()) {
       websocketService.sendMessage(currentUser.id, id, messageContent);
     } else {
-      // fallback to http if ws doesnt work
       try {
         const newBackendMessage = await api.createMessage({
           sender_id: currentUser.id,

@@ -12,12 +12,14 @@ import {
   getAllUsers,
   deleteUserByEmail,
   updateUserTypeByEmail,
+  updateUserProfile,
+  UpdateUserProfileData,
+  checkUsernameAvailability,
 } from "../db";
 import rateLimit from "express-rate-limit";
 
 const router = Router();
 
-// Helper function to validate UUID
 function isValidUUID(uuid: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return uuidRegex.test(uuid);
@@ -151,15 +153,7 @@ router.post(
 router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
   const body = req.body;
 
-  const required: (keyof NewUser)[] = [
-    "firstName",
-    "lastName",
-    "email",
-    "phoneNumber",
-    "username",
-    "password",
-    "postalCode",
-  ];
+  const required: (keyof NewUser)[] = ["firstName", "lastName", "email", "username", "password"];
 
   for (const key of required) {
     if (body[key] === undefined) {
@@ -229,5 +223,73 @@ const updateUserTypeHandler: RequestHandler<
 };
 
 router.patch("/:email/user-type", updateUserTypeHandler);
+
+const updateProfileHandler: RequestHandler<{ id: string }, unknown, UpdateUserProfileData> = async (req, res, next) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  if (!isValidUUID(id)) {
+    res.status(400).json({ error: "Invalid user ID format" });
+    return;
+  }
+
+  if (
+    !updateData.firstName &&
+    !updateData.lastName &&
+    !updateData.phoneNumber &&
+    !updateData.dateOfBirth &&
+    !updateData.username
+  ) {
+    res.status(400).json({ error: "At least one field must be provided for update" });
+    return;
+  }
+
+  if (updateData.username) {
+    const isAvailable = await checkUsernameAvailability(updateData.username, id);
+    if (!isAvailable) {
+      res.status(400).json({ error: "Username is already taken" });
+      return;
+    }
+  }
+
+  try {
+    const updated = await updateUserProfile(id, updateData);
+
+    if (updated) {
+      res.status(200).json({ message: "Profile updated successfully", user: updated });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.patch("/:id/profile", updateProfileHandler);
+
+const checkUsernameHandler: RequestHandler<{ username: string }, unknown, { excludeUserId?: string }> = async (
+  req,
+  res,
+  next
+) => {
+  const { username } = req.params;
+  const { excludeUserId } = req.body;
+
+  if (!username) {
+    res.status(400).json({ error: "Username is required" });
+    return;
+  }
+
+  try {
+    const isAvailable = await checkUsernameAvailability(username, excludeUserId);
+    res.status(200).json({ available: isAvailable });
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.post("/check-username/:username", checkUsernameHandler);
 
 export default router;
