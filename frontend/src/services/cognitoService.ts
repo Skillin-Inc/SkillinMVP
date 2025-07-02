@@ -10,8 +10,8 @@ export const signUp = (email: string, password: string, firstName?: string, last
   return new Promise((resolve, reject) => {
     const attributes = [
       new CognitoUserAttribute({ Name: "email", Value: email }),
-      ...(firstName ? [new CognitoUserAttribute({ Name: "given_name", Value: firstName })] : []),
-      ...(lastName ? [new CognitoUserAttribute({ Name: "family_name", Value: lastName })] : []),
+      new CognitoUserAttribute({ Name: "given_name", Value: firstName }),
+      new CognitoUserAttribute({ Name: "family_name", Value: lastName }),
     ];
 
     userPool.signUp(email, password, attributes, [], (err, result) => {
@@ -89,7 +89,7 @@ export const getCurrentSession = (): Promise<any> => {
   if (!user) return Promise.resolve(null);
 
   return new Promise((resolve, reject) => {
-    user.getSession((err, session) => {
+    user.getSession((err: Error | null, session: any) => {
       if (err) return reject(err);
       resolve(session);
     });
