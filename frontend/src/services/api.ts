@@ -1,4 +1,5 @@
 import { API_CONFIG } from "../config/api";
+import { userPool } from "../hooks/AuthContext";
 
 export interface RegisterData {
   firstName: string;
@@ -154,9 +155,30 @@ function createApiService() {
   const makeRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
 
+    // Get Cognito session for authenticated requests
+    let authToken = "";
+    try {
+      const currentUser = userPool.getCurrentUser();
+      if (currentUser) {
+        const session = await new Promise<any>((resolve, reject) => {
+          currentUser.getSession((err: any, session: any) => {
+            if (err) reject(err);
+            else resolve(session);
+          });
+        });
+
+        if (session && session.isValid()) {
+          authToken = session.getIdToken().getJwtToken();
+        }
+      }
+    } catch (error) {
+      console.warn("Could not get auth token:", error);
+    }
+
     const config: RequestInit = {
       headers: {
         "Content-Type": "application/json",
+        ...(authToken && { Authorization: `Bearer ${authToken}` }),
         ...options.headers,
       },
       ...options,

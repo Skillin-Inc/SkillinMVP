@@ -6,6 +6,7 @@ import StudentInfo from "../screens/auth/StudentInfo";
 import StudentAccount from "../screens/auth/StudentAccount";
 import Login from "../screens/auth/Login";
 import RegisterPayment from "../screens/auth/RegisterPayment";
+import EmailConfirmation from "../screens/auth/EmailConfirmation";
 
 import { AuthStackParamList } from "../types";
 
@@ -20,6 +21,7 @@ export default function AuthStack() {
       <Stack.Screen name="RegisterPayment" component={RegisterPayment} />
       <Stack.Screen name="TeacherNavigator" component={TeacherAuthStack} />
       <Stack.Screen name="Login" component={Login} />
+      <Stack.Screen name="EmailConfirmation" component={EmailConfirmation} />
     </Stack.Navigator>
   );
 }

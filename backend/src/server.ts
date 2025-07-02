@@ -14,6 +14,9 @@ import lessonRoutes from "./routes/lessons";
 import progressRoutes from "./routes/progress";
 import sendEmailRoutes from "./routes/sendEmail";
 
+// Import Cognito auth middleware
+import { cognitoAuthMiddleware, requireUserType } from "./middleware/cognitoAuth";
+
 const app: Express = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -101,14 +104,16 @@ io.on("connection", (socket) => {
   });
 });
 
-// API Routes
-app.use("/users", userRoutes);
-app.use("/messages", messageRoutes);
-app.use("/categories", categoryRoutes);
-app.use("/courses", courseRoutes);
-app.use("/lessons", lessonRoutes);
-app.use("/progress", progressRoutes);
+// Public routes (no authentication required)
 app.use("/send-email", sendEmailRoutes);
+
+// Protected routes (require Cognito authentication)
+app.use("/users", cognitoAuthMiddleware, userRoutes);
+app.use("/messages", cognitoAuthMiddleware, messageRoutes);
+app.use("/categories", cognitoAuthMiddleware, categoryRoutes);
+app.use("/courses", cognitoAuthMiddleware, courseRoutes);
+app.use("/lessons", cognitoAuthMiddleware, lessonRoutes);
+app.use("/progress", cognitoAuthMiddleware, progressRoutes);
 
 // 404 handler for unmatched routes
 app.use((req: Request, res: Response) => {
