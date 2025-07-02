@@ -12,7 +12,7 @@ import { AuthStackParamList } from "../../types";
 type Props = StackScreenProps<AuthStackParamList, "Login">;
 
 export default function Login({ navigation }: Props) {
-  const { login, forgotPassword } = useContext(AuthContext);
+  const { login, forgotPassword, resendConfirmationCode } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -82,8 +82,8 @@ export default function Login({ navigation }: Props) {
 
   const handleResendConfirmation = async (email: string) => {
     try {
-      // You'll need to implement this in your AuthContext
-      Alert.alert("Confirmation Sent", "A new confirmation email has been sent to your email address.");
+      await resendConfirmationCode(email);
+      navigation.navigate("EmailConfirmation", { email });
     } catch (error) {
       Alert.alert("Error", "Failed to resend confirmation email. Please try again.");
     }

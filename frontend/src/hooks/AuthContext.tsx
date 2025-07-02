@@ -49,6 +49,7 @@ type AuthContextType = {
   confirmSignUp: (email: string, code: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
+  resendConfirmationCode: (email: string) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -63,6 +64,7 @@ export const AuthContext = createContext<AuthContextType>({
   confirmSignUp: async () => {},
   forgotPassword: async () => {},
   confirmForgotPassword: async () => {},
+  resendConfirmationCode: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -106,7 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 phoneNumber: userData.phone_number,
                 username: userData.preferred_username || userData.email || currentUser.getUsername(),
                 createdAt: userData.created_at || new Date().toISOString(),
-                userType: (userData["custom:user_type"] as "student" | "teacher" | "admin") || "student",
+                userType: "student",
                 cognitoUser: currentUser,
               };
 
@@ -164,7 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 phoneNumber: userData.phone_number,
                 username: userData.preferred_username || userData.email || cognitoUser.getUsername(),
                 createdAt: userData.created_at || new Date().toISOString(),
-                userType: (userData["custom:user_type"] as "student" | "teacher" | "admin") || "student",
+                userType: "student",
                 cognitoUser,
               };
 
@@ -198,7 +200,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         new CognitoUserAttribute({ Name: "given_name", Value: registerData.firstName }),
         new CognitoUserAttribute({ Name: "family_name", Value: registerData.lastName }),
         new CognitoUserAttribute({ Name: "preferred_username", Value: registerData.username }),
-        new CognitoUserAttribute({ Name: "custom:user_type", Value: registerData.userType || "student" }),
         ...(registerData.phoneNumber
           ? [new CognitoUserAttribute({ Name: "phone_number", Value: registerData.phoneNumber })]
           : []),
@@ -280,6 +281,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resendConfirmationCode = async (email: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const user = new CognitoUser({ Username: email, Pool: userPool });
+      user.resendConfirmationCode((err, result) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -294,6 +305,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         confirmSignUp,
         forgotPassword,
         confirmForgotPassword,
+        resendConfirmationCode,
       }}
     >
       {children}

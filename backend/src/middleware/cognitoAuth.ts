@@ -62,7 +62,7 @@ export function cognitoAuthMiddleware(req: Request, res: Response, next: NextFun
         sub: decoded.sub,
         email: decoded.email,
         username: decoded["cognito:username"],
-        userType: decoded["custom:user_type"] || "student",
+        userType: "student",
         firstName: decoded.given_name,
         lastName: decoded.family_name,
       };
