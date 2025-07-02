@@ -12,7 +12,7 @@ import { AuthStackParamList } from "../../types";
 type Props = StackScreenProps<AuthStackParamList, "Login">;
 
 export default function Login({ navigation }: Props) {
-  const { login } = useContext(AuthContext);
+  const { login, forgotPassword } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -54,13 +54,59 @@ export default function Login({ navigation }: Props) {
       }
 
       Alert.alert(title, message, [{ text: "OK" }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error", error);
-      Alert.alert("Login Failed", error instanceof Error ? error.message : "Invalid credentials. Please try again.");
+
+      // Handle specific Cognito errors
+      if (error.code === "UserNotConfirmedException") {
+        Alert.alert("Email Not Confirmed", "Please check your email and confirm your account before signing in.", [
+          { text: "OK" },
+          {
+            text: "Resend Confirmation",
+            onPress: () => handleResendConfirmation(emailOrPhone.trim()),
+          },
+        ]);
+      } else if (error.code === "NotAuthorizedException") {
+        Alert.alert("Login Failed", "Invalid email or password. Please try again.");
+      } else if (error.code === "UserNotFoundException") {
+        Alert.alert("Login Failed", "No account found with this email address.");
+      } else if (error.code === "TooManyRequestsException") {
+        Alert.alert("Too Many Attempts", "Too many failed login attempts. Please try again later.");
+      } else {
+        Alert.alert("Login Failed", error.message || "An error occurred during login. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
   }
+
+  const handleResendConfirmation = async (email: string) => {
+    try {
+      // You'll need to implement this in your AuthContext
+      Alert.alert("Confirmation Sent", "A new confirmation email has been sent to your email address.");
+    } catch (error) {
+      Alert.alert("Error", "Failed to resend confirmation email. Please try again.");
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!emailOrPhone.trim()) {
+      Alert.alert("Email Required", "Please enter your email address to reset your password.");
+      return;
+    }
+
+    try {
+      await forgotPassword(emailOrPhone.trim());
+      Alert.alert("Reset Email Sent", "A password reset email has been sent to your email address.", [{ text: "OK" }]);
+    } catch (error: any) {
+      console.error("Forgot password error:", error);
+      if (error.code === "UserNotFoundException") {
+        Alert.alert("Email Not Found", "No account found with this email address.");
+      } else {
+        Alert.alert("Error", "Failed to send reset email. Please try again.");
+      }
+    }
+  };
 
   return (
     <KeyboardAwareScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -104,7 +150,7 @@ export default function Login({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword}>
+        <TouchableOpacity style={styles.forgotPassword} onPress={handleForgotPassword}>
           <Text style={styles.forgotText}>Forgot Password?</Text>
         </TouchableOpacity>
       </View>

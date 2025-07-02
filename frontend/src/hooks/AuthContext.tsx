@@ -1,27 +1,41 @@
 // src/features/auth/AuthContext.tsx
 import React, { createContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { CognitoUserPool, CognitoUser, AuthenticationDetails, CognitoUserAttribute } from "amazon-cognito-identity-js";
+import { COGNITO_CONFIG } from "../config/cognitoConfig";
 
-import { users, LoginData, RegisterData, User } from "../services/api";
+// Initialize Cognito User Pool
+export const userPool = new CognitoUserPool({
+  UserPoolId: COGNITO_CONFIG.UserPoolId,
+  ClientId: COGNITO_CONFIG.ClientId,
+});
 
-type StoredUserData = {
-  // frontend format
-  id?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+export interface LoginData {
+  emailOrPhone: string;
+  password: string;
+}
+
+export interface RegisterData {
+  firstName: string;
+  lastName: string;
+  email: string;
   phoneNumber?: string;
-  username?: string;
-  createdAt?: string;
+  username: string;
+  password: string;
   userType?: "student" | "teacher" | "admin";
+}
 
-  // backend format
-  first_name?: string;
-  last_name?: string;
-  phone_number?: string;
-  created_at?: string;
-  user_type?: "student" | "teacher" | "admin";
-};
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  username: string;
+  createdAt: string;
+  userType: "student" | "teacher" | "admin";
+  cognitoUser?: CognitoUser;
+}
 
 type AuthContextType = {
   isLoggedIn: boolean;
@@ -32,6 +46,9 @@ type AuthContextType = {
   logout: () => Promise<void>;
   switchMode: () => void;
   updateUser: (updatedUser: User) => Promise<void>;
+  confirmSignUp: (email: string, code: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
@@ -43,6 +60,9 @@ export const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   switchMode: () => {},
   updateUser: async () => {},
+  confirmSignUp: async () => {},
+  forgotPassword: async () => {},
+  confirmForgotPassword: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -50,116 +70,193 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
-  const transformStoredUserData = (userData: unknown): User | null => {
-    if (!userData || typeof userData !== "object") return null;
-
-    const userObj = userData as StoredUserData;
-
-    try {
-      if (
-        userObj.first_name &&
-        userObj.last_name &&
-        userObj.email &&
-        userObj.username &&
-        userObj.id !== undefined &&
-        userObj.created_at
-      ) {
-        return {
-          id: userObj.id,
-          firstName: userObj.first_name,
-          lastName: userObj.last_name,
-          email: userObj.email,
-          phoneNumber: userObj.phone_number,
-          username: userObj.username,
-          createdAt: userObj.created_at,
-          userType: userObj.user_type ?? "student",
-        };
-      }
-
-      if (
-        userObj.firstName &&
-        userObj.lastName &&
-        userObj.email &&
-        userObj.username &&
-        userObj.id !== undefined &&
-        userObj.createdAt
-      ) {
-        return {
-          id: userObj.id,
-          firstName: userObj.firstName,
-          lastName: userObj.lastName,
-          email: userObj.email,
-          phoneNumber: userObj.phoneNumber,
-          username: userObj.username,
-          createdAt: userObj.createdAt,
-          userType: userObj.userType ?? "student",
-        };
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Error transforming user data:", error);
-      return null;
-    }
-  };
-
+  // Check for existing Cognito session on app start
   useEffect(() => {
-    const loadLoginState = async () => {
+    const checkAuthState = async () => {
       try {
-        const userDataString = await AsyncStorage.getItem("userData");
-        if (userDataString) {
-          const storedUserData = JSON.parse(userDataString);
-          console.log("Raw stored userData:", storedUserData);
+        const currentUser = userPool.getCurrentUser();
+        if (currentUser) {
+          const session = await new Promise<any>((resolve, reject) => {
+            currentUser.getSession((err: any, session: any) => {
+              if (err) reject(err);
+              else resolve(session);
+            });
+          });
 
-          const transformedUser = transformStoredUserData(storedUserData);
-          if (transformedUser) {
-            console.log("Transformed userData:", transformedUser);
-            setUser(transformedUser);
-            setIsLoggedIn(true);
+          if (session) {
+            // Get user attributes
+            const attributes = await new Promise<any[]>((resolve, reject) => {
+              currentUser.getUserAttributes((err: any, attributes: any[] | undefined) => {
+                if (err) reject(err);
+                else resolve(attributes || []);
+              });
+            });
 
-            if (JSON.stringify(storedUserData) !== JSON.stringify(transformedUser)) {
-              await AsyncStorage.setItem("userData", JSON.stringify(transformedUser));
+            if (attributes) {
+              const userData = attributes.reduce((acc: any, attr: any) => {
+                acc[attr.getName()] = attr.getValue();
+                return acc;
+              }, {});
+
+              const user: User = {
+                id: userData.sub || currentUser.getUsername(),
+                firstName: userData.given_name || userData.first_name || "",
+                lastName: userData.family_name || userData.last_name || "",
+                email: userData.email || currentUser.getUsername(),
+                phoneNumber: userData.phone_number,
+                username: userData.preferred_username || userData.email || currentUser.getUsername(),
+                createdAt: userData.created_at || new Date().toISOString(),
+                userType: (userData["custom:user_type"] as "student" | "teacher" | "admin") || "student",
+                cognitoUser: currentUser,
+              };
+
+              setUser(user);
+              setIsLoggedIn(true);
+              await AsyncStorage.setItem("userData", JSON.stringify(user));
             }
-          } else {
-            await AsyncStorage.removeItem("userData");
           }
         }
       } catch (error) {
-        console.error("Error loading login state:", error);
+        console.error("Error checking auth state:", error);
         await AsyncStorage.removeItem("userData");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    loadLoginState();
+
+    checkAuthState();
   }, []);
 
   const login = async (loginData: LoginData): Promise<User> => {
-    try {
-      const response = await users.login(loginData);
-      setUser(response.user);
-      setIsLoggedIn(true);
-      await AsyncStorage.setItem("userData", JSON.stringify(response.user));
-      return response.user;
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
+    return new Promise((resolve, reject) => {
+      const authDetails = new AuthenticationDetails({
+        Username: loginData.emailOrPhone,
+        Password: loginData.password,
+      });
+
+      const cognitoUser = new CognitoUser({
+        Username: loginData.emailOrPhone,
+        Pool: userPool,
+      });
+
+      cognitoUser.authenticateUser(authDetails, {
+        onSuccess: async (session: any) => {
+          try {
+            // Get user attributes
+            const attributes = await new Promise<any[]>((resolve, reject) => {
+              cognitoUser.getUserAttributes((err: any, attributes: any[] | undefined) => {
+                if (err) reject(err);
+                else resolve(attributes || []);
+              });
+            });
+
+            if (attributes) {
+              const userData = attributes.reduce((acc: any, attr: any) => {
+                acc[attr.getName()] = attr.getValue();
+                return acc;
+              }, {});
+
+              const user: User = {
+                id: userData.sub || cognitoUser.getUsername(),
+                firstName: userData.given_name || userData.first_name || "",
+                lastName: userData.family_name || userData.last_name || "",
+                email: userData.email || cognitoUser.getUsername(),
+                phoneNumber: userData.phone_number,
+                username: userData.preferred_username || userData.email || cognitoUser.getUsername(),
+                createdAt: userData.created_at || new Date().toISOString(),
+                userType: (userData["custom:user_type"] as "student" | "teacher" | "admin") || "student",
+                cognitoUser,
+              };
+
+              setUser(user);
+              setIsLoggedIn(true);
+              await AsyncStorage.setItem("userData", JSON.stringify(user));
+              resolve(user);
+            }
+          } catch (error) {
+            reject(error);
+          }
+        },
+        onFailure: (err: any) => {
+          console.error("Login error:", err);
+          reject(err);
+        },
+        mfaRequired: (codeDeliveryDetails: any) => {
+          reject({ mfaRequired: true, codeDeliveryDetails });
+        },
+        newPasswordRequired: (userAttributes: any, requiredAttributes: any) => {
+          reject({ newPasswordRequired: true, userAttributes, requiredAttributes });
+        },
+      });
+    });
   };
 
-  const register = async (registerData: RegisterData) => {
-    try {
-      const newUser = await users.register(registerData);
-      setUser(newUser);
-      setIsLoggedIn(false);
-      await AsyncStorage.setItem("userData", JSON.stringify(newUser));
-    } catch (error) {
-      console.error("Registration error:", error);
-      throw error;
-    }
+  const register = async (registerData: RegisterData): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const attributes = [
+        new CognitoUserAttribute({ Name: "email", Value: registerData.email }),
+        new CognitoUserAttribute({ Name: "given_name", Value: registerData.firstName }),
+        new CognitoUserAttribute({ Name: "family_name", Value: registerData.lastName }),
+        new CognitoUserAttribute({ Name: "preferred_username", Value: registerData.username }),
+        new CognitoUserAttribute({ Name: "custom:user_type", Value: registerData.userType || "student" }),
+        ...(registerData.phoneNumber
+          ? [new CognitoUserAttribute({ Name: "phone_number", Value: registerData.phoneNumber })]
+          : []),
+      ];
+
+      userPool.signUp(registerData.email, registerData.password, attributes, [], (err, result) => {
+        if (err) {
+          console.error("Registration error:", err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+
+  const confirmSignUp = async (email: string, code: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const user = new CognitoUser({ Username: email, Pool: userPool });
+
+      user.confirmRegistration(code, true, (err) => {
+        if (err) {
+          console.error("Confirmation error:", err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
+
+  const forgotPassword = async (email: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const user = new CognitoUser({ Username: email, Pool: userPool });
+
+      user.forgotPassword({
+        onSuccess: () => resolve(),
+        onFailure: (err) => reject(err),
+      });
+    });
+  };
+
+  const confirmForgotPassword = async (email: string, code: string, newPassword: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const user = new CognitoUser({ Username: email, Pool: userPool });
+
+      user.confirmPassword(code, newPassword, {
+        onSuccess: () => resolve(),
+        onFailure: (err) => reject(err),
+      });
+    });
   };
 
   const logout = async () => {
     try {
+      if (user?.cognitoUser) {
+        user.cognitoUser.signOut();
+      }
       await AsyncStorage.removeItem("userData");
       setUser(null);
       setIsLoggedIn(false);
@@ -167,6 +264,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Logout error:", error);
     }
   };
+
   const switchMode = () => {
     if (!user) return;
     const updatedUser: User = { ...user, userType: user.userType === "teacher" ? "student" : "teacher" };
@@ -183,7 +281,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, user, switchMode, login, register, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        loading,
+        user,
+        switchMode,
+        login,
+        register,
+        logout,
+        updateUser,
+        confirmSignUp,
+        forgotPassword,
+        confirmForgotPassword,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

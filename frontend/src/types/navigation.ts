@@ -79,6 +79,9 @@ export type AuthStackParamList = {
     email: string;
     phoneNumber?: string;
   };
+  EmailConfirmation: {
+    email: string;
+  };
   TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };
 

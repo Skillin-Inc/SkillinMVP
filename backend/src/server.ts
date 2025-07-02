@@ -15,7 +15,10 @@ import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import progressRoutes from "./routes/progress";
+import sendEmailRoutes from "./routes/sendEmail";
 
+// Import Cognito auth middleware
+import { cognitoAuthMiddleware, requireUserType } from "./middleware/cognitoAuth";
 
 const app: Express = express();
 const server = createServer(app);
@@ -105,15 +108,17 @@ io.on("connection", (socket) => {
 });
 
 
-// API Routes
-app.use("/users", userRoutes);
-app.use("/send-email", sendEmailRouter);
-app.use("/messages", messageRoutes);
-app.use("/categories", categoryRoutes);
-app.use("/courses", courseRoutes);
-//app.use("/teachers", teacherRoutes);
-app.use("/progress", progressRoutes);
-app.use("/api", stripeRoutes);  
+// Public routes (no authentication required)
+app.use("/send-email", sendEmailRoutes);
+
+// Protected routes (require Cognito authentication)
+app.use("/users", cognitoAuthMiddleware, userRoutes);
+app.use("/messages", cognitoAuthMiddleware, messageRoutes);
+app.use("/categories", cognitoAuthMiddleware, categoryRoutes);
+app.use("/courses", cognitoAuthMiddleware, courseRoutes);
+app.use("/lessons", cognitoAuthMiddleware, lessonRoutes);
+app.use("/progress", cognitoAuthMiddleware, progressRoutes);
+app.use("/api", stripeRoutes);
 
 // 404 handler for unmatched routes
 app.use((req: Request, res: Response) => {
