@@ -129,6 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
               // Use backend data if available, otherwise fall back to Cognito data
               const user: User = {
+<<<<<<< HEAD
                 id: cognitoUserSub,
                 firstName: backendUserData?.first_name || userData.given_name || userData.first_name || "",
                 lastName: backendUserData?.last_name || userData.family_name || userData.last_name || "",
@@ -141,6 +142,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   currentUser.getUsername(),
                 createdAt: backendUserData?.created_at || userData.created_at || new Date().toISOString(),
                 userType: backendUserData?.user_type || "student", // ✅ Use the user_type from your database
+=======
+                id: userData.sub || currentUser.getUsername(), // This will be the Cognito userSub
+                firstName: userData.given_name || userData.first_name || "",
+                lastName: userData.family_name || userData.last_name || "",
+                email: userData.email || currentUser.getUsername(),
+                phoneNumber: userData.phone_number,
+                username: userData.preferred_username || userData.email || currentUser.getUsername(),
+                createdAt: userData.created_at || new Date().toISOString(),
+                userType: "student",
+>>>>>>> b476bea ( things are now store inside the db check the board for more info)
                 cognitoUser: currentUser,
               };
 
@@ -215,6 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
               // Use backend data if available, otherwise fall back to Cognito data
               const user: User = {
+<<<<<<< HEAD
                 id: cognitoUserSub,
                 firstName: backendUserData?.first_name || userData.given_name || userData.first_name || "",
                 lastName: backendUserData?.last_name || userData.family_name || userData.last_name || "",
@@ -227,6 +239,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   cognitoUser.getUsername(),
                 createdAt: backendUserData?.created_at || userData.created_at || new Date().toISOString(),
                 userType: backendUserData?.user_type || "student", // ✅ Use the user_type from your database
+=======
+                id: userData.sub || cognitoUser.getUsername(), // This will be the Cognito userSub
+                firstName: userData.given_name || userData.first_name || "",
+                lastName: userData.family_name || userData.last_name || "",
+                email: userData.email || cognitoUser.getUsername(),
+                phoneNumber: userData.phone_number,
+                username: userData.preferred_username || userData.email || cognitoUser.getUsername(),
+                createdAt: userData.created_at || new Date().toISOString(),
+                userType: "student",
+>>>>>>> b476bea ( things are now store inside the db check the board for more info)
                 cognitoUser,
               };
 

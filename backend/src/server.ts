@@ -125,6 +125,7 @@ app.post("/register", async (req: Request, res: Response) => {
   }
 });
 
+<<<<<<< HEAD
 // Temporary: Public user lookup endpoint for debugging
 app.get("/users/:id", async (req: Request, res: Response) => {
   try {
@@ -144,6 +145,8 @@ app.get("/users/:id", async (req: Request, res: Response) => {
   }
 });
 
+=======
+>>>>>>> b476bea ( things are now store inside the db check the board for more info)
 // Public routes (no authentication required)
 app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);
