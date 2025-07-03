@@ -3,6 +3,7 @@ import React, { createContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CognitoUserPool, CognitoUser, AuthenticationDetails, CognitoUserAttribute } from "amazon-cognito-identity-js";
 import { COGNITO_CONFIG } from "../config/cognitoConfig";
+import { API_CONFIG } from "../config/api";
 
 // Initialize Cognito User Pool
 export const userPool = new CognitoUserPool({
@@ -101,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }, {});
 
               const user: User = {
-                id: userData.sub || currentUser.getUsername(),
+                id: userData.sub || currentUser.getUsername(), // This will be the Cognito userSub
                 firstName: userData.given_name || userData.first_name || "",
                 lastName: userData.family_name || userData.last_name || "",
                 email: userData.email || currentUser.getUsername(),
@@ -159,7 +160,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }, {});
 
               const user: User = {
-                id: userData.sub || cognitoUser.getUsername(),
+                id: userData.sub || cognitoUser.getUsername(), // This will be the Cognito userSub
                 firstName: userData.given_name || userData.first_name || "",
                 lastName: userData.family_name || userData.last_name || "",
                 email: userData.email || cognitoUser.getUsername(),
@@ -205,12 +206,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : []),
       ];
 
-      userPool.signUp(registerData.email, registerData.password, attributes, [], (err, result) => {
+      userPool.signUp(registerData.email, registerData.password, attributes, [], async (err, result) => {
         if (err) {
           console.error("Registration error:", err);
           reject(err);
         } else {
-          resolve();
+          try {
+            // ✅ ADD: Call your backend to store user in DB
+            console.log("Creating user in DB with data:", {
+              id: result?.userSub,
+              email: registerData.email,
+              firstName: registerData.firstName,
+              lastName: registerData.lastName,
+              username: registerData.username,
+              userType: registerData.userType || "student",
+            });
+
+            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.REGISTER}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: result?.userSub, // Use Cognito userSub as the primary key
+                email: registerData.email,
+                firstName: registerData.firstName,
+                lastName: registerData.lastName,
+                phoneNumber: registerData.phoneNumber,
+                username: registerData.username,
+                userType: registerData.userType || "student",
+                password: registerData.password, // Note: You might want to handle this differently
+              }),
+            });
+
+            console.log("Backend response status:", response.status);
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              console.error("Backend error response:", errorText);
+              throw new Error(`Backend error: ${response.status} - ${errorText}`);
+            }
+
+            const userData = await response.json();
+            console.log("User created successfully in DB:", userData);
+            resolve();
+          } catch (dbError) {
+            console.error("Failed to create user in DB:", dbError);
+            reject(new Error("Account created in Cognito but failed to store in database."));
+          }
         }
       });
     });

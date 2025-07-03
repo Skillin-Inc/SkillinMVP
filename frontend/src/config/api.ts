@@ -3,6 +3,7 @@ export const API_CONFIG = {
   BASE_URL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:4040",
   ENDPOINTS: {
     USERS: "/users",
+    REGISTER: "/register",
     LOGIN: "/users/login",
     MESSAGES: "/messages",
     LESSONS: "/lessons",

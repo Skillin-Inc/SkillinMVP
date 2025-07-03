@@ -18,7 +18,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TYPE user_type AS ENUM ('student', 'teacher', 'admin');
 
 CREATE TABLE "users" (
-  "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "id" text PRIMARY KEY,
   "first_name" text NOT NULL,
   "last_name" text NOT NULL,
   "email" text UNIQUE NOT NULL,
@@ -38,8 +38,8 @@ CREATE TABLE "users" (
 
 CREATE TABLE "messages" (
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "sender_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
-  "receiver_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "sender_id" text NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "receiver_id" text NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
   "content" text NOT NULL,
   "is_read" boolean NOT NULL DEFAULT false,
   "created_at" timestamptz(3) default current_timestamp
@@ -52,7 +52,7 @@ CREATE TABLE "categories" (
 
 CREATE TABLE "courses" (
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "teacher_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "teacher_id" text NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
   "category_id" uuid NOT NULL REFERENCES "categories"("id") ON DELETE CASCADE,
   "title" text NOT NULL,
   "description" text NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE "courses" (
 
 CREATE TABLE "lessons" (
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "teacher_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "teacher_id" text NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
   "course_id" uuid NOT NULL REFERENCES "courses"("id") ON DELETE CASCADE,
   "title" text NOT NULL,
   "description" text NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE "lessons" (
 
 CREATE TABLE "progress" (
   "id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
+  "user_id" text NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
   "lesson_id" uuid NOT NULL REFERENCES "lessons"("id") ON DELETE CASCADE,
   "created_at" timestamptz(3) default current_timestamp,
   UNIQUE("user_id", "lesson_id")

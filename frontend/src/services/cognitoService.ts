@@ -10,8 +10,8 @@ export const signUp = (email: string, password: string, firstName?: string, last
   return new Promise((resolve, reject) => {
     const attributes = [
       new CognitoUserAttribute({ Name: "email", Value: email }),
-      new CognitoUserAttribute({ Name: "given_name", Value: firstName }),
-      new CognitoUserAttribute({ Name: "family_name", Value: lastName }),
+      new CognitoUserAttribute({ Name: "given_name", Value: firstName }), // why is this red and it works
+      new CognitoUserAttribute({ Name: "family_name", Value: lastName }), // why is this red and it works
     ];
 
     userPool.signUp(email, password, attributes, [], (err, result) => {

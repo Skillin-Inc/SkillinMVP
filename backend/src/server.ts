@@ -111,7 +111,31 @@ io.on("connection", (socket) => {
 // Public routes (no authentication required)
 app.use("/send-email", sendEmailRoutes);
 
+// Public registration endpoint (no authentication required)
+app.post("/register", async (req: Request, res: Response) => {
+  try {
+    const { createUser } = await import("./db");
+    const newUser = await createUser(req.body);
+    res.status(201).json(newUser);
+  } catch (error: unknown) {
+    console.error("Registration error:", error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error occurred" });
+    }
+  }
+});
+
+// Public routes (no authentication required)
+app.use("/categories", categoryRoutes);
+app.use("/courses", courseRoutes);
+app.use("/lessons", lessonRoutes);
+app.use("/messages", messageRoutes);
+app.use("/progress", progressRoutes);
+
 // Protected routes (require Cognito authentication)
+// i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
 app.use("/messages", cognitoAuthMiddleware, messageRoutes);
 app.use("/categories", cognitoAuthMiddleware, categoryRoutes);
