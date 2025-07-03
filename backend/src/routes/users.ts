@@ -19,9 +19,9 @@ import rateLimit from "express-rate-limit";
 
 const router = Router();
 
-function isValidUUID(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
+function isValidCognitoSub(sub: string): boolean {
+  // Cognito userSub format: region_userpoolid_username or similar
+  return typeof sub === "string" && sub.length > 0;
 }
 
 router.get("/", async (req, res) => {
@@ -38,7 +38,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidUUID(id)) {
+  if (!isValidCognitoSub(id)) {
     res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
@@ -134,6 +134,12 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
     }
   }
 
+  // Validate that id is provided (Cognito userSub)
+  if (!body.id) {
+    res.status(400).json({ error: "Missing field: id (Cognito userSub)" });
+    return;
+  }
+
   try {
     const newUser = await createUser(body);
     res.status(201).json(newUser);
@@ -200,7 +206,7 @@ const updateProfileHandler: RequestHandler<{ id: string }, unknown, UpdateUserPr
   const { id } = req.params;
   const updateData = req.body;
 
-  if (!isValidUUID(id)) {
+  if (!isValidCognitoSub(id)) {
     res.status(400).json({ error: "Invalid user ID format" });
     return;
   }

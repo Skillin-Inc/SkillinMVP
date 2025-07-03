@@ -34,6 +34,7 @@ export async function getAllUsers() {
 }
 
 export interface NewUser {
+  id?: string; // Cognito userSub
   firstName: string;
   lastName: string;
   email: string;
@@ -45,14 +46,14 @@ export interface NewUser {
 }
 
 export async function createUser(data: NewUser) {
-  const { firstName, lastName, email, phoneNumber, username, password, userType = "student", dateOfBirth } = data;
+  const { id, firstName, lastName, email, phoneNumber, username, password, userType = "student", dateOfBirth } = data;
 
   const result = await pool.query(
     `INSERT INTO public.users
-    ("first_name", "last_name", email, "phone_number", username, "hashed_password", "user_type", "date_of_birth")
-   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    ("id", "first_name", "last_name", email, "phone_number", username, "hashed_password", "user_type", "date_of_birth")
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
    RETURNING "id", "first_name", "last_name", email, "phone_number", username, "user_type", "date_of_birth", "created_at"`,
-    [firstName, lastName, email, phoneNumber, username, password, userType, dateOfBirth]
+    [id, firstName, lastName, email, phoneNumber, username, password, userType, dateOfBirth]
   );
 
   return result.rows[0];
