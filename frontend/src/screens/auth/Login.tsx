@@ -89,23 +89,8 @@ export default function Login({ navigation }: Props) {
     }
   };
 
-  const handleForgotPassword = async () => {
-    if (!emailOrPhone.trim()) {
-      Alert.alert("Email Required", "Please enter your email address to reset your password.");
-      return;
-    }
-
-    try {
-      await forgotPassword(emailOrPhone.trim());
-      Alert.alert("Reset Email Sent", "A password reset email has been sent to your email address.", [{ text: "OK" }]);
-    } catch (error: any) {
-      console.error("Forgot password error:", error);
-      if (error.code === "UserNotFoundException") {
-        Alert.alert("Email Not Found", "No account found with this email address.");
-      } else {
-        Alert.alert("Error", "Failed to send reset email. Please try again.");
-      }
-    }
+  const handleForgotPassword = () => {
+    navigation.navigate("ForgotPassword");
   };
 
   return (

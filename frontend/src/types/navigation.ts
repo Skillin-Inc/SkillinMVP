@@ -70,6 +70,10 @@ export type TeacherAuthStackParamList = {
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: {
+    email: string;
+  };
   RegisterPayment: undefined;
   StudentInfo: undefined;
   StudentAccount: {
