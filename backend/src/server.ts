@@ -123,6 +123,25 @@ app.post("/register", async (req: Request, res: Response) => {
   }
 });
 
+// Temporary: Public user lookup endpoint for debugging
+app.get("/users/:id", async (req: Request, res: Response) => {
+  try {
+    const { getUserById } = await import("./db");
+    const id = String(req.params.id);
+    const user = await getUserById(id);
+
+    if (!user) {
+      res.status(404).json({ error: "User not found", id });
+      return;
+    }
+
+    res.json(user);
+  } catch (error: unknown) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Public routes (no authentication required)
 app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);
