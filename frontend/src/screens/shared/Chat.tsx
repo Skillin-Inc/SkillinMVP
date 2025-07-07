@@ -21,7 +21,7 @@ import { MessageBubble, Message } from "../../components/media/MessageBubble";
 import { LoadingState } from "../../components/common";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api, BackendMessage, BackendUser } from "../../services/api";
+import { users, messages as messagesApi, BackendMessage, BackendUser } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 
 type Props = StackScreenProps<StudentStackParamList | TeacherStackParamList | AdminStackParamList, "Chat">;
@@ -42,10 +42,10 @@ export default function Chat({ route, navigation }: Props) {
       if (!currentUser) return;
 
       try {
-        const userInfo = await api.getUserById(id);
+        const userInfo = await users.getUserById(id);
         setOtherUser(userInfo);
 
-        const backendMessages = await api.getMessagesBetweenUsers(currentUser.id, id);
+        const backendMessages = await messagesApi.getMessagesBetweenUsers(currentUser.id, id);
 
         const formattedMessages: Message[] = backendMessages.map((msg: BackendMessage) => ({
           id: msg.id.toString(),
@@ -56,7 +56,7 @@ export default function Chat({ route, navigation }: Props) {
 
         setMessages(formattedMessages);
 
-        await api.markMessagesAsRead(currentUser.id, id);
+        await messagesApi.markMessagesAsRead(currentUser.id, id);
       } catch (error) {
         console.error("Error fetching chat data:", error);
       } finally {
@@ -166,7 +166,7 @@ export default function Chat({ route, navigation }: Props) {
       websocketService.sendMessage(currentUser.id, id, messageContent);
     } else {
       try {
-        const newBackendMessage = await api.createMessage({
+        const newBackendMessage = await messagesApi.createMessage({
           sender_id: currentUser.id,
           receiver_id: id,
           content: messageContent,

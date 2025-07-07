@@ -2,7 +2,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { api, LoginData, RegisterData, User } from "../services/api";
+import { users, LoginData, RegisterData, User } from "../services/api";
 
 type StoredUserData = {
   // frontend format
@@ -135,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (loginData: LoginData): Promise<User> => {
     try {
-      const response = await api.login(loginData);
+      const response = await users.login(loginData);
       setUser(response.user);
       setIsLoggedIn(true);
       await AsyncStorage.setItem("userData", JSON.stringify(response.user));
@@ -148,7 +148,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (registerData: RegisterData) => {
     try {
-      const newUser = await api.register(registerData);
+      const newUser = await users.register(registerData);
       setUser(newUser);
       setIsLoggedIn(false);
       await AsyncStorage.setItem("userData", JSON.stringify(newUser));

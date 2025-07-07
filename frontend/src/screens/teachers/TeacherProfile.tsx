@@ -20,7 +20,7 @@ import { ImagePickerAvatar } from "../../components/forms";
 import { StatsCard, QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
-import { User, api, transformBackendUserToUser } from "../../services/api";
+import { User, users as usersApi, transformBackendUserToUser } from "../../services/api";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TeacherTabsParamList, "TeacherProfile">,
@@ -47,7 +47,7 @@ export default function TeacherProfile({ navigation, route }: Props) {
       if (isOwnProfile && currentUser) {
         setProfileUser(currentUser);
       } else {
-        const backendUser = await api.getUserById(userId);
+        const backendUser = await usersApi.getUserById(userId);
         const transformedUser = transformBackendUserToUser(backendUser);
         setProfileUser(transformedUser);
       }

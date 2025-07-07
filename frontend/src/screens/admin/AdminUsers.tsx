@@ -14,7 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { api, BackendUser } from "../../services/api";
+import { users as usersApi, BackendUser } from "../../services/api";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditUserModalProps {
@@ -47,7 +47,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ visible, user, onClose, o
 
     setLoading(true);
     try {
-      await api.updateUserType(user.email, userType);
+      await usersApi.updateUserType(user.email, userType);
       Alert.alert("Success", "User updated successfully");
       onUpdate();
       onClose();
@@ -149,7 +149,7 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const allUsers = await api.getAllUsers();
+      const allUsers = await usersApi.getAllUsers();
       setUsers(allUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -171,7 +171,7 @@ export default function AdminUsers() {
         style: "destructive",
         onPress: async () => {
           try {
-            await api.deleteUser(user.email);
+            await usersApi.deleteUser(user.email);
             Alert.alert("Success", "User deleted successfully");
             fetchUsers();
           } catch (error) {
