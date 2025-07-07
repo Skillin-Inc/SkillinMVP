@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
-import { api } from "../../services/api";
+import { users as usersApi } from "../../services/api";
 import { SectionHeader } from "../../components/common";
 
 export default function AdminHome() {
@@ -45,7 +45,7 @@ export default function AdminHome() {
     }
     setLoading(true);
     try {
-      const res = await api.deleteUser(email);
+      const res = await usersApi.deleteUser(email);
       Alert.alert("Success", res.message || "User deleted successfully.");
       setEmail("");
     } catch (err) {
@@ -63,7 +63,7 @@ export default function AdminHome() {
     }
     setUpdateLoading(true);
     try {
-      const res = await api.updateUserType(updateEmail, selectedType);
+      const res = await usersApi.updateUserType(updateEmail, selectedType);
       Alert.alert("Success", res.message || "User type updated successfully.");
       setUpdateEmail("");
     } catch (err) {

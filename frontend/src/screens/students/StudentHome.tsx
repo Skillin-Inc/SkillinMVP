@@ -8,7 +8,7 @@ import {
   Alert,
   SafeAreaView,
   RefreshControl,
-  Linking
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps } from "@react-navigation/native";
@@ -22,7 +22,7 @@ import { checkIfPaid } from "../../services/payments";
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
 import { CategoryCard, QuickActionCard } from "../../components/cards";
-import { api, Category } from "../../services/api";
+import { categories as categoriesApi, Category } from "../../services/api";
 import temp from "../../../assets/playingCards.png";
 
 type Props = CompositeScreenProps<
@@ -44,48 +44,47 @@ export default function StudentHome({ navigation }: Props) {
     verifyPayment();
   }, []);
 
-const verifyPayment = async () => {
-  if (!user?.id) return;
+  const verifyPayment = async () => {
+    if (!user?.id) return;
 
-  try {
-    const isPaid = await checkIfPaid(Number(user.id));
-    if (!isPaid) {
-      setShowPaymentModal(true);
-    } else {
-      await loadCategories();
-    }
-  } catch (err) {
-    console.error("Failed to verify payment:", err);
-  } finally {
-    setLoading(false);  
-  }
-};
-
-useEffect(() => {
-  let interval: NodeJS.Timeout;
-
-  if (showPaymentModal && user?.id) {
-    interval = setInterval(async () => {
-      try {
-        const isPaid = await checkIfPaid(Number(user.id));
-        if (isPaid) {
-          clearInterval(interval);
-          setShowPaymentModal(false);
-          loadCategories();
-        }
-      } catch (err) {
-        console.error("Polling failed:", err);
+    try {
+      const isPaid = await checkIfPaid(Number(user.id));
+      if (!isPaid) {
+        setShowPaymentModal(true);
+      } else {
+        await loadCategories();
       }
-    }, 5000); // check every 5 seconds
-  }
+    } catch (err) {
+      console.error("Failed to verify payment:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return () => clearInterval(interval); 
-}, [showPaymentModal, user?.id]);
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
 
+    if (showPaymentModal && user?.id) {
+      interval = setInterval(async () => {
+        try {
+          const isPaid = await checkIfPaid(Number(user.id));
+          if (isPaid) {
+            clearInterval(interval);
+            setShowPaymentModal(false);
+            loadCategories();
+          }
+        } catch (err) {
+          console.error("Polling failed:", err);
+        }
+      }, 5000); // check every 5 seconds
+    }
+
+    return () => clearInterval(interval);
+  }, [showPaymentModal, user?.id]);
 
   const loadCategories = async () => {
     try {
-      const categoriesData = await api.getAllCategories();
+      const categoriesData = await categoriesApi.getAllCategories();
       setCategories(categoriesData);
     } catch (error) {
       console.error("Error loading categories:", error);
@@ -120,15 +119,13 @@ useEffect(() => {
             padding: 20,
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
-            Subscription Required
-          </Text>
+          <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>Subscription Required</Text>
           <Text style={{ fontSize: 16, textAlign: "center", marginBottom: 20 }}>
             You have not subscribed yet. Please complete your payment.
           </Text>
           <TouchableOpacity
             onPress={() => {
-              Linking.openURL("https://buy.stripe.com/test_28E7sKdikeIPcgPbHFgMw00");  // testing url
+              Linking.openURL("https://buy.stripe.com/test_28E7sKdikeIPcgPbHFgMw00"); // testing url
             }}
             style={{
               backgroundColor: COLORS.purple,
@@ -138,9 +135,7 @@ useEffect(() => {
               alignItems: "center",
             }}
           >
-            <Text style={{ color: "white", fontWeight: "bold" }}>
-              Go to Payment
-            </Text>
+            <Text style={{ color: "white", fontWeight: "bold" }}>Go to Payment</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

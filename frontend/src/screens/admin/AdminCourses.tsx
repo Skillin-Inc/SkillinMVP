@@ -14,7 +14,14 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { api, Course, Category, Lesson } from "../../services/api";
+import {
+  courses as coursesApi,
+  categories as categoriesApi,
+  lessons as lessonsApi,
+  Course,
+  Category,
+  Lesson,
+} from "../../services/api";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditCourseModalProps {
@@ -63,7 +70,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ visible, course, cate
 
     setLoading(true);
     try {
-      await api.updateCourse(course.id, {
+      await coursesApi.updateCourse(course.id, {
         title: title.trim(),
         description: description.trim(),
         category_id: categoryId,
@@ -188,7 +195,7 @@ const EditLessonModal: React.FC<EditLessonModalProps> = ({ visible, lesson, onCl
 
     setLoading(true);
     try {
-      await api.updateLesson(lesson.id, {
+      await lessonsApi.updateLesson(lesson.id, {
         title: title.trim(),
         description: description.trim(),
         video_url: videoUrl.trim(),
@@ -274,13 +281,16 @@ export default function AdminCourses() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [allCourses, allCategories] = await Promise.all([api.getAllCourses(), api.getAllCategories()]);
+      const [allCourses, allCategories] = await Promise.all([
+        coursesApi.getAllCourses(),
+        categoriesApi.getAllCategories(),
+      ]);
 
       // Fetch lessons for each course
       const coursesWithLessons = await Promise.all(
         allCourses.map(async (course) => {
           try {
-            const lessons = await api.getLessonsByCourse(course.id);
+            const lessons = await lessonsApi.getLessonsByCourse(course.id);
             return { ...course, lessons, expanded: false };
           } catch (error) {
             console.error(`Error fetching lessons for course ${course.id}:`, error);
@@ -311,7 +321,7 @@ export default function AdminCourses() {
         style: "destructive",
         onPress: async () => {
           try {
-            await api.deleteCourse(course.id);
+            await coursesApi.deleteCourse(course.id);
             Alert.alert("Success", "Course deleted successfully");
             fetchData();
           } catch (error) {
@@ -341,7 +351,7 @@ export default function AdminCourses() {
         style: "destructive",
         onPress: async () => {
           try {
-            await api.deleteLesson(lesson.id);
+            await lessonsApi.deleteLesson(lesson.id);
             Alert.alert("Success", "Lesson deleted successfully");
             fetchData();
           } catch (error) {

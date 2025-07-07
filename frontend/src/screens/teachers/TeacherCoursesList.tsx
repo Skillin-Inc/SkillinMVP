@@ -14,7 +14,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api, Course } from "../../services/api";
+import { courses as coursesApi, lessons as lessonsApi, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
 import { LoadingState, EmptyState } from "../../components/common";
 import { CourseCard } from "../../components/cards";
@@ -38,7 +38,7 @@ export default function TeacherCoursesList({ navigation }: Props) {
     if (!user || user.userType !== "teacher") return;
 
     try {
-      const coursesData = await api.getCoursesByTeacher(user.id);
+      const coursesData = await coursesApi.getCoursesByTeacher(user.id);
       setCourses(coursesData);
 
       // Fetch lesson counts for each course
@@ -46,7 +46,7 @@ export default function TeacherCoursesList({ navigation }: Props) {
       await Promise.all(
         coursesData.map(async (course) => {
           try {
-            const lessons = await api.getLessonsByCourse(course.id);
+            const lessons = await lessonsApi.getLessonsByCourse(course.id);
             counts[course.id] = lessons.length;
           } catch (error) {
             console.error(`Error loading lessons for course ${course.id}:`, error);
