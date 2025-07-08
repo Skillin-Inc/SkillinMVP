@@ -395,7 +395,6 @@ function getStyles() {
       justifyContent: "center",
       alignItems: "center",
     },
-    // Modal styles
     modalContainer: {
       flex: 1,
       backgroundColor: COLORS.white,
@@ -470,7 +469,6 @@ function getStyles() {
     disabledButton: {
       opacity: 0.6,
     },
-    // Type selection modal
     typeModalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",

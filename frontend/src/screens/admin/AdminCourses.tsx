@@ -286,7 +286,6 @@ export default function AdminCourses() {
         categoriesApi.getAllCategories(),
       ]);
 
-      // Fetch lessons for each course
       const coursesWithLessons = await Promise.all(
         allCourses.map(async (course) => {
           try {
@@ -600,7 +599,6 @@ function getStyles() {
       justifyContent: "center",
       alignItems: "center",
     },
-    // Modal styles
     modalContainer: {
       flex: 1,
       backgroundColor: COLORS.white,
@@ -674,7 +672,6 @@ function getStyles() {
     disabledButton: {
       opacity: 0.6,
     },
-    // Category selection modal
     categoryModalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",
@@ -720,7 +717,6 @@ function getStyles() {
       fontWeight: "600",
       textAlign: "center",
     },
-    // Lesson-related styles
     courseHeader: {
       marginBottom: 8,
     },
