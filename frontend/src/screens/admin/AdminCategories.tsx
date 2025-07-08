@@ -301,7 +301,6 @@ export default function AdminCategories() {
         </TouchableOpacity>
       </View>
 
-      {/* Analytics Section */}
       <View style={styles.analyticsSection}>
         <Text style={styles.analyticsTitle}>Category Overview</Text>
         <View style={styles.analyticsGrid}>

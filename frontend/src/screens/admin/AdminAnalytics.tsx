@@ -80,7 +80,6 @@ export default function AdminAnalytics() {
         lessonsApi.getAllLessons(),
       ]);
 
-      // Calculate user analytics
       const userBreakdown = users.reduce(
         (acc, user: BackendUser) => {
           const userType = user.user_type || "student";
@@ -90,7 +89,6 @@ export default function AdminAnalytics() {
         { students: 0, teachers: 0, admins: 0 }
       );
 
-      // Calculate new users (last 7 days)
       const oneWeekAgo = new Date();
       oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
       const newUsers = users.filter((user: BackendUser) => {
@@ -98,7 +96,6 @@ export default function AdminAnalytics() {
         return createdAt > oneWeekAgo;
       }).length;
 
-      // Calculate active users (users with recent activity - simplified as recent registrations for now)
       const oneMonthAgo = new Date();
       oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
       const activeUsers = users.filter((user: BackendUser) => {
@@ -106,7 +103,6 @@ export default function AdminAnalytics() {
         return createdAt > oneMonthAgo;
       }).length;
 
-      // Calculate content analytics
       const newCoursesThisWeek = courses.filter((course: Course) => {
         const createdAt = new Date(course.created_at);
         return createdAt > oneWeekAgo;
@@ -117,12 +113,10 @@ export default function AdminAnalytics() {
         return createdAt > oneWeekAgo;
       }).length;
 
-      // Calculate teacher metrics
       const teacherIds = new Set(courses.map((course: Course) => course.teacher_id));
       const coursesPerTeacher = teacherIds.size > 0 ? courses.length / teacherIds.size : 0;
       const lessonsPerTeacher = teacherIds.size > 0 ? lessons.length / teacherIds.size : 0;
 
-      // Calculate lessons per course
       const lessonsPerCourse = courses.length > 0 ? lessons.length / courses.length : 0;
 
       const analytics: AnalyticsData = {

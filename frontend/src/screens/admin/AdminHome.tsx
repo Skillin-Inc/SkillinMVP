@@ -1,22 +1,25 @@
 import React, { useContext, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert, TextInput, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { StackNavigationProp } from "@react-navigation/stack";
+import { StackScreenProps } from "@react-navigation/stack";
 
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
 import { users as usersApi } from "../../services/api";
 import { SectionHeader } from "../../components/common";
-import { AdminStackParamList } from "../../types/navigation";
+import { AdminStackParamList, AdminTabsParamList } from "../../types/navigation";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
-type AdminHomeNavigationProp = StackNavigationProp<AdminStackParamList, "AdminTabs">;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<AdminTabsParamList, "AdminHome">,
+  StackScreenProps<AdminStackParamList>
+>;
 
-export default function AdminHome() {
+export default function AdminHome({ navigation }: Props) {
   const { user, logout } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
-  const navigation = useNavigation<AdminHomeNavigationProp>();
   const styles = getStyles(screenWidth, screenHeight);
 
   const [email, setEmail] = useState("");
