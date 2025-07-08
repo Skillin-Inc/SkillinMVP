@@ -5,9 +5,6 @@ import { Platform } from "react-native";
 
 import { AdminTabsParamList } from "../types/navigation";
 import AdminHome from "../screens/admin/AdminHome";
-import AdminUsers from "../screens/admin/AdminUsers";
-import AdminCourses from "../screens/admin/AdminCourses";
-import AdminCategories from "../screens/admin/AdminCategories";
 import AdminAnalytics from "../screens/admin/AdminAnalytics";
 import Messages from "../screens/shared/Messages";
 import { COLORS } from "../styles";
@@ -23,12 +20,6 @@ export default function AdminTabs() {
 
           if (route.name === "AdminHome") {
             iconName = focused ? "shield" : "shield-outline";
-          } else if (route.name === "UserManagement") {
-            iconName = focused ? "people" : "people-outline";
-          } else if (route.name === "CourseManagement") {
-            iconName = focused ? "school" : "school-outline";
-          } else if (route.name === "CategoryManagement") {
-            iconName = focused ? "grid" : "grid-outline";
           } else if (route.name === "Analytics") {
             iconName = focused ? "bar-chart" : "bar-chart-outline";
           } else if (route.name === "Messages") {
@@ -69,30 +60,6 @@ export default function AdminTabs() {
         options={{
           tabBarLabel: "Dashboard",
           title: "Admin Dashboard",
-        }}
-      />
-      <AdminTab.Screen
-        name="UserManagement"
-        component={AdminUsers}
-        options={{
-          tabBarLabel: "Users",
-          title: "User Management",
-        }}
-      />
-      <AdminTab.Screen
-        name="CourseManagement"
-        component={AdminCourses}
-        options={{
-          tabBarLabel: "Courses",
-          title: "Course Management",
-        }}
-      />
-      <AdminTab.Screen
-        name="CategoryManagement"
-        component={AdminCategories}
-        options={{
-          tabBarLabel: "Categories",
-          title: "Category Management",
         }}
       />
       <AdminTab.Screen

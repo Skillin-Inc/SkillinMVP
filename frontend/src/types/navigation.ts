@@ -20,9 +20,6 @@ export type TeacherTabsParamList = {
 
 export type AdminTabsParamList = {
   AdminHome: undefined;
-  UserManagement: undefined;
-  CourseManagement: undefined;
-  CategoryManagement: undefined;
   Analytics: undefined;
   Messages: undefined;
 };
@@ -52,6 +49,9 @@ export type TeacherStackParamList = {
 
 export type AdminStackParamList = {
   AdminTabs: NavigatorScreenParams<AdminTabsParamList>;
+  AdminUsers: undefined;
+  AdminCourses: undefined;
+  AdminCategories: undefined;
   Chat: { id: string };
 };
 
