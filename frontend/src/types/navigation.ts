@@ -23,6 +23,7 @@ export type AdminTabsParamList = {
   UserManagement: undefined;
   CourseManagement: undefined;
   CategoryManagement: undefined;
+  Analytics: undefined;
   Messages: undefined;
 };
 

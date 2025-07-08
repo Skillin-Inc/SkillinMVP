@@ -8,6 +8,7 @@ import AdminHome from "../screens/admin/AdminHome";
 import AdminUsers from "../screens/admin/AdminUsers";
 import AdminCourses from "../screens/admin/AdminCourses";
 import AdminCategories from "../screens/admin/AdminCategories";
+import AdminAnalytics from "../screens/admin/AdminAnalytics";
 import Messages from "../screens/shared/Messages";
 import { COLORS } from "../styles";
 
@@ -28,6 +29,8 @@ export default function AdminTabs() {
             iconName = focused ? "school" : "school-outline";
           } else if (route.name === "CategoryManagement") {
             iconName = focused ? "grid" : "grid-outline";
+          } else if (route.name === "Analytics") {
+            iconName = focused ? "bar-chart" : "bar-chart-outline";
           } else if (route.name === "Messages") {
             iconName = focused ? "chatbubbles" : "chatbubbles-outline";
           } else {
@@ -90,6 +93,14 @@ export default function AdminTabs() {
         options={{
           tabBarLabel: "Categories",
           title: "Category Management",
+        }}
+      />
+      <AdminTab.Screen
+        name="Analytics"
+        component={AdminAnalytics}
+        options={{
+          tabBarLabel: "Analytics",
+          title: "Platform Analytics",
         }}
       />
       <AdminTab.Screen name="Messages" component={Messages} />
