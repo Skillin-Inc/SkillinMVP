@@ -21,8 +21,7 @@ import lessonRoutes from "./routes/lessons";
 // Import Cognito auth middleware
 import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
 import { validateEnvironmentConfig } from "./aws-rds-config";
-
-const app: Express = express();
+const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -144,6 +143,7 @@ app.use("/api", stripeRoutes);
 // Protected routes (require Cognito authentication)
 // i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
+app.use("/api", stripeRoutes);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
