@@ -4,7 +4,6 @@ import {
   AuthenticationDetails,
   CognitoUserAttribute,
   CognitoUserSession,
-  ISignUpResult,
 } from "amazon-cognito-identity-js";
 import { COGNITO_CONFIG } from "../config/cognitoConfig";
 
