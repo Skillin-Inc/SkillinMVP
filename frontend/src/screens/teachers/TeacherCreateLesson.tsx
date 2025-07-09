@@ -18,7 +18,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { courses as coursesApi, lessons as lessonsApi, NewLesson, Course } from "../../services/api";
+import { api, NewLesson, Course } from "../../services/api";
 import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
 import { HeaderWithBack } from "../../components/common";
 import { FormInput, CourseSelector } from "../../components/forms";
@@ -68,7 +68,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
     if (!user) return;
 
     try {
-      const coursesData = await coursesApi.getCoursesByTeacher(user.id);
+      const coursesData = await api.getCoursesByTeacher(user.id);
       setCourses(coursesData);
     } catch (error) {
       console.error("Error loading courses:", error);
@@ -122,7 +122,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
         video_url: "", // Empty for now, will be added via file upload later
       };
 
-      await lessonsApi.createLesson(lessonData);
+      await api.createLesson(lessonData);
 
       Alert.alert("Success", "Lesson created successfully!", [
         {
