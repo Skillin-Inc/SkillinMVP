@@ -6,13 +6,15 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 
 // Import route handlers
+import stripeRoutes from "./routes/stripe";
 import userRoutes from "./routes/users";
+import sendEmailRouter from "./routes/sendEmail";
 import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
-import lessonRoutes from "./routes/lessons";
 import progressRoutes from "./routes/progress";
 import sendEmailRoutes from "./routes/sendEmail";
+import lessonRoutes from "./routes/lessons";
 
 // Import Cognito auth middleware
 import { cognitoAuthMiddleware, requireUserType } from "./middleware/cognitoAuth";

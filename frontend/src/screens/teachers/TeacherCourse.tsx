@@ -16,7 +16,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api, Course, Lesson } from "../../services/api";
+import { courses as coursesApi, lessons as lessonsApi, Course, Lesson } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
 import { HeaderWithBack, LoadingState, EmptyState, SectionHeader } from "../../components/common";
 import { LessonCard } from "../../components/cards";
@@ -45,8 +45,8 @@ export default function TeacherCourse({ navigation, route }: Props) {
   const loadCourseData = async () => {
     try {
       const [courseData, lessonsData] = await Promise.all([
-        api.getCourseById(courseId),
-        api.getLessonsByCourse(courseId),
+        coursesApi.getCourseById(courseId),
+        lessonsApi.getLessonsByCourse(courseId),
       ]);
       setCourse(courseData);
       setLessons(lessonsData);
@@ -99,7 +99,7 @@ export default function TeacherCourse({ navigation, route }: Props) {
         description: editingDescription.trim(),
       };
 
-      await api.updateCourse(courseId, updateData);
+      await coursesApi.updateCourse(courseId, updateData);
 
       setCourse({ ...course, ...updateData });
       setIsEditing(false);
@@ -129,7 +129,7 @@ export default function TeacherCourse({ navigation, route }: Props) {
           style: "destructive",
           onPress: async () => {
             try {
-              await api.deleteCourse(courseId);
+              await coursesApi.deleteCourse(courseId);
               Alert.alert("Success", "Course deleted successfully.", [
                 { text: "OK", onPress: () => navigation.goBack() },
               ]);

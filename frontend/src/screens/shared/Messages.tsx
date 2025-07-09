@@ -24,7 +24,7 @@ import {
   TeacherStackParamList,
 } from "../../types/navigation";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api } from "../../services/api";
+import { users as usersApi, messages as messagesApi } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 import { LoadingState, EmptyState, SectionHeader } from "../../components/common";
 
@@ -49,8 +49,8 @@ export default function Messages({ navigation }: Props) {
     try {
       setLoading(true);
       const [allUsersData, conversations] = await Promise.all([
-        api.getAllUsers(),
-        api.getConversationsForUser(currentUser.id),
+        usersApi.getAllUsers(),
+        messagesApi.getConversationsForUser(currentUser.id),
       ]);
 
       const conversationMap = new Map(conversations.map((conv) => [conv.other_user_id, conv]));

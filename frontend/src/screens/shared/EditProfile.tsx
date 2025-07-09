@@ -17,7 +17,7 @@ import { AuthContext } from "../../hooks/AuthContext";
 import { FormInput } from "../../components/forms";
 import { LoadingState } from "../../components/common";
 import { COLORS, SPACINGS } from "../../styles";
-import { api, UpdateUserProfileData, transformBackendUserToUser } from "../../services/api";
+import { users, UpdateUserProfileData, transformBackendUserToUser } from "../../services/api";
 import { StudentStackParamList, TeacherStackParamList } from "../../types/navigation";
 
 type Props =
@@ -59,7 +59,7 @@ export default function EditProfile({ navigation }: Props) {
 
     setCheckingUsername(true);
     try {
-      const isAvailable = await api.checkUsernameAvailability(username.trim(), currentUser?.id);
+      const isAvailable = await users.checkUsernameAvailability(username.trim(), currentUser?.id);
       setUsernameAvailable(isAvailable);
     } catch (error) {
       console.error("Error checking username:", error);
@@ -99,7 +99,7 @@ export default function EditProfile({ navigation }: Props) {
         username: username.trim() !== (currentUser?.username || "") ? username.trim() : undefined,
       };
 
-      const updatedBackendUser = await api.updateUserProfile(currentUser.id, updateData);
+      const updatedBackendUser = await users.updateUserProfile(currentUser.id, updateData);
       const updatedUser = transformBackendUserToUser(updatedBackendUser);
 
       updateUser(updatedUser);

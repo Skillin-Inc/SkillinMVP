@@ -1,14 +1,23 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert, TextInput } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert, TextInput, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { StackScreenProps } from "@react-navigation/stack";
 
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
-import { api } from "../../services/api";
+import { users as usersApi } from "../../services/api";
 import { SectionHeader } from "../../components/common";
+import { AdminStackParamList, AdminTabsParamList } from "../../types/navigation";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
-export default function AdminHome() {
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<AdminTabsParamList, "AdminHome">,
+  StackScreenProps<AdminStackParamList>
+>;
+
+export default function AdminHome({ navigation }: Props) {
   const { user, logout } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
@@ -45,7 +54,7 @@ export default function AdminHome() {
     }
     setLoading(true);
     try {
-      const res = await api.deleteUser(email);
+      const res = await usersApi.deleteUser(email);
       Alert.alert("Success", res.message || "User deleted successfully.");
       setEmail("");
     } catch (err) {
@@ -63,7 +72,7 @@ export default function AdminHome() {
     }
     setUpdateLoading(true);
     try {
-      const res = await api.updateUserType(updateEmail, selectedType);
+      const res = await usersApi.updateUserType(updateEmail, selectedType);
       Alert.alert("Success", res.message || "User type updated successfully.");
       setUpdateEmail("");
     } catch (err) {
@@ -95,74 +104,105 @@ export default function AdminHome() {
         </View>
       </View>
 
-      <View style={styles.card}>
-        <SectionHeader title="Delete User by Email" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter user email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-        <TouchableOpacity
-          style={[styles.deleteButton, loading && { opacity: 0.6 }]}
-          onPress={handleDeleteUser}
-          disabled={loading}
-        >
-          <Ionicons name="trash-outline" size={20} color={COLORS.white} />
-          <Text style={styles.deleteButtonText}>{loading ? "Deleting..." : "Delete User"}</Text>
-        </TouchableOpacity>
-      </View>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.card}>
+          <SectionHeader title="Management Tools" />
+          <View style={styles.managementGrid}>
+            <TouchableOpacity style={styles.managementButton} onPress={() => navigation.navigate("AdminUsers")}>
+              <View style={styles.managementIconContainer}>
+                <Ionicons name="people" size={32} color={COLORS.purple} />
+              </View>
+              <Text style={styles.managementTitle}>User Management</Text>
+              <Text style={styles.managementSubtitle}>Manage users, roles & permissions</Text>
+            </TouchableOpacity>
 
-      <View style={styles.card}>
-        <SectionHeader title="Update User Type by Email" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter user email"
-          value={updateEmail}
-          onChangeText={setUpdateEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
+            <TouchableOpacity style={styles.managementButton} onPress={() => navigation.navigate("AdminCourses")}>
+              <View style={styles.managementIconContainer}>
+                <Ionicons name="school" size={32} color={COLORS.blue} />
+              </View>
+              <Text style={styles.managementTitle}>Course Management</Text>
+              <Text style={styles.managementSubtitle}>Edit courses & lessons</Text>
+            </TouchableOpacity>
 
-        <TouchableOpacity style={styles.selectorButton} onPress={() => setTypeModalVisible(true)}>
-          <Text style={styles.selectorText}>Type: {selectedType}</Text>
-          <Ionicons name="chevron-down" size={18} color="#555" />
-        </TouchableOpacity>
-
-        {typeModalVisible && (
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Select User Type</Text>
-              {["student", "teacher", "admin"].map((type) => (
-                <TouchableOpacity
-                  key={type}
-                  style={styles.modalOption}
-                  onPress={() => {
-                    setSelectedType(type as typeof selectedType);
-                    setTypeModalVisible(false);
-                  }}
-                >
-                  <Text style={styles.modalOptionText}>{type}</Text>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity onPress={() => setTypeModalVisible(false)} style={styles.modalCancel}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.managementButton} onPress={() => navigation.navigate("AdminCategories")}>
+              <View style={styles.managementIconContainer}>
+                <Ionicons name="grid" size={32} color={COLORS.green} />
+              </View>
+              <Text style={styles.managementTitle}>Category Management</Text>
+              <Text style={styles.managementSubtitle}>Organize course categories</Text>
+            </TouchableOpacity>
           </View>
-        )}
+        </View>
 
-        <TouchableOpacity
-          style={[styles.updateButton, updateLoading && { opacity: 0.6 }]}
-          onPress={handleUpdateUserType}
-          disabled={updateLoading}
-        >
-          <Ionicons name="sync-outline" size={20} color={COLORS.white} />
-          <Text style={styles.updateButtonText}>{updateLoading ? "Updating..." : "Update User Type"}</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.card}>
+          <SectionHeader title="Delete User by Email" />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter user email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+          <TouchableOpacity
+            style={[styles.deleteButton, loading && { opacity: 0.6 }]}
+            onPress={handleDeleteUser}
+            disabled={loading}
+          >
+            <Ionicons name="trash-outline" size={20} color={COLORS.white} />
+            <Text style={styles.deleteButtonText}>{loading ? "Deleting..." : "Delete User"}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.card}>
+          <SectionHeader title="Update User Type by Email" />
+          <TextInput
+            style={styles.input}
+            placeholder="Enter user email"
+            value={updateEmail}
+            onChangeText={setUpdateEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
+          <TouchableOpacity style={styles.selectorButton} onPress={() => setTypeModalVisible(true)}>
+            <Text style={styles.selectorText}>Type: {selectedType}</Text>
+            <Ionicons name="chevron-down" size={18} color="#555" />
+          </TouchableOpacity>
+
+          {typeModalVisible && (
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Select User Type</Text>
+                {["student", "teacher", "admin"].map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setSelectedType(type as typeof selectedType);
+                      setTypeModalVisible(false);
+                    }}
+                  >
+                    <Text style={styles.modalOptionText}>{type}</Text>
+                  </TouchableOpacity>
+                ))}
+                <TouchableOpacity onPress={() => setTypeModalVisible(false)} style={styles.modalCancel}>
+                  <Text style={styles.modalCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[styles.updateButton, updateLoading && { opacity: 0.6 }]}
+            onPress={handleUpdateUserType}
+            disabled={updateLoading}
+          >
+            <Ionicons name="sync-outline" size={20} color={COLORS.white} />
+            <Text style={styles.updateButtonText}>{updateLoading ? "Updating..." : "Update User Type"}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -329,6 +369,48 @@ function getStyles(width: number, height: number) {
     modalCancelText: {
       color: "#999",
       fontSize: 14,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: 20,
+    },
+    managementGrid: {
+      gap: 16,
+    },
+    managementButton: {
+      backgroundColor: COLORS.white,
+      borderRadius: 12,
+      padding: 20,
+      alignItems: "center",
+      shadowColor: COLORS.black,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      marginBottom: 12,
+    },
+    managementIconContainer: {
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: COLORS.lightGray,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    managementTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: COLORS.black,
+      marginBottom: 4,
+      textAlign: "center",
+    },
+    managementSubtitle: {
+      fontSize: 14,
+      color: COLORS.gray,
+      textAlign: "center",
     },
   });
 }

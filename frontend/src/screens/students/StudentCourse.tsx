@@ -14,7 +14,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api, Course, Lesson } from "../../services/api";
+import { courses as coursesApi, lessons as lessonsApi, Course, Lesson } from "../../services/api";
 import { StudentStackParamList } from "../../types/navigation";
 import { HeaderWithBack, LoadingState, EmptyState, SectionHeader } from "../../components/common";
 
@@ -37,8 +37,8 @@ export default function StudentCourse({ navigation, route }: Props) {
   const loadCourseData = async () => {
     try {
       const [courseData, lessonsData] = await Promise.all([
-        api.getCourseById(courseId),
-        api.getLessonsByCourse(courseId),
+        coursesApi.getCourseById(courseId),
+        lessonsApi.getLessonsByCourse(courseId),
       ]);
       setCourse(courseData);
       setLessons(lessonsData);

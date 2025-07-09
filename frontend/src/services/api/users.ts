@@ -1,0 +1,71 @@
+import { API_CONFIG } from "../../config/api";
+import { RegisterData, LoginData, User, BackendUser, UpdateUserProfileData, LoginResponse } from "./types";
+import { makeRequest, transformBackendUserToUser } from "./utils";
+
+export const register = async (userData: RegisterData): Promise<User> => {
+  const backendUser = await makeRequest<BackendUser>(API_CONFIG.ENDPOINTS.USERS, {
+    method: "POST",
+    body: JSON.stringify(userData),
+  });
+  return transformBackendUserToUser(backendUser);
+};
+
+export const login = async (loginData: LoginData): Promise<LoginResponse> => {
+  const response = await makeRequest<{ success: boolean; user: BackendUser }>(API_CONFIG.ENDPOINTS.LOGIN, {
+    method: "POST",
+    body: JSON.stringify(loginData),
+  });
+
+  return {
+    success: response.success,
+    user: transformBackendUserToUser(response.user),
+  };
+};
+
+export const getUserById = async (id: string): Promise<BackendUser> => {
+  return makeRequest<BackendUser>(`${API_CONFIG.ENDPOINTS.USERS}/${id}`);
+};
+
+export const getAllUsers = async (): Promise<BackendUser[]> => {
+  return makeRequest<BackendUser[]>(API_CONFIG.ENDPOINTS.USERS);
+};
+
+export const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
+  const encodedEmail = encodeURIComponent(email);
+  return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`, {
+    method: "DELETE",
+  });
+};
+
+export const updateUserType = async (
+  email: string,
+  userType: "student" | "teacher" | "admin"
+): Promise<{ success: boolean; message: string }> => {
+  const encodedEmail = encodeURIComponent(email);
+  return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}/user-type`, {
+    method: "PATCH",
+    body: JSON.stringify({ userType }),
+  });
+};
+
+export const updateUserProfile = async (userId: string, updateData: UpdateUserProfileData): Promise<BackendUser> => {
+  const response = await makeRequest<{ message: string; user: BackendUser }>(
+    `${API_CONFIG.ENDPOINTS.USERS}/${userId}/profile`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(updateData),
+    }
+  );
+  return response.user;
+};
+
+export const checkUsernameAvailability = async (username: string, excludeUserId?: string): Promise<boolean> => {
+  const response = await makeRequest<{ available: boolean }>(
+    `${API_CONFIG.ENDPOINTS.USERS}/check-username/${encodeURIComponent(username)}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ excludeUserId }),
+    }
+  );
+  return response.available;
+};

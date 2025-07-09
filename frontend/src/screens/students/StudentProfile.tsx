@@ -1,5 +1,8 @@
+// File: src/screens/students/StudentProfile.tsx
+
 import React, { useContext, useState, useEffect } from "react";
 import {
+  Linking,
   View,
   Text,
   StyleSheet,
@@ -9,6 +12,7 @@ import {
   Alert,
   RefreshControl,
 } from "react-native";
+import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
@@ -20,7 +24,7 @@ import { ImagePickerAvatar } from "../../components/forms";
 import { QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
-import { User, api, transformBackendUserToUser } from "../../services/api";
+import { User, users as usersApi, transformBackendUserToUser } from "../../services/api";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<StudentTabsParamList, "StudentProfile">,
@@ -47,7 +51,7 @@ export default function StudentProfile({ navigation, route }: Props) {
       if (isOwnProfile && currentUser) {
         setProfileUser(currentUser);
       } else {
-        const backendUser = await api.getUserById(userId);
+        const backendUser = await usersApi.getUserById(userId);
         const transformedUser = transformBackendUserToUser(backendUser);
         setProfileUser(transformedUser);
       }
@@ -82,6 +86,7 @@ export default function StudentProfile({ navigation, route }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true);
+
     await loadUserProfile();
     setRefreshing(false);
   };
@@ -148,6 +153,35 @@ export default function StudentProfile({ navigation, route }: Props) {
     }
   };
 
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+
+  const handleOpenStripePortal = async () => {
+    if (!currentUser?.email) {
+      Alert.alert("Error", "Missing user email");
+      return;
+    }
+
+    try {
+      const response = await axios.post(`${apiUrl}/api/create-billing-portal-session`, {
+        email: currentUser.email,
+        name: `${currentUser.firstName} ${currentUser.lastName}`,
+      });
+
+      const { url } = response.data;
+      console.log("Received portal URL:", url);
+
+      if (!url || typeof url !== "string") {
+        Alert.alert("Error", "Stripe portal URL not found.");
+        return;
+      }
+
+      Linking.openURL(url);
+    } catch (error) {
+      console.error("Portal open error:", error);
+      Alert.alert("Error", "Unable to open Stripe portal.");
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -193,6 +227,7 @@ export default function StudentProfile({ navigation, route }: Props) {
             <View
               style={[
                 styles.membershipBadge,
+
                 { backgroundColor: getMembershipBadgeColor(profileUser?.membershipTier) },
               ]}
             >
@@ -254,6 +289,13 @@ export default function StudentProfile({ navigation, route }: Props) {
                 title="Help & Support"
                 subtitle="Get assistance and FAQ"
                 onPress={handleSupport}
+              />
+
+              <QuickActionCard
+                icon="wallet-outline"
+                title="Subscription"
+                subtitle="Handle your payments"
+                onPress={handleOpenStripePortal}
               />
             </View>
 
