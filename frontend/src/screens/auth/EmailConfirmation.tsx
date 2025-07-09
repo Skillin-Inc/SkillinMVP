@@ -31,7 +31,7 @@ export default function EmailConfirmation({ navigation, route }: Props) {
     try {
       await confirmSignUp(email, confirmationCode.trim());
       Alert.alert("Account Confirmed", "Your account has been successfully confirmed! Please complete your payment.", [
-        { text: "OK", onPress: () => navigation.navigate("RegisterPayment" as any, { email }) },
+        { text: "OK", onPress: () => navigation.navigate("RegisterPayment") },
       ]);
     } catch (error: unknown) {
       console.error("Confirmation error:", error);

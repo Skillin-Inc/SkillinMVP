@@ -268,19 +268,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : []),
       ];
 
-      userPool.signUp(
-        registerData.email,
-        registerData.password,
-        attributeList,
-        [],
-        (err, result: ISignUpResult | undefined) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
+      userPool.signUp(registerData.email, registerData.password, attributeList, [], (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
         }
-      );
+      });
     });
   };
 

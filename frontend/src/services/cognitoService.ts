@@ -21,7 +21,7 @@ export const signUp = (email: string, password: string, firstName?: string, last
       ...(lastName ? [new CognitoUserAttribute({ Name: "family_name", Value: lastName })] : []),
     ];
 
-    userPool.signUp(email, password, attributes, [], (err, result: ISignUpResult | undefined) => {
+    userPool.signUp(email, password, attributes, [], (err) => {
       if (err) return reject(err);
       resolve();
     });
