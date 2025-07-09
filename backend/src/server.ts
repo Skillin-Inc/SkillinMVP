@@ -4,7 +4,7 @@ import cors from "cors";
 import "dotenv/config";
 import { createServer } from "http";
 import { Server } from "socket.io";
-
+import rateLimit from "express-rate-limit";
 
 
 // Import route handlers
@@ -125,6 +125,13 @@ app.post("/register", async (req: Request, res: Response) => {
       res.status(500).json({ error: "Unknown error occurred" });
     }
   }
+// Configure rate limiter: maximum of 100 requests per 15 minutes
+const messagesRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { error: "Too many requests, please try again later." },
+});
+
 });
 
 // Temporary: Public user lookup endpoint for debugging
@@ -156,7 +163,7 @@ app.use("/progress", progressRoutes);
 // Protected routes (require Cognito authentication)
 // i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
-app.use("/messages", cognitoAuthMiddleware, messageRoutes);
+app.use("/messages", messagesRateLimiter, cognitoAuthMiddleware, messageRoutes);
 app.use("/categories", cognitoAuthMiddleware, categoryRoutes);
 app.use("/courses", cognitoAuthMiddleware, courseRoutes);
 app.use("/lessons", cognitoAuthMiddleware, lessonRoutes);
