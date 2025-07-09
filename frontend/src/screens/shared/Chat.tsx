@@ -1,34 +1,33 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Image,
   KeyboardAvoidingView,
   Platform,
-  Alert,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useScreenDimensions } from "../../hooks";
-import { useWebSocket } from "../../hooks/useWebSocket";
-import { COLORS } from "../../styles";
 import { StackScreenProps } from "@react-navigation/stack";
-import { StudentStackParamList, TeacherStackParamList } from "../../types";
-import { api, BackendMessage, BackendUser } from "../../services/api";
+import { useScreenDimensions } from "../../hooks";
+import { COLORS } from "../../styles";
+import { StudentStackParamList, TeacherStackParamList, AdminStackParamList } from "../../types/navigation";
 import { MessageBubble, Message } from "../../components/media/MessageBubble";
 import { LoadingState } from "../../components/common";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
+import { api, BackendMessage, BackendUser } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 
-type Props = StackScreenProps<StudentStackParamList | TeacherStackParamList, "Chat">;
+type Props = StackScreenProps<StudentStackParamList | TeacherStackParamList | AdminStackParamList, "Chat">;
 
 export default function Chat({ route, navigation }: Props) {
   const { id } = route.params;
-  const { user: currentUser } = React.useContext(AuthContext);
+  const { user: currentUser } = useContext(AuthContext);
   const { screenWidth } = useScreenDimensions();
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
@@ -148,11 +147,11 @@ export default function Chat({ route, navigation }: Props) {
         // @ts-expect-error - Navigation type issue with shared Chat component
         navigation.navigate("StudentProfile", { userId: id });
       } else {
-        Alert.alert("Profile not available", "Profile not available for this user type.");
+        alert("Profile not available for this user type.");
       }
     } catch (error) {
       console.error("Navigation error:", error);
-      Alert.alert("Unable to view profile", "Unable to view profile.");
+      alert("Unable to view profile.");
     }
   };
 
@@ -196,14 +195,20 @@ export default function Chat({ route, navigation }: Props) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading messages...</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
+          </TouchableOpacity>
+          <Text style={styles.headerName}>Loading...</Text>
+        </View>
+        <LoadingState text="Loading messages..." />
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={COLORS.black} />
@@ -256,7 +261,7 @@ export default function Chat({ route, navigation }: Props) {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 

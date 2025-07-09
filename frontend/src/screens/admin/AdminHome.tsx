@@ -6,13 +6,13 @@ import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
 import { api } from "../../services/api";
 import { StackScreenProps } from "@react-navigation/stack";
-import { AdminStackParamList } from "../../types";
+import { AdminStackParamList, AdminTabsParamList } from "../../types";
 import { SectionHeader } from "../../components/common";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
 type Props = CompositeScreenProps<
-  BottomTabScreenProps<AdminStackParamList, "AdminHome">,
+  BottomTabScreenProps<AdminTabsParamList, "AdminHome">,
   StackScreenProps<AdminStackParamList>
 >;
 
