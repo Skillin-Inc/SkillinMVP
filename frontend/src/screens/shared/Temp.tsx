@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from "react-native";
 
 import { useScreenDimensions } from "../../hooks";
 import { AuthContext } from "../../hooks/AuthContext";
@@ -8,8 +7,8 @@ import { api } from "../../services/api";
 import { COLORS } from "../../styles";
 
 export default function Temp() {
-  const { screenWidth, screenHeight } = useScreenDimensions();
-  const styles = getStyles(screenWidth, screenHeight);
+  const { screenWidth } = useScreenDimensions();
+  const styles = getStyles(screenWidth);
   const { user: currentUser } = useContext(AuthContext);
 
   const handleLogAllUsers = async () => {
@@ -63,7 +62,7 @@ export default function Temp() {
   );
 }
 
-function getStyles(screenWidth: number, screenHeight: number) {
+function getStyles(screenWidth: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
