@@ -27,28 +27,50 @@ type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
   user: User | null;
+  isPaid: boolean;
   login: (loginData: LoginData) => Promise<User>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   switchMode: () => void;
   updateUser: (updatedUser: User) => Promise<void>;
+  checkPaidStatus: (userId: string) => Promise<void>;
 };
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
+
 
 export const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
   loading: true,
   user: null,
+  isPaid: false,
   login: async () => ({} as User),
   register: async () => {},
   logout: async () => {},
   switchMode: () => {},
   updateUser: async () => {},
+  checkPaidStatus: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [isPaid, setIsPaid] = useState(false);
+
+  const checkPaidStatus = async (userId: string) => { 
+  try {
+    const res = await fetch(`${BACKEND_URL}/stripe/check-paid-status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+    const data = await res.json();
+    setIsPaid(data.isPaid);
+  } catch (error) {
+    console.error("Failed to check paid status:", error);
+  }
+};
 
   const transformStoredUserData = (userData: unknown): User | null => {
     if (!userData || typeof userData !== "object") return null;
@@ -116,6 +138,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log("Transformed userData:", transformedUser);
             setUser(transformedUser);
             setIsLoggedIn(true);
+            checkPaidStatus(transformedUser.id);
 
             if (JSON.stringify(storedUserData) !== JSON.stringify(transformedUser)) {
               await AsyncStorage.setItem("userData", JSON.stringify(transformedUser));
@@ -139,6 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.user);
       setIsLoggedIn(true);
       await AsyncStorage.setItem("userData", JSON.stringify(response.user));
+      checkPaidStatus(response.user.id);
       return response.user;
     } catch (error) {
       console.error("Login error:", error);
@@ -163,6 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await AsyncStorage.removeItem("userData");
       setUser(null);
       setIsLoggedIn(false);
+      setIsPaid(false);
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -183,7 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, user, switchMode, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, user, isPaid , switchMode, login, register, logout, updateUser,checkPaidStatus, }}>
       {children}
     </AuthContext.Provider>
   );

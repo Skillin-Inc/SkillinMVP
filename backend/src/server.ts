@@ -15,6 +15,8 @@ import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import progressRoutes from "./routes/progress";
+import stripeWebhookRouter from "./routes/stripeWebhook";
+import bodyParser from "body-parser";
 
 
 const app: Express = express();
@@ -25,10 +27,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
-const port = process.env.PORT || 4040;
-
-const userSockets = new Map<string, string>();
+app.use("/api/webhook/stripe", bodyParser.raw({ type: "application/json" }), stripeWebhookRouter);
 
 // Middleware
 app.use(express.json());
@@ -44,6 +43,15 @@ app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
+
+// Stripe Webhook events (must be first, before body parsers)
+app.use("/api", stripeWebhookRouter); 
+// Stripe RESTful APIs for checkout, billing, payment status, etc.
+app.use("/stripe", stripeRoutes);
+
+const port = process.env.PORT || 4040;
+
+const userSockets = new Map<string, string>();
 
 // Serve favicon to prevent 404s
 app.get("/favicon.ico", (req: Request, res: Response) => {
@@ -113,7 +121,8 @@ app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);
 //app.use("/teachers", teacherRoutes);
 app.use("/progress", progressRoutes);
-app.use("/api", stripeRoutes);  
+app.use("/api", stripeRoutes);
+
 
 // 404 handler for unmatched routes
 app.use((req: Request, res: Response) => {

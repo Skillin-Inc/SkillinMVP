@@ -11,14 +11,11 @@ import {
   Linking
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { CompositeScreenProps } from "@react-navigation/native";
+import { CompositeScreenProps, useFocusEffect} from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
-
 import { COLORS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
-
-import { checkIfPaid } from "../../services/payments";
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
 import { CategoryCard, QuickActionCard } from "../../components/cards";
@@ -31,57 +28,24 @@ type Props = CompositeScreenProps<
 >;
 
 export default function StudentHome({ navigation }: Props) {
-  const { user } = useContext(AuthContext);
+  const { user, isPaid, checkPaidStatus } = useContext(AuthContext);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-
   const styles = getStyles();
 
   useEffect(() => {
+    if (user?.id) checkPaidStatus(user.id);
     loadCategories();
-    verifyPayment();
   }, []);
 
-const verifyPayment = async () => {
-  if (!user?.id) return;
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user?.id) checkPaidStatus(user.id);
+    }, [user?.id])
+  );
 
-  try {
-    const isPaid = await checkIfPaid(Number(user.id));
-    if (!isPaid) {
-      setShowPaymentModal(true);
-    } else {
-      await loadCategories();
-    }
-  } catch (err) {
-    console.error("Failed to verify payment:", err);
-  } finally {
-    setLoading(false);  
-  }
-};
-
-useEffect(() => {
-  let interval: NodeJS.Timeout;
-
-  if (showPaymentModal && user?.id) {
-    interval = setInterval(async () => {
-      try {
-        const isPaid = await checkIfPaid(Number(user.id));
-        if (isPaid) {
-          clearInterval(interval);
-          setShowPaymentModal(false);
-          loadCategories();
-        }
-      } catch (err) {
-        console.error("Polling failed:", err);
-      }
-    }, 5000); // check every 5 seconds
-  }
-
-  return () => clearInterval(interval); 
-}, [showPaymentModal, user?.id]);
-
+  const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
 
   const loadCategories = async () => {
     try {
@@ -108,7 +72,7 @@ useEffect(() => {
     navigation.navigate("StudentProfile", { userId: user?.id });
   };
 
-  if (showPaymentModal) {
+    if (!isPaid) { 
     return (
       <SafeAreaView style={styles.container}>
         <View
@@ -127,8 +91,26 @@ useEffect(() => {
             You have not subscribed yet. Please complete your payment.
           </Text>
           <TouchableOpacity
-            onPress={() => {
-              Linking.openURL("https://buy.stripe.com/test_28E7sKdikeIPcgPbHFgMw00");  // testing url
+            onPress={async () => {
+              try {
+                const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    userId: user?.id,
+                    email: user?.email,
+                  }),
+                });
+                const data = await res.json();
+                if (data.url) {
+                  Linking.openURL(data.url);
+                } else {
+                  Alert.alert("Error", "Failed to create checkout session.");
+                }
+              } catch (error) {
+                Alert.alert("Error", "Unable to initiate payment.");
+                console.error(error);
+              }
             }}
             style={{
               backgroundColor: COLORS.purple,
@@ -138,10 +120,22 @@ useEffect(() => {
               alignItems: "center",
             }}
           >
-            <Text style={{ color: "white", fontWeight: "bold" }}>
-              Go to Payment
-            </Text>
+            <Text style={{ color: "white", fontWeight: "bold" }}>Subscribe Now</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+  onPress={() => user?.id && checkPaidStatus(user.id)}
+  style={{
+    backgroundColor: COLORS.purple,      
+    padding: 12,                         
+    borderRadius: 8,                     
+    width: "100%",                       
+    alignItems: "center",
+    marginBottom: 18,                     
+  }}
+>
+  <Text style={{ color: "white", fontWeight: "bold"}}>I Already Paid  </Text>
+</TouchableOpacity>
         </View>
       </SafeAreaView>
     );
