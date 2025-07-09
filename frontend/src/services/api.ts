@@ -152,11 +152,8 @@ function createApiService() {
     };
   };
 
-  const makeRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
-
-    // Get Cognito session for authenticated requests
-    let authToken = "";
+  // Helper to get auth token if available, otherwise undefined
+  const getAuthToken = async (): Promise<string | undefined> => {
     try {
       const currentUser = userPool.getCurrentUser();
       if (currentUser) {
@@ -166,55 +163,60 @@ function createApiService() {
             else resolve(session);
           });
         });
-
         if (session && session.isValid()) {
-          authToken = session.getIdToken().getJwtToken();
+          return session.getIdToken().getJwtToken();
         }
       }
     } catch (error) {
-      console.warn("Could not get auth token:", error);
+      // Ignore error, just return undefined
     }
+    return undefined;
+  };
 
-    const config: RequestInit = {
-      headers: {
-        "Content-Type": "application/json",
-        ...(authToken && { Authorization: `Bearer ${authToken}` }),
-        ...options.headers,
-      },
-      ...options,
-    };
-
+  // Make request, only add Authorization header if token is available
+  const makeRequest = async <T>(endpoint: string, options: RequestInit = {}, requireAuth = false): Promise<T> => {
+    const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+    let headers: any = { "Content-Type": "application/json", ...options.headers };
+    let authToken: string | undefined;
+    if (requireAuth) {
+      authToken = await getAuthToken();
+      if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+    }
+    const config: RequestInit = { ...options, headers };
     try {
       const response = await fetch(url, config);
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
-
       return response.json();
     } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
+      if (error instanceof Error) throw error;
       throw new Error("Network error occurred");
     }
   };
 
   const register = async (userData: RegisterData): Promise<User> => {
-    const backendUser = await makeRequest<BackendUser>(API_CONFIG.ENDPOINTS.USERS, {
-      method: "POST",
-      body: JSON.stringify(userData),
-    });
+    const backendUser = await makeRequest<BackendUser>(
+      API_CONFIG.ENDPOINTS.USERS,
+      {
+        method: "POST",
+        body: JSON.stringify(userData),
+      },
+      true
+    );
     return transformBackendUserToUser(backendUser);
   };
 
   const login = async (loginData: LoginData): Promise<LoginResponse> => {
-    const response = await makeRequest<{ success: boolean; user: BackendUser }>(API_CONFIG.ENDPOINTS.LOGIN, {
-      method: "POST",
-      body: JSON.stringify(loginData),
-    });
-
+    const response = await makeRequest<{ success: boolean; user: BackendUser }>(
+      API_CONFIG.ENDPOINTS.LOGIN,
+      {
+        method: "POST",
+        body: JSON.stringify(loginData),
+      },
+      true
+    );
     return {
       success: response.success,
       user: transformBackendUserToUser(response.user),
