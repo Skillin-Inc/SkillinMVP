@@ -1,5 +1,5 @@
 import { API_CONFIG } from "../config/api";
-import { userPool } from "../hooks/AuthContext";
+import { CognitoUserSession } from "amazon-cognito-identity-js";
 
 export interface RegisterData {
   firstName: string;
@@ -155,19 +155,22 @@ function createApiService() {
   // Helper to get auth token if available, otherwise undefined
   const getAuthToken = async (): Promise<string | undefined> => {
     try {
+      // Dynamically import userPool to avoid circular dependency
+      const { userPool } = await import("../hooks/AuthContext");
       const currentUser = userPool.getCurrentUser();
       if (currentUser) {
-        const session = await new Promise<any>((resolve, reject) => {
-          currentUser.getSession((err: any, session: any) => {
+        const session = await new Promise<CognitoUserSession>((resolve, reject) => {
+          currentUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
             if (err) reject(err);
-            else resolve(session);
+            else if (session) resolve(session);
+            else reject(new Error("No session available"));
           });
         });
         if (session && session.isValid()) {
           return session.getIdToken().getJwtToken();
         }
       }
-    } catch (error) {
+    } catch {
       // Ignore error, just return undefined
     }
     return undefined;
@@ -176,7 +179,9 @@ function createApiService() {
   // Make request, only add Authorization header if token is available
   const makeRequest = async <T>(endpoint: string, options: RequestInit = {}, requireAuth = false): Promise<T> => {
     const url = `${API_CONFIG.BASE_URL}${endpoint}`;
-    let headers: any = { "Content-Type": "application/json", ...options.headers };
+    const baseHeaders: Record<string, string> = { "Content-Type": "application/json" };
+    const requestHeaders = options.headers as Record<string, string> | undefined;
+    const headers: Record<string, string> = { ...baseHeaders, ...requestHeaders };
     let authToken: string | undefined;
     if (requireAuth) {
       authToken = await getAuthToken();

@@ -31,17 +31,21 @@ export default function EmailConfirmation({ navigation, route }: Props) {
     try {
       await confirmSignUp(email, confirmationCode.trim());
       Alert.alert("Account Confirmed", "Your account has been successfully confirmed! Please complete your payment.", [
-        { text: "OK", onPress: () => navigation.navigate("RegisterPayment", { email }) }, // Why is this red and it works
+        { text: "OK", onPress: () => navigation.navigate("RegisterPayment" as any, { email }) },
       ]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Confirmation error:", error);
 
-      if (error.code === "CodeMismatchException") {
-        Alert.alert("Invalid Code", "The confirmation code you entered is incorrect. Please try again.");
-      } else if (error.code === "ExpiredCodeException") {
-        Alert.alert("Code Expired", "The confirmation code has expired. Please request a new one.");
+      if (error && typeof error === "object" && "code" in error) {
+        if (error.code === "CodeMismatchException") {
+          Alert.alert("Invalid Code", "The confirmation code you entered is incorrect. Please try again.");
+        } else if (error.code === "ExpiredCodeException") {
+          Alert.alert("Code Expired", "The confirmation code has expired. Please request a new one.");
+        } else {
+          Alert.alert("Confirmation Failed", "An error occurred during confirmation. Please try again.");
+        }
       } else {
-        Alert.alert("Confirmation Failed", error.message || "An error occurred during confirmation. Please try again.");
+        Alert.alert("Confirmation Failed", "An error occurred during confirmation. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -52,7 +56,7 @@ export default function EmailConfirmation({ navigation, route }: Props) {
     try {
       // You'll need to implement resend confirmation in AuthContext
       Alert.alert("Code Resent", "A new confirmation code has been sent to your email address.");
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Failed to resend confirmation code. Please try again.");
     }
   };

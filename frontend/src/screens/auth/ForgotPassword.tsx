@@ -39,12 +39,16 @@ export default function ForgotPassword({ navigation }: Props) {
           },
         ]
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Forgot password error:", error);
-      if (error.code === "UserNotFoundException") {
-        Alert.alert("Email Not Found", "No account found with this email address.");
-      } else if (error.code === "LimitExceededException") {
-        Alert.alert("Too Many Requests", "Too many password reset attempts. Please try again later.");
+      if (error && typeof error === "object" && "code" in error) {
+        if (error.code === "UserNotFoundException") {
+          Alert.alert("Email Not Found", "No account found with this email address.");
+        } else if (error.code === "LimitExceededException") {
+          Alert.alert("Too Many Requests", "Too many password reset attempts. Please try again later.");
+        } else {
+          Alert.alert("Error", "Failed to send reset email. Please try again.");
+        }
       } else {
         Alert.alert("Error", "Failed to send reset email. Please try again.");
       }

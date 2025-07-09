@@ -54,14 +54,18 @@ export default function ResetPassword({ navigation, route }: Props) {
           },
         ]
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Reset password error:", error);
-      if (error.code === "CodeMismatchException") {
-        Alert.alert("Invalid Code", "The confirmation code is incorrect. Please check your email and try again.");
-      } else if (error.code === "ExpiredCodeException") {
-        Alert.alert("Code Expired", "The confirmation code has expired. Please request a new one.");
-      } else if (error.code === "InvalidPasswordException") {
-        Alert.alert("Invalid Password", "Password does not meet requirements. Please choose a stronger password.");
+      if (error && typeof error === "object" && "code" in error) {
+        if (error.code === "CodeMismatchException") {
+          Alert.alert("Invalid Code", "The confirmation code is incorrect. Please check your email and try again.");
+        } else if (error.code === "ExpiredCodeException") {
+          Alert.alert("Code Expired", "The confirmation code has expired. Please request a new one.");
+        } else if (error.code === "InvalidPasswordException") {
+          Alert.alert("Invalid Password", "Password does not meet requirements. Please choose a stronger password.");
+        } else {
+          Alert.alert("Error", "Failed to reset password. Please try again.");
+        }
       } else {
         Alert.alert("Error", "Failed to reset password. Please try again.");
       }

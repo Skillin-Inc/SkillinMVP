@@ -12,7 +12,7 @@ import { AuthStackParamList } from "../../types";
 type Props = StackScreenProps<AuthStackParamList, "Login">;
 
 export default function Login({ navigation }: Props) {
-  const { login, forgotPassword, resendConfirmationCode } = useContext(AuthContext);
+  const { login, resendConfirmationCode } = useContext(AuthContext);
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
@@ -54,26 +54,30 @@ export default function Login({ navigation }: Props) {
       }
 
       Alert.alert(title, message, [{ text: "OK" }]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error", error);
 
       // Handle specific Cognito errors
-      if (error.code === "UserNotConfirmedException") {
-        Alert.alert("Email Not Confirmed", "Please check your email and confirm your account before signing in.", [
-          { text: "OK" },
-          {
-            text: "Resend Confirmation",
-            onPress: () => handleResendConfirmation(emailOrPhone.trim()),
-          },
-        ]);
-      } else if (error.code === "NotAuthorizedException") {
-        Alert.alert("Login Failed", "Invalid email or password. Please try again.");
-      } else if (error.code === "UserNotFoundException") {
-        Alert.alert("Login Failed", "No account found with this email address.");
-      } else if (error.code === "TooManyRequestsException") {
-        Alert.alert("Too Many Attempts", "Too many failed login attempts. Please try again later.");
+      if (error && typeof error === "object" && "code" in error) {
+        if (error.code === "UserNotConfirmedException") {
+          Alert.alert("Email Not Confirmed", "Please check your email and confirm your account before signing in.", [
+            { text: "OK" },
+            {
+              text: "Resend Confirmation",
+              onPress: () => handleResendConfirmation(emailOrPhone.trim()),
+            },
+          ]);
+        } else if (error.code === "NotAuthorizedException") {
+          Alert.alert("Login Failed", "Invalid email or password. Please try again.");
+        } else if (error.code === "UserNotFoundException") {
+          Alert.alert("Login Failed", "No account found with this email address.");
+        } else if (error.code === "TooManyRequestsException") {
+          Alert.alert("Too Many Attempts", "Too many failed login attempts. Please try again later.");
+        } else {
+          Alert.alert("Login Failed", "An error occurred during login. Please try again.");
+        }
       } else {
-        Alert.alert("Login Failed", error.message || "An error occurred during login. Please try again.");
+        Alert.alert("Login Failed", "An error occurred during login. Please try again.");
       }
     } finally {
       setIsLoading(false);
@@ -84,7 +88,7 @@ export default function Login({ navigation }: Props) {
     try {
       await resendConfirmationCode(email);
       navigation.navigate("EmailConfirmation", { email });
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Failed to resend confirmation email. Please try again.");
     }
   };

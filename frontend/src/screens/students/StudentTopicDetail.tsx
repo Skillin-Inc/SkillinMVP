@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList, TextInput, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
-import { categories as categoriesApi, courses as coursesApi, Course, Category } from "../../services/api";
+import { api, Course, Category } from "../../services/api";
 import { StudentStackParamList } from "../../types/navigation";
 import { LoadingState, EmptyState } from "../../components/common";
 import { CourseCard } from "../../components/cards";
@@ -37,7 +37,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
       setAllCourses([]);
       setHasMoreCourses(true);
 
-      const categories = await categoriesApi.getAllCategories();
+      const categories = await api.getAllCategories();
       const matchingCategory = categories.find(
         (category: Category) => category.title.toLowerCase() === id.toLowerCase()
       );
@@ -52,7 +52,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
 
       setCategoryId(matchingCategory.id);
 
-      const coursesData = await coursesApi.getCoursesByCategory(matchingCategory.id, COURSES_PER_PAGE, 0);
+      const coursesData = await api.getCoursesByCategory(matchingCategory.id, COURSES_PER_PAGE, 0);
       setAllCourses(coursesData);
 
       // Check if there are more courses to load
@@ -75,7 +75,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
     try {
       setLoadingMore(true);
       const nextOffset = allCourses.length;
-      const moreCourses = await coursesApi.getCoursesByCategory(categoryId, COURSES_PER_PAGE, nextOffset);
+      const moreCourses = await api.getCoursesByCategory(categoryId, COURSES_PER_PAGE, nextOffset);
 
       if (moreCourses.length === 0 || moreCourses.length < COURSES_PER_PAGE) {
         setHasMoreCourses(false);

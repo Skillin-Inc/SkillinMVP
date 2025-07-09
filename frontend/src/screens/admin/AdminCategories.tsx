@@ -15,7 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { categories as categoriesApi, courses as coursesApi, Category, Course } from "../../services/api";
+import { api, Category, Course } from "../../services/api";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface CategoryWithStats extends Category {
@@ -57,7 +57,7 @@ const EditCategoryModal: React.FC<EditCategoryModalProps> = ({ visible, category
 
     setLoading(true);
     try {
-      await categoriesApi.updateCategory(category.id, {
+      await api.updateCategory(category.id, {
         title: title.trim(),
       });
       Alert.alert("Success", "Category updated successfully");
@@ -121,7 +121,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ visible, onCl
 
     setLoading(true);
     try {
-      await categoriesApi.createCategory({
+      await api.createCategory({
         title: title.trim(),
       });
       Alert.alert("Success", "Category created successfully");
@@ -189,18 +189,15 @@ export default function AdminCategories() {
 
   const fetchData = async () => {
     try {
-      const [categoriesData, coursesData] = await Promise.all([
-        categoriesApi.getAllCategories(),
-        coursesApi.getAllCourses(),
-      ]);
+      const [categoriesData, coursesData] = await Promise.all([api.getAllCategories(), api.getAllCourses()]);
 
       const categoriesWithStats: CategoryWithStats[] = categoriesData.map((category) => {
-        const categorycourses = coursesData.filter((course: Course) => course.category_id === category.id);
-        const uniqueTeachers = new Set(categorycourses.map((course: Course) => course.teacher_id));
+        const coursesInCategory = coursesData.filter((course: Course) => course.category_id === category.id);
+        const uniqueTeachers = new Set(coursesInCategory.map((course: Course) => course.teacher_id));
 
         return {
           ...category,
-          courseCount: categorycourses.length,
+          courseCount: coursesInCategory.length,
           teacherCount: uniqueTeachers.size,
         };
       });
@@ -236,7 +233,7 @@ export default function AdminCategories() {
         style: "destructive",
         onPress: async () => {
           try {
-            await categoriesApi.deleteCategory(category.id);
+            await api.deleteCategory(category.id);
             Alert.alert("Success", "Category deleted successfully");
             fetchData();
           } catch (error) {

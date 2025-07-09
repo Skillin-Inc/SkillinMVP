@@ -6,9 +6,8 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 
 // Import route handlers
-import stripeRoutes from "./routes/stripe";
+
 import userRoutes from "./routes/users";
-import sendEmailRouter from "./routes/sendEmail";
 import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
@@ -17,7 +16,7 @@ import sendEmailRoutes from "./routes/sendEmail";
 import lessonRoutes from "./routes/lessons";
 
 // Import Cognito auth middleware
-import { cognitoAuthMiddleware, requireUserType } from "./middleware/cognitoAuth";
+import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
 
 const app: Express = express();
 const server = createServer(app);
@@ -125,28 +124,6 @@ app.post("/register", async (req: Request, res: Response) => {
   }
 });
 
-<<<<<<< HEAD
-// Temporary: Public user lookup endpoint for debugging
-app.get("/users/:id", async (req: Request, res: Response) => {
-  try {
-    const { getUserById } = await import("./db");
-    const id = String(req.params.id);
-    const user = await getUserById(id);
-
-    if (!user) {
-      res.status(404).json({ error: "User not found", id });
-      return;
-    }
-
-    res.json(user);
-  } catch (error: unknown) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-=======
->>>>>>> b476bea ( things are now store inside the db check the board for more info)
 // Public routes (no authentication required)
 app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);

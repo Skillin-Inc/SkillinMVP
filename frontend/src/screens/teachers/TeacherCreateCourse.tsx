@@ -17,7 +17,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { courses as coursesApi, categories as categoriesApi, NewCourse, Category, Course } from "../../services/api";
+import { api, NewCourse, Category, Course } from "../../services/api";
 import { TeacherStackParamList } from "../../types/navigation";
 import { HeaderWithBack, EmptyState } from "../../components/common";
 
@@ -52,7 +52,7 @@ export default function TeacherCreateCourse({ navigation }: Props) {
 
   const loadCategories = async () => {
     try {
-      const categoriesData = await categoriesApi.getAllCategories();
+      const categoriesData = await api.getAllCategories();
       setCategories(categoriesData);
     } catch (error) {
       console.error("Error loading categories:", error);
@@ -69,7 +69,7 @@ export default function TeacherCreateCourse({ navigation }: Props) {
     }
 
     try {
-      const courses = await coursesApi.getCoursesByTeacher(user.id);
+      const courses = await api.getCoursesByTeacher(user.id);
       setTeacherCourses(courses);
     } catch (error) {
       console.error("Error loading teacher courses:", error);
@@ -131,7 +131,7 @@ export default function TeacherCreateCourse({ navigation }: Props) {
         description: formData.description.trim(),
       };
 
-      await coursesApi.createCourse(courseData);
+      await api.createCourse(courseData);
 
       Alert.alert("Success", "Course created successfully!", [
         {

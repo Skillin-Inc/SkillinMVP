@@ -16,15 +16,26 @@ const client = jwksClient({
 
 // Get the signing key
 function getKey(header: JwtHeader, callback: (err: Error | null, key?: string) => void): void {
-  client.getSigningKey(header.kid!, (err: Error | null, key: any) => {
+  client.getSigningKey(header.kid!, (err: Error | null, key?: jwksClient.SigningKey) => {
     if (err) return callback(err);
+    if (!key) return callback(new Error("No signing key found"));
     const signingKey = key.getPublicKey(); // returns PEM string
     callback(null, signingKey);
   });
 }
 
+// Define the decoded token structure
+interface DecodedToken {
+  sub: string;
+  email: string;
+  "cognito:username": string;
+  given_name?: string;
+  family_name?: string;
+  [key: string]: unknown;
+}
+
 // Verify Cognito JWT token
-export function verifyCognitoToken(token: string): Promise<any> {
+export function verifyCognitoToken(token: string): Promise<DecodedToken> {
   return new Promise((resolve, reject) => {
     jwt.verify(
       token,
@@ -38,7 +49,7 @@ export function verifyCognitoToken(token: string): Promise<any> {
         if (err) {
           reject(err);
         } else {
-          resolve(decoded);
+          resolve(decoded as DecodedToken);
         }
       }
     );
@@ -46,7 +57,7 @@ export function verifyCognitoToken(token: string): Promise<any> {
 }
 
 // Middleware to verify Cognito JWT token
-export function cognitoAuthMiddleware(req: Request, res: Response, next: NextFunction): void {
+export async function cognitoAuthMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -56,22 +67,21 @@ export function cognitoAuthMiddleware(req: Request, res: Response, next: NextFun
 
   const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-  verifyCognitoToken(token)
-    .then((decoded) => {
-      req.user = {
-        sub: decoded.sub,
-        email: decoded.email,
-        username: decoded["cognito:username"],
-        userType: "student",
-        firstName: decoded.given_name,
-        lastName: decoded.family_name,
-      };
-      next();
-    })
-    .catch((err) => {
-      console.error("Token verification failed:", err);
-      res.status(401).json({ error: "Invalid token" });
-    });
+  try {
+    const decoded = await verifyCognitoToken(token);
+    req.user = {
+      sub: decoded.sub,
+      email: decoded.email,
+      username: decoded["cognito:username"],
+      userType: "student",
+      firstName: decoded.given_name || "",
+      lastName: decoded.family_name || "",
+    };
+    next();
+  } catch (err) {
+    console.error("Token verification failed:", err);
+    res.status(401).json({ error: "Invalid token" });
+  }
 }
 
 // Optional: Middleware for specific user types
@@ -92,17 +102,15 @@ export function requireUserType(allowedTypes: string[]) {
 }
 
 // Extend Express Request type to include `user`
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        sub: string;
-        email: string;
-        username: string;
-        userType: string;
-        firstName: string;
-        lastName: string;
-      };
-    }
+declare module "express-serve-static-core" {
+  interface Request {
+    user?: {
+      sub: string;
+      email: string;
+      username: string;
+      userType: string;
+      firstName: string;
+      lastName: string;
+    };
   }
 }
