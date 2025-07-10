@@ -22,7 +22,7 @@ import { checkIfPaid } from "../../services/payments";
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
 import { CategoryCard, QuickActionCard } from "../../components/cards";
-import { categories as categoriesApi, Category } from "../../services/api";
+import { api, Category } from "../../services/api";
 import temp from "../../../assets/playingCards.png";
 
 type Props = CompositeScreenProps<
@@ -84,7 +84,7 @@ export default function StudentHome({ navigation }: Props) {
 
   const loadCategories = async () => {
     try {
-      const categoriesData = await categoriesApi.getAllCategories();
+      const categoriesData = await api.getAllCategories();
       setCategories(categoriesData);
     } catch (error) {
       console.error("Error loading categories:", error);

@@ -3,14 +3,7 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } 
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import {
-  users as usersApi,
-  courses as coursesApi,
-  lessons as lessonsApi,
-  BackendUser,
-  Course,
-  Lesson,
-} from "../../services/api";
+import { api, BackendUser, Course, Lesson } from "../../services/api";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface AnalyticsData {
@@ -75,9 +68,9 @@ export default function AdminAnalytics() {
   const fetchAnalyticsData = async () => {
     try {
       const [users, courses, lessons] = await Promise.all([
-        usersApi.getAllUsers(),
-        coursesApi.getAllCourses(),
-        lessonsApi.getAllLessons(),
+        api.getAllUsers(),
+        api.getAllCourses(),
+        api.getAllLessons(),
       ]);
 
       const userBreakdown = users.reduce(

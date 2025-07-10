@@ -53,11 +53,10 @@ export default function StudentAccount({ navigation, route }: Props) {
         password,
       });
 
-
-      Alert.alert("Success", "Account created successfully! You are now logged in.", [
+      Alert.alert("Success", "Account created successfully! Please confirm your email.", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("RegisterPayment"),
+          onPress: () => navigation.navigate("EmailConfirmation", { email }),
         },
       ]);
     } catch (error) {

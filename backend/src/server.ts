@@ -5,17 +5,18 @@ import "dotenv/config";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-
-
 // Import route handlers
-import stripeRoutes from "./routes/stripe";
+
 import userRoutes from "./routes/users";
-import sendEmailRouter from "./routes/sendEmail";
 import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import progressRoutes from "./routes/progress";
+import sendEmailRoutes from "./routes/sendEmail";
+import lessonRoutes from "./routes/lessons";
 
+// Import Cognito auth middleware
+import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
 
 const app: Express = express();
 const server = createServer(app);
@@ -104,16 +105,35 @@ io.on("connection", (socket) => {
   });
 });
 
+// Public routes (no authentication required)
+app.use("/send-email", sendEmailRoutes);
 
-// API Routes
-app.use("/users", userRoutes);
-app.use("/send-email", sendEmailRouter);
-app.use("/messages", messageRoutes);
+// Public registration endpoint (no authentication required)
+app.post("/register", async (req: Request, res: Response) => {
+  try {
+    const { createUser } = await import("./db");
+    const newUser = await createUser(req.body);
+    res.status(201).json(newUser);
+  } catch (error: unknown) {
+    console.error("Registration error:", error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Unknown error occurred" });
+    }
+  }
+});
+
+// Public routes (no authentication required)
 app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);
-//app.use("/teachers", teacherRoutes);
+app.use("/lessons", lessonRoutes);
+app.use("/messages", messageRoutes);
 app.use("/progress", progressRoutes);
-app.use("/api", stripeRoutes);  
+
+// Protected routes (require Cognito authentication)
+// i think its stuff that is locked to that account and that account only? idk yet
+app.use("/users", cognitoAuthMiddleware, userRoutes);
 
 // 404 handler for unmatched routes
 app.use((req: Request, res: Response) => {

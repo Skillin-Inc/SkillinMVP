@@ -1,14 +1,13 @@
 import React, { useContext, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert, TextInput, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { StackScreenProps } from "@react-navigation/stack";
-
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
-import { users as usersApi } from "../../services/api";
+import { api } from "../../services/api";
+import { StackScreenProps } from "@react-navigation/stack";
+import { AdminStackParamList, AdminTabsParamList } from "../../types";
 import { SectionHeader } from "../../components/common";
-import { AdminStackParamList, AdminTabsParamList } from "../../types/navigation";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
@@ -54,7 +53,7 @@ export default function AdminHome({ navigation }: Props) {
     }
     setLoading(true);
     try {
-      const res = await usersApi.deleteUser(email);
+      const res = await api.deleteUser(email);
       Alert.alert("Success", res.message || "User deleted successfully.");
       setEmail("");
     } catch (err) {
@@ -72,7 +71,7 @@ export default function AdminHome({ navigation }: Props) {
     }
     setUpdateLoading(true);
     try {
-      const res = await usersApi.updateUserType(updateEmail, selectedType);
+      const res = await api.updateUserType(updateEmail, selectedType);
       Alert.alert("Success", res.message || "User type updated successfully.");
       setUpdateEmail("");
     } catch (err) {

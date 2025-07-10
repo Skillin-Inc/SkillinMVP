@@ -1,24 +1,14 @@
-import React, { useState, useContext, useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
+import React, { useState, useEffect, useContext } from "react";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "../../styles";
 import { StackScreenProps } from "@react-navigation/stack";
-
+import { StudentStackParamList, TeacherStackParamList } from "../../types";
+import { api, UpdateUserProfileData, transformBackendUserToUser } from "../../services/api";
 import { AuthContext } from "../../hooks/AuthContext";
 import { FormInput } from "../../components/forms";
 import { LoadingState } from "../../components/common";
-import { COLORS, SPACINGS } from "../../styles";
-import { users, UpdateUserProfileData, transformBackendUserToUser } from "../../services/api";
-import { StudentStackParamList, TeacherStackParamList } from "../../types/navigation";
+import { SPACINGS } from "../../styles";
 
 type Props =
   | StackScreenProps<StudentStackParamList, "EditProfile">
@@ -59,7 +49,7 @@ export default function EditProfile({ navigation }: Props) {
 
     setCheckingUsername(true);
     try {
-      const isAvailable = await users.checkUsernameAvailability(username.trim(), currentUser?.id);
+      const isAvailable = await api.checkUsernameAvailability(username.trim(), currentUser?.id);
       setUsernameAvailable(isAvailable);
     } catch (error) {
       console.error("Error checking username:", error);
@@ -99,7 +89,7 @@ export default function EditProfile({ navigation }: Props) {
         username: username.trim() !== (currentUser?.username || "") ? username.trim() : undefined,
       };
 
-      const updatedBackendUser = await users.updateUserProfile(currentUser.id, updateData);
+      const updatedBackendUser = await api.updateUserProfile(currentUser.id, updateData);
       const updatedUser = transformBackendUserToUser(updatedBackendUser);
 
       updateUser(updatedUser);
@@ -144,124 +134,122 @@ export default function EditProfile({ navigation }: Props) {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView style={styles.keyboardAvoidingView} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Personal Information</Text>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Personal Information</Text>
 
-            <View style={styles.formGroup}>
-              <FormInput
-                label="First Name"
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="Enter your first name"
-                required
-              />
-            </View>
+          <View style={styles.formGroup}>
+            <FormInput
+              label="First Name"
+              value={firstName}
+              onChangeText={setFirstName}
+              placeholder="Enter your first name"
+              required
+            />
+          </View>
 
-            <View style={styles.formGroup}>
-              <FormInput
-                label="Last Name"
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Enter your last name"
-                required
-              />
-            </View>
+          <View style={styles.formGroup}>
+            <FormInput
+              label="Last Name"
+              value={lastName}
+              onChangeText={setLastName}
+              placeholder="Enter your last name"
+              required
+            />
+          </View>
 
-            <View style={styles.formGroup}>
-              <FormInput
-                label="Phone Number"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                placeholder="Enter your phone number"
-                keyboardType="phone-pad"
-              />
-            </View>
+          <View style={styles.formGroup}>
+            <FormInput
+              label="Phone Number"
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholder="Enter your phone number"
+              keyboardType="phone-pad"
+            />
+          </View>
 
-            <View style={styles.formGroup}>
-              <View style={styles.usernameContainer}>
-                <View style={styles.usernameInputContainer}>
-                  <FormInput
-                    label="Username"
-                    value={username}
-                    onChangeText={(text) => {
-                      setUsername(text);
-                      setUsernameAvailable(null);
-                    }}
-                    placeholder="Enter your username"
-                    autoCapitalize="none"
-                  />
-                </View>
-                <TouchableOpacity
-                  style={[styles.checkButton, checkingUsername && styles.checkButtonDisabled]}
-                  onPress={checkUsernameAvailability}
-                  disabled={checkingUsername || !username.trim() || username.trim() === currentUser?.username}
-                >
-                  <Text style={[styles.checkButtonText, checkingUsername && styles.checkButtonTextDisabled]}>
-                    {checkingUsername ? "..." : "Check"}
-                  </Text>
-                </TouchableOpacity>
+          <View style={styles.formGroup}>
+            <View style={styles.usernameContainer}>
+              <View style={styles.usernameInputContainer}>
+                <FormInput
+                  label="Username"
+                  value={username}
+                  onChangeText={(text) => {
+                    setUsername(text);
+                    setUsernameAvailable(null);
+                  }}
+                  placeholder="Enter your username"
+                  autoCapitalize="none"
+                />
               </View>
-              {usernameAvailable !== null && (
-                <Text
-                  style={[styles.availabilityText, usernameAvailable ? styles.availableText : styles.unavailableText]}
-                >
-                  {usernameAvailable ? "✓ Username is available" : "✗ Username is taken"}
+              <TouchableOpacity
+                style={[styles.checkButton, checkingUsername && styles.checkButtonDisabled]}
+                onPress={checkUsernameAvailability}
+                disabled={checkingUsername || !username.trim() || username.trim() === currentUser?.username}
+              >
+                <Text style={[styles.checkButtonText, checkingUsername && styles.checkButtonTextDisabled]}>
+                  {checkingUsername ? "..." : "Check"}
                 </Text>
-              )}
+              </TouchableOpacity>
             </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Change Password</Text>
-            <Text style={styles.sectionSubtitle}>Password change functionality coming soon</Text>
-
-            <View style={styles.formGroup}>
-              <FormInput
-                label="Current Password"
-                value={currentPassword}
-                onChangeText={setCurrentPassword}
-                placeholder="Enter your current password"
-                secureTextEntry
-                editable={false}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <FormInput
-                label="New Password"
-                value={newPassword}
-                onChangeText={setNewPassword}
-                placeholder="Enter your new password"
-                secureTextEntry
-                editable={false}
-              />
-            </View>
-
-            <View style={styles.formGroup}>
-              <FormInput
-                label="Confirm New Password"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirm your new password"
-                secureTextEntry
-                editable={false}
-              />
-            </View>
-          </View>
-
-          <View style={styles.infoSection}>
-            <View style={styles.infoCard}>
-              <Ionicons name="information-circle-outline" size={20} color={COLORS.blue} />
-              <Text style={styles.infoText}>
-                Your email cannot be changed. Contact support if you need to update this field. Date of birth is also
-                not editable for security reasons.
+            {usernameAvailable !== null && (
+              <Text
+                style={[styles.availabilityText, usernameAvailable ? styles.availableText : styles.unavailableText]}
+              >
+                {usernameAvailable ? "✓ Username is available" : "✗ Username is taken"}
               </Text>
-            </View>
+            )}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Change Password</Text>
+          <Text style={styles.sectionSubtitle}>Password change functionality coming soon</Text>
+
+          <View style={styles.formGroup}>
+            <FormInput
+              label="Current Password"
+              value={currentPassword}
+              onChangeText={setCurrentPassword}
+              placeholder="Enter your current password"
+              secureTextEntry
+              editable={false}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <FormInput
+              label="New Password"
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="Enter your new password"
+              secureTextEntry
+              editable={false}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
+            <FormInput
+              label="Confirm New Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm your new password"
+              secureTextEntry
+              editable={false}
+            />
+          </View>
+        </View>
+
+        <View style={styles.infoSection}>
+          <View style={styles.infoCard}>
+            <Ionicons name="information-circle-outline" size={20} color={COLORS.blue} />
+            <Text style={styles.infoText}>
+              Your email cannot be changed. Contact support if you need to update this field. Date of birth is also not
+              editable for security reasons.
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

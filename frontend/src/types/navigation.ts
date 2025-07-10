@@ -70,6 +70,10 @@ export type TeacherAuthStackParamList = {
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: {
+    email: string;
+  };
   RegisterPayment: undefined;
   StudentInfo: undefined;
   StudentAccount: {
@@ -78,6 +82,9 @@ export type AuthStackParamList = {
     date_of_birth: string;
     email: string;
     phoneNumber?: string;
+  };
+  EmailConfirmation: {
+    email: string;
   };
   TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };

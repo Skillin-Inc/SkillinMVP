@@ -1,26 +1,27 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   SafeAreaView,
   Alert,
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { CompositeScreenProps } from "@react-navigation/native";
+import { COLORS } from "../../styles";
+import { SPACINGS } from "../../styles";
 import { StackScreenProps } from "@react-navigation/stack";
-
+import { TeacherStackParamList } from "../../types";
+import { User, api, transformBackendUserToUser } from "../../services/api";
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader } from "../../components/common";
 import { ImagePickerAvatar } from "../../components/forms";
 import { StatsCard, QuickActionCard } from "../../components/cards";
-import { COLORS, SPACINGS } from "../../styles";
-import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
-import { User, users as usersApi, transformBackendUserToUser } from "../../services/api";
+import { TeacherTabsParamList } from "../../types/navigation";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TeacherTabsParamList, "TeacherProfile">,
@@ -47,7 +48,7 @@ export default function TeacherProfile({ navigation, route }: Props) {
       if (isOwnProfile && currentUser) {
         setProfileUser(currentUser);
       } else {
-        const backendUser = await usersApi.getUserById(userId);
+        const backendUser = await api.getUserById(userId);
         const transformedUser = transformBackendUserToUser(backendUser);
         setProfileUser(transformedUser);
       }
