@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
-import { awsDatabase } from "./src/aws-db-config";
+import { getDatabasePool, closeDatabasePool } from "./src/aws-db-config";
 import "dotenv/config";
 
 async function setupDatabase() {
   // Use AWS RDS database connection
-  const pool = await awsDatabase.getPool();
+  const pool = await getDatabasePool();
 
   try {
     console.log("Connecting to db...");
@@ -33,7 +33,7 @@ async function setupDatabase() {
     console.error(error);
     console.error("Please check your db connection and try again.");
   } finally {
-    await awsDatabase.closePool();
+    await closeDatabasePool();
   }
 }
 

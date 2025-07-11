@@ -1,7 +1,7 @@
 // src/db.ts
 import { Pool } from "pg";
 import "dotenv/config";
-import { awsDatabase } from "./aws-db-config";
+import { getDatabasePool } from "./aws-db-config";
 
 // Create a variable to hold the pool
 let poolInstance: Pool | null = null;
@@ -9,7 +9,7 @@ let poolInstance: Pool | null = null;
 // Function to get the pool (lazy initialization)
 async function getPool(): Promise<Pool> {
   if (!poolInstance) {
-    poolInstance = await awsDatabase.getPool();
+    poolInstance = await getDatabasePool();
   }
   return poolInstance;
 }

@@ -1,5 +1,5 @@
 // test-aws-connection.ts
-import { awsDatabase } from "./src/aws-db-config";
+import { getDatabasePool, closeDatabasePool } from "./src/aws-db-config";
 import "dotenv/config";
 
 async function testConnection() {
@@ -7,7 +7,7 @@ async function testConnection() {
 
   try {
     // Get the pool and test the connection
-    const pool = await awsDatabase.getPool();
+    const pool = await getDatabasePool();
 
     // Test basic query
     const result = await pool.query("SELECT NOW() as current_time, version() as postgres_version");
@@ -47,7 +47,7 @@ async function testConnection() {
     }
   } finally {
     // Clean up the connection
-    await awsDatabase.closePool();
+    await closeDatabasePool();
     console.log("Connection closed.");
   }
 }
