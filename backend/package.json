@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "setup-db": "ts-node setup-database.ts",
-    "test-aws-db": "ts-node test-aws-connection.ts"
+    "test-rds": "ts-node test-rds-connection.ts"
   },
   "keywords": [],
   "author": "",

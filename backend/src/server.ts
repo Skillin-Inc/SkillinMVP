@@ -17,6 +17,7 @@ import lessonRoutes from "./routes/lessons";
 
 // Import Cognito auth middleware
 import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
+import { validateEnvironmentConfig } from "./aws-rds-config";
 
 const app: Express = express();
 const server = createServer(app);
@@ -152,6 +153,14 @@ app.use((err: Error, req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// Validate environment configuration before starting server
+try {
+  validateEnvironmentConfig();
+} catch (error) {
+  console.error("❌ Server startup failed due to configuration issues:", error);
+  process.exit(1);
+}
 
 server.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);

@@ -1,13 +1,20 @@
+import { Pool } from "pg";
 import fs from "fs";
 import path from "path";
-import { getDatabasePool, closeDatabasePool } from "./src/aws-db-config";
-import "dotenv/config";
+import { getRDSConnectionString } from "./src/aws-rds-config";
 
+import "dotenv/config";
 async function setupDatabase() {
-  // Use AWS RDS database connection
-  const pool = await getDatabasePool();
+  let pool: Pool | null = null;
 
   try {
+    console.log("🔄 Getting RDS connection string...");
+    const connectionString = await getRDSConnectionString();
+
+    pool = new Pool({
+      connectionString,
+    });
+
     console.log("Connecting to db...");
 
     await pool.query("SELECT NOW()");
@@ -33,7 +40,9 @@ async function setupDatabase() {
     console.error(error);
     console.error("Please check your db connection and try again.");
   } finally {
-    await closeDatabasePool();
+    if (pool) {
+      await pool.end();
+    }
   }
 }
 

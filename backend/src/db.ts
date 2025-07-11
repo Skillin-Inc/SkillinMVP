@@ -1,63 +1,103 @@
 // src/db.ts
 import { Pool } from "pg";
 import "dotenv/config";
-import { getDatabasePool } from "./aws-db-config";
+import { getRDSConnectionString } from "./aws-rds-config";
 
-// Create a variable to hold the pool
-let poolInstance: Pool | null = null;
+// Global pool variable
+let pool: Pool | null = null;
 
-// Function to get the pool (lazy initialization)
-async function getPool(): Promise<Pool> {
-  if (!poolInstance) {
-    poolInstance = await getDatabasePool();
+/**
+ * Initialize database connection pool with AWS RDS
+ * @returns Promise<Pool> - Initialized PostgreSQL pool
+ */
+async function initializePool(): Promise<Pool> {
+  if (pool) {
+    return pool;
   }
-  return poolInstance;
+
+  try {
+    console.log("🔄 Initializing database connection pool...");
+
+    // Get connection string from AWS Secrets Manager
+    const connectionString = await getRDSConnectionString();
+
+    // Create new pool with RDS connection
+    pool = new Pool({
+      connectionString,
+      // Additional pool configuration for RDS
+      max: 20, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+      connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
+    });
+
+    // Test the connection
+    await executeQuery("SELECT NOW()");
+    console.log("✅ Database connection pool initialized successfully");
+
+    return pool;
+  } catch (error) {
+    console.error("❌ Failed to initialize database connection pool:", error);
+    pool = null;
+    throw error;
+  }
 }
 
-// Export a pool object that forwards calls to the AWS pool
-export const pool = {
-  async query(text: string, params?: (string | number | boolean | null | undefined)[]) {
-    const awsPool = await getPool();
-    return awsPool.query(text, params);
-  },
-  async connect() {
-    const awsPool = await getPool();
-    return awsPool.connect();
-  },
-  async end() {
-    const awsPool = await getPool();
-    return awsPool.end();
-  },
-};
+/**
+ * Get the database pool, initializing if necessary
+ * @returns Promise<Pool> - Database connection pool
+ */
+export async function getPool(): Promise<Pool> {
+  if (!pool) {
+    return await initializePool();
+  }
+  return pool;
+}
+
+/**
+ * Execute a database query using the initialized pool
+ * @param text - SQL query string
+ * @param params - Query parameters
+ * @returns Promise with query result
+ */
+async function executeQuery(text: string, params?: any[]) {
+  const dbPool = await getPool();
+  return await dbPool.query(text, params);
+}
 
 export async function getUserById(id: string) {
-  const result = await pool.query('SELECT * FROM public.users WHERE "id" = $1', [id]);
+  const dbPool = await getPool();
+  const result = await dbPool.query('SELECT * FROM public.users WHERE "id" = $1', [id]);
   return result.rows[0] ?? null;
 }
 
 export async function getUserByUsername(username: string) {
-  const result = await pool.query("SELECT * FROM public.users WHERE username = $1", [username]);
+  const dbPool = await getPool();
+  const result = await dbPool.query("SELECT * FROM public.users WHERE username = $1", [username]);
   return result.rows[0] ?? null;
 }
 
 export async function getUserByPhone(phoneNumber: string) {
-  const result = await pool.query('SELECT * FROM public.users WHERE "phone_number" = $1', [phoneNumber]);
+  const dbPool = await getPool();
+  const result = await dbPool.query('SELECT * FROM public.users WHERE "phone_number" = $1', [phoneNumber]);
   return result.rows[0] ?? null;
 }
 
 export async function getUserByEmail(email: string) {
-  const result = await pool.query("SELECT * FROM public.users WHERE email = $1", [email]);
+  const dbPool = await getPool();
+  const result = await dbPool.query("SELECT * FROM public.users WHERE email = $1", [email]);
   return result.rows[0] ?? null;
 }
 
 export async function getIsPaidByUserId(id: number): Promise<boolean | null> {
-  const result = await pool.query("SELECT is_paid FROM public.users WHERE id = $1", [id]);
+  const dbPool = await getPool();
+  const result = await dbPool.query("SELECT is_paid FROM public.users WHERE id = $1", [id]);
   if (result.rows.length === 0) return null;
   return result.rows[0].is_paid;
 }
 
 export async function getAllUsers() {
-  const result = await pool.query(
+  const dbPool = await getPool();
+  const result = await dbPool.query(
     'SELECT "id", "first_name", "last_name", email, "phone_number", username, "date_of_birth", "created_at" FROM public.users ORDER BY "created_at" DESC'
   );
   return result.rows;
@@ -78,7 +118,7 @@ export interface NewUser {
 export async function createUser(data: NewUser) {
   const { id, firstName, lastName, email, phoneNumber, username, password, userType = "student", dateOfBirth } = data;
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `INSERT INTO public.users
     ("id", "first_name", "last_name", email, "phone_number", username, "hashed_password", "user_type", "date_of_birth")
    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -167,7 +207,7 @@ export interface Lesson {
 export async function createMessage(data: NewMessage) {
   const { sender_id, receiver_id, content } = data;
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `INSERT INTO public.messages
       ("sender_id", "receiver_id", "content")
      VALUES ($1, $2, $3)
@@ -181,7 +221,7 @@ export async function createMessage(data: NewMessage) {
 export async function createCategory(data: NewCategory) {
   const { title } = data;
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `INSERT INTO public.categories
       ("title")
      VALUES ($1)
@@ -193,13 +233,13 @@ export async function createCategory(data: NewCategory) {
 }
 
 export async function getAllCategories(): Promise<Category[]> {
-  const result = await pool.query(`SELECT * FROM public.categories ORDER BY title ASC`);
+  const result = await executeQuery(`SELECT * FROM public.categories ORDER BY title ASC`);
 
   return result.rows;
 }
 
 export async function getCategoryById(id: string): Promise<Category | null> {
-  const result = await pool.query(`SELECT * FROM public.categories WHERE "id" = $1`, [id]);
+  const result = await executeQuery(`SELECT * FROM public.categories WHERE "id" = $1`, [id]);
 
   return result.rows[0] || null;
 }
@@ -221,7 +261,7 @@ export async function updateCategory(id: string, data: Partial<NewCategory>): Pr
 
   values.push(id);
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `UPDATE public.categories 
      SET ${fields.join(", ")}
      WHERE "id" = $${paramCount}
@@ -233,7 +273,7 @@ export async function updateCategory(id: string, data: Partial<NewCategory>): Pr
 }
 
 export async function deleteCategory(id: string): Promise<boolean> {
-  const result = await pool.query(`DELETE FROM public.categories WHERE "id" = $1`, [id]);
+  const result = await executeQuery(`DELETE FROM public.categories WHERE "id" = $1`, [id]);
 
   return (result.rowCount ?? 0) > 0;
 }
@@ -241,7 +281,7 @@ export async function deleteCategory(id: string): Promise<boolean> {
 export async function createCourse(data: NewCourse) {
   const { teacher_id, category_id, title, description } = data;
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `INSERT INTO public.courses
       ("teacher_id", "category_id", "title", "description")
      VALUES ($1, $2, $3, $4)
@@ -253,7 +293,7 @@ export async function createCourse(data: NewCourse) {
 }
 
 export async function getAllCourses(): Promise<Course[]> {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
      JOIN public.users u ON c.teacher_id = u."id"
@@ -264,7 +304,7 @@ export async function getAllCourses(): Promise<Course[]> {
 }
 
 export async function getCourseById(id: string): Promise<Course | null> {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
      JOIN public.users u ON c.teacher_id = u."id"
@@ -276,7 +316,7 @@ export async function getCourseById(id: string): Promise<Course | null> {
 }
 
 export async function getCoursesByTeacher(teacherId: string): Promise<Course[]> {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT c.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name, u."username" as teacher_username
      FROM public.courses c
      JOIN public.users u ON c.teacher_id = u."id"
@@ -307,7 +347,7 @@ export async function getCoursesByCategory(categoryId: string, limit?: number, o
     params.push(offset);
   }
 
-  const result = await pool.query(query, params);
+  const result = await executeQuery(query, params);
 
   return result.rows;
 }
@@ -341,7 +381,7 @@ export async function updateCourse(id: string, data: Partial<NewCourse>): Promis
 
   values.push(id);
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `UPDATE public.courses 
      SET ${fields.join(", ")}
      WHERE "id" = $${paramCount}
@@ -353,7 +393,7 @@ export async function updateCourse(id: string, data: Partial<NewCourse>): Promis
 }
 
 export async function deleteCourse(id: string): Promise<boolean> {
-  const result = await pool.query(`DELETE FROM public.courses WHERE "id" = $1`, [id]);
+  const result = await executeQuery(`DELETE FROM public.courses WHERE "id" = $1`, [id]);
 
   return (result.rowCount ?? 0) > 0;
 }
@@ -361,7 +401,7 @@ export async function deleteCourse(id: string): Promise<boolean> {
 export async function createLesson(data: NewLesson) {
   const { teacher_id, course_id, title, description, video_url } = data;
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `INSERT INTO public.lessons
       ("teacher_id", "course_id", "title", "description", "video_url")
      VALUES ($1, $2, $3, $4, $5)
@@ -373,7 +413,7 @@ export async function createLesson(data: NewLesson) {
 }
 
 export async function getAllLessons(): Promise<Lesson[]> {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
      FROM public.lessons l
      JOIN public.users u ON l.teacher_id = u."id"
@@ -384,7 +424,7 @@ export async function getAllLessons(): Promise<Lesson[]> {
 }
 
 export async function getLessonById(id: string): Promise<Lesson | null> {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
      FROM public.lessons l
      JOIN public.users u ON l.teacher_id = u."id"
@@ -396,7 +436,7 @@ export async function getLessonById(id: string): Promise<Lesson | null> {
 }
 
 export async function getLessonsByTeacher(teacherId: string): Promise<Lesson[]> {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
      FROM public.lessons l
      JOIN public.users u ON l.teacher_id = u."id"
@@ -409,7 +449,7 @@ export async function getLessonsByTeacher(teacherId: string): Promise<Lesson[]> 
 }
 
 export async function getLessonsByCourse(courseId: string): Promise<Lesson[]> {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT l.*, u."first_name" as teacher_first_name, u."last_name" as teacher_last_name
      FROM public.lessons l
      JOIN public.users u ON l.teacher_id = u."id"
@@ -456,7 +496,7 @@ export async function updateLesson(id: string, data: Partial<NewLesson>): Promis
 
   values.push(id);
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `UPDATE public.lessons 
      SET ${fields.join(", ")}
      WHERE "id" = $${paramCount}
@@ -468,13 +508,13 @@ export async function updateLesson(id: string, data: Partial<NewLesson>): Promis
 }
 
 export async function deleteLesson(id: string): Promise<boolean> {
-  const result = await pool.query(`DELETE FROM public.lessons WHERE "id" = $1`, [id]);
+  const result = await executeQuery(`DELETE FROM public.lessons WHERE "id" = $1`, [id]);
 
   return (result.rowCount ?? 0) > 0;
 }
 
 export async function getMessagesBetweenUsers(userId1: string, userId2: string) {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT m.id, m.sender_id, m.receiver_id, m.content, m.is_read, m.created_at,
             u1."first_name" as sender_first_name, u1."last_name" as sender_last_name,
             u2."first_name" as receiver_first_name, u2."last_name" as receiver_last_name
@@ -491,7 +531,7 @@ export async function getMessagesBetweenUsers(userId1: string, userId2: string) 
 }
 
 export async function getConversationsForUser(userId: string) {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT DISTINCT 
             CASE 
                 WHEN m.sender_id = $1 THEN m.receiver_id 
@@ -527,7 +567,7 @@ export async function getConversationsForUser(userId: string) {
 }
 
 export async function markMessagesAsRead(userId: string, otherUserId: string) {
-  const result = await pool.query(
+  const result = await executeQuery(
     `UPDATE public.messages 
      SET "is_read" = true 
      WHERE "receiver_id" = $1 AND "sender_id" = $2 AND "is_read" = false
@@ -539,7 +579,7 @@ export async function markMessagesAsRead(userId: string, otherUserId: string) {
 }
 
 export async function getUnreadCount(userId: string, otherUserId: string) {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT COUNT(*) as unread_count
      FROM public.messages 
      WHERE "receiver_id" = $1 AND "sender_id" = $2 AND "is_read" = false`,
@@ -550,7 +590,7 @@ export async function getUnreadCount(userId: string, otherUserId: string) {
 }
 
 export async function deleteUserByEmail(email: string) {
-  const result = await pool.query(
+  const result = await executeQuery(
     `DELETE FROM public.users
      WHERE email = $1
      RETURNING *`,
@@ -560,7 +600,7 @@ export async function deleteUserByEmail(email: string) {
 }
 
 export async function updateUserTypeByEmail(email: string, newUserType: "student" | "teacher" | "admin") {
-  const result = await pool.query(
+  const result = await executeQuery(
     `UPDATE public.users
      SET user_type = $1
      WHERE email = $2
@@ -615,7 +655,7 @@ export async function updateUserProfile(userId: string, updateData: UpdateUserPr
 
   values.push(userId);
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `UPDATE public.users
      SET ${fields.join(", ")}
      WHERE id = $${paramCount}
@@ -635,7 +675,7 @@ export async function checkUsernameAvailability(username: string, excludeUserId?
     values.push(excludeUserId);
   }
 
-  const result = await pool.query(query, values);
+  const result = await executeQuery(query, values);
   return result.rows.length === 0;
 }
 
@@ -668,7 +708,7 @@ export interface ProgressWithLessonDetails {
 export async function createProgress(data: NewProgress): Promise<Progress> {
   const { user_id, lesson_id } = data;
 
-  const result = await pool.query(
+  const result = await executeQuery(
     `INSERT INTO public.progress ("user_id", "lesson_id")
      VALUES ($1, $2)
      ON CONFLICT ("user_id", "lesson_id") DO NOTHING
@@ -680,7 +720,7 @@ export async function createProgress(data: NewProgress): Promise<Progress> {
 }
 
 export async function getProgressByUser(userId: string): Promise<ProgressWithLessonDetails[]> {
-  const result = await pool.query(
+  const result = await executeQuery(
     `SELECT p.*, 
             l.title as lesson_title, 
             l.description as lesson_description, 
@@ -702,13 +742,13 @@ export async function getProgressByUser(userId: string): Promise<ProgressWithLes
 }
 
 export async function getProgressById(id: string): Promise<Progress | null> {
-  const result = await pool.query(`SELECT * FROM public.progress WHERE "id" = $1`, [id]);
+  const result = await executeQuery(`SELECT * FROM public.progress WHERE "id" = $1`, [id]);
 
   return result.rows[0] || null;
 }
 
 export async function getProgressByUserAndLesson(userId: string, lessonId: string): Promise<Progress | null> {
-  const result = await pool.query(`SELECT * FROM public.progress WHERE "user_id" = $1 AND "lesson_id" = $2`, [
+  const result = await executeQuery(`SELECT * FROM public.progress WHERE "user_id" = $1 AND "lesson_id" = $2`, [
     userId,
     lessonId,
   ]);
@@ -717,13 +757,13 @@ export async function getProgressByUserAndLesson(userId: string, lessonId: strin
 }
 
 export async function deleteProgress(id: string): Promise<boolean> {
-  const result = await pool.query(`DELETE FROM public.progress WHERE "id" = $1`, [id]);
+  const result = await executeQuery(`DELETE FROM public.progress WHERE "id" = $1`, [id]);
 
   return (result.rowCount ?? 0) > 0;
 }
 
 export async function deleteProgressByUserAndLesson(userId: string, lessonId: string): Promise<boolean> {
-  const result = await pool.query(`DELETE FROM public.progress WHERE "user_id" = $1 AND "lesson_id" = $2`, [
+  const result = await executeQuery(`DELETE FROM public.progress WHERE "user_id" = $1 AND "lesson_id" = $2`, [
     userId,
     lessonId,
   ]);
