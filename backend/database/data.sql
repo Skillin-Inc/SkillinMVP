@@ -2,7 +2,6 @@
 -- starting/dummy data to your database tables
 
 -- STEP 1: Insert categories
-
 INSERT INTO "categories" ("id", "title") VALUES 
   ('550e8400-e29b-41d4-a716-446655440000', 'Poker'),
   ('550e8400-e29b-41d4-a716-446655440001', 'Sports Betting'),
