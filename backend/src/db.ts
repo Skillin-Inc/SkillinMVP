@@ -1,10 +1,34 @@
 // src/db.ts
 import { Pool } from "pg";
 import "dotenv/config";
+import { awsDatabase } from "./aws-db-config";
 
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+// Create a variable to hold the pool
+let poolInstance: Pool | null = null;
+
+// Function to get the pool (lazy initialization)
+async function getPool(): Promise<Pool> {
+  if (!poolInstance) {
+    poolInstance = await awsDatabase.getPool();
+  }
+  return poolInstance;
+}
+
+// Export a pool object that forwards calls to the AWS pool
+export const pool = {
+  async query(text: string, params?: (string | number | boolean | null | undefined)[]) {
+    const awsPool = await getPool();
+    return awsPool.query(text, params);
+  },
+  async connect() {
+    const awsPool = await getPool();
+    return awsPool.connect();
+  },
+  async end() {
+    const awsPool = await getPool();
+    return awsPool.end();
+  },
+};
 
 export async function getUserById(id: string) {
   const result = await pool.query('SELECT * FROM public.users WHERE "id" = $1', [id]);
@@ -27,8 +51,7 @@ export async function getUserByEmail(email: string) {
 }
 
 export async function getIsPaidByUserId(id: number): Promise<boolean | null> {
-  const result = await pool.query(
-    'SELECT is_paid FROM public.users WHERE id = $1',[id]);
+  const result = await pool.query("SELECT is_paid FROM public.users WHERE id = $1", [id]);
   if (result.rows.length === 0) return null;
   return result.rows[0].is_paid;
 }

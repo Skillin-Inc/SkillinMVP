@@ -1,16 +1,11 @@
-import { Pool } from "pg";
 import fs from "fs";
 import path from "path";
-
+import { awsDatabase } from "./src/aws-db-config";
 import "dotenv/config";
+
 async function setupDatabase() {
-  const pool = new Pool({
-    host: process.env.PG_HOST || "localhost",
-    port: Number(process.env.PG_PORT) || 5432,
-    user: process.env.PG_USER,
-    password: process.env.PG_PASSWORD,
-    database: process.env.PG_DATABASE,
-  });
+  // Use AWS RDS database connection
+  const pool = await awsDatabase.getPool();
 
   try {
     console.log("Connecting to db...");
@@ -38,7 +33,7 @@ async function setupDatabase() {
     console.error(error);
     console.error("Please check your db connection and try again.");
   } finally {
-    await pool.end();
+    await awsDatabase.closePool();
   }
 }
 

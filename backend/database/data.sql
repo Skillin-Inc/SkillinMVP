@@ -2,6 +2,22 @@
 -- starting/dummy data to your database tables
 
 -- STEP 1: Insert categories
+
+INSERT INTO "categories" ("id", "title") VALUES 
+  ('550e8400-e29b-41d4-a716-446655440000', 'Poker'),
+  ('550e8400-e29b-41d4-a716-446655440001', 'Sports Betting'),
+  ('550e8400-e29b-41d4-a716-446655440002', 'Basketball'),
+  ('550e8400-e29b-41d4-a716-446655440003', 'Pickleball'),
+  ('550e8400-e29b-41d4-a716-446655440004', 'Gaming'),
+  ('550e8400-e29b-41d4-a716-446655440005', 'Cooking'),
+  ('550e8400-e29b-41d4-a716-446655440006', 'Personal Finance'),
+  ('550e8400-e29b-41d4-a716-446655440007', 'Self Care'),
+  ('550e8400-e29b-41d4-a716-446655440008', 'Dating'),
+  ('550e8400-e29b-41d4-a716-446655440009', 'Communication'),
+  ('550e8400-e29b-41d4-a716-44665544000a', 'Snowboarding'),
+  ('550e8400-e29b-41d4-a716-44665544000b', 'Skiing');
+
+-- STEP 2: Insert users (student, teacher, and admin)
 INSERT INTO "users" (
   "id", "first_name", "last_name", "email", "phone_number", "username", 
   "hashed_password", "user_type", "date_of_birth",

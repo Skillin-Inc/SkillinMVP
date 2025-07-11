@@ -182,6 +182,7 @@ function createApiService() {
     const baseHeaders: Record<string, string> = { "Content-Type": "application/json" };
     const requestHeaders = options.headers as Record<string, string> | undefined;
     const headers: Record<string, string> = { ...baseHeaders, ...requestHeaders };
+
     let authToken: string | undefined;
     if (requireAuth) {
       authToken = await getAuthToken();
@@ -190,6 +191,7 @@ function createApiService() {
     const config: RequestInit = { ...options, headers };
     try {
       const response = await fetch(url, config);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
