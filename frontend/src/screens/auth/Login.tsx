@@ -116,7 +116,7 @@ export default function Login({ navigation }: Props) {
             placeholder="Email"
             placeholderTextColor={COLORS.gray}
             value={emailOrPhone}
-            onChangeText={setEmailOrPhone}
+            onChangeText={(text) => setEmailOrPhone(text.toLowerCase())}
             autoCapitalize="none"
             keyboardType="email-address"
             editable={!isLoading}

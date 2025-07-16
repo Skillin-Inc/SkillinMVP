@@ -96,7 +96,7 @@ export default function StudentInfo({ navigation }: Props) {
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => setEmail(text.toLowerCase())}
           />
         </View>
 

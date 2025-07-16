@@ -135,10 +135,10 @@ export default function StudentLesson({ navigation, route }: Props) {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {course && (
           <TouchableOpacity style={styles.courseContext} onPress={() => navigation.goBack()}>
-            <View style={styles.courseContextHeader}>
+            {/* <View style={styles.courseContextHeader}>
               <Ionicons name="arrow-back" size={16} color={COLORS.purple} />
               <Text style={styles.courseContextText}>Back to {course.title}</Text>
-            </View>
+            </View> */}
           </TouchableOpacity>
         )}
 
