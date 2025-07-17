@@ -110,44 +110,30 @@ export interface NewUser {
   email: string;
   phoneNumber?: string;
   username: string;
-  password: string;
   userType: "student" | "teacher" | "admin";
   dateOfBirth?: string;
 }
 
 export async function createUser(data: NewUser) {
-  const { id, firstName, lastName, email, phoneNumber, username, password, userType = "student", dateOfBirth } = data;
+  const { id, firstName, lastName, email, phoneNumber, username, userType = "student", dateOfBirth } = data;
 
   const result = await executeQuery(
     `INSERT INTO public.users
-    ("id", "first_name", "last_name", email, "phone_number", username, "hashed_password", "user_type", "date_of_birth")
-   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    ("id", "first_name", "last_name", email, "phone_number", username, "user_type", "date_of_birth")
+   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
    RETURNING "id", "first_name", "last_name", email, "phone_number", username, "user_type", "date_of_birth", "created_at"`,
-    [id, firstName, lastName, email, phoneNumber, username, password, userType, dateOfBirth]
+    [id, firstName, lastName, email, phoneNumber, username, userType, dateOfBirth]
   );
 
   return result.rows[0];
 }
 
-export async function verifyUser(emailOrPhone: string, password: string) {
-  let user;
-
-  if (emailOrPhone.includes("@")) {
-    user = await getUserByEmail(emailOrPhone);
-  } else {
-    user = await getUserByPhone(emailOrPhone);
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  if (user.hashed_password !== password) {
-    return null;
-  }
-
-  delete user.hashed_password;
-  return user;
+// Note: User verification is now handled by AWS Cognito
+// This function is deprecated and should not be used
+// @deprecated Use AWS Cognito for authentication instead
+export async function verifyUser() {
+  console.warn("verifyUser is deprecated - use AWS Cognito for authentication");
+  return null;
 }
 
 export interface NewMessage {

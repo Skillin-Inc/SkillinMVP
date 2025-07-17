@@ -24,13 +24,11 @@ export interface User {
   userType: "student" | "teacher" | "admin";
   membershipTier?: string;
   date_of_birth?: string;
-  hashedPassword?: string;
   first_name?: string;
   last_name?: string;
   phone_number?: string;
   created_at?: string;
   user_type?: "student" | "teacher" | "admin";
-  hashed_password?: string;
   stripeCustomerId?: string;
 }
 

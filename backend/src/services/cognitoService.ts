@@ -4,6 +4,7 @@ import {
   AdminDeleteUserCommand,
   AdminCreateUserCommand,
   AdminSetUserPasswordCommand,
+  AdminGetUserCommand,
   MessageActionType,
   UserType,
 } from "@aws-sdk/client-cognito-identity-provider";
@@ -30,6 +31,13 @@ export interface CognitoUserData {
   password: string;
   userType: string;
   username: string;
+}
+
+/**
+ * Interface for created user data with sub ID
+ */
+export interface CreatedCognitoUser extends CognitoUserData {
+  sub: string;
 }
 
 /**
@@ -93,9 +101,9 @@ export async function deleteAllUsers(): Promise<void> {
 }
 
 /**
- * Creates a new user in the Cognito User Pool
+ * Creates a new user in the Cognito User Pool and returns the user with sub ID
  */
-export async function createUser(userData: CognitoUserData): Promise<void> {
+export async function createUser(userData: CognitoUserData): Promise<CreatedCognitoUser> {
   try {
     console.log(`👤 Creating user: ${userData.email}`);
 
@@ -138,6 +146,26 @@ export async function createUser(userData: CognitoUserData): Promise<void> {
 
     await cognitoClient.send(setPasswordCommand);
     console.log(`✅ Password set for user: ${userData.email}`);
+
+    // Get the user to retrieve the sub ID
+    const getUserCommand = new AdminGetUserCommand({
+      UserPoolId: COGNITO_CONFIG.userPoolId,
+      Username: userData.username,
+    });
+
+    const userResponse = await cognitoClient.send(getUserCommand);
+    const subAttribute = userResponse.UserAttributes?.find((attr) => attr.Name === "sub");
+
+    if (!subAttribute?.Value) {
+      throw new Error(`Unable to retrieve sub ID for user: ${userData.email}`);
+    }
+
+    console.log(`✅ Retrieved sub ID for user ${userData.email}: ${subAttribute.Value}`);
+
+    return {
+      ...userData,
+      sub: subAttribute.Value,
+    };
   } catch (error) {
     console.error(`❌ Failed to create user ${userData.email}:`, error);
     throw error;
@@ -145,17 +173,21 @@ export async function createUser(userData: CognitoUserData): Promise<void> {
 }
 
 /**
- * Creates multiple users in the Cognito User Pool
+ * Creates multiple users in the Cognito User Pool and returns them with sub IDs
  */
-export async function createUsers(users: CognitoUserData[]): Promise<void> {
+export async function createUsers(users: CognitoUserData[]): Promise<CreatedCognitoUser[]> {
   try {
     console.log(`👥 Creating ${users.length} users in Cognito User Pool...`);
 
+    const createdUsers: CreatedCognitoUser[] = [];
+
     for (const userData of users) {
-      await createUser(userData);
+      const createdUser = await createUser(userData);
+      createdUsers.push(createdUser);
     }
 
     console.log("✅ All users created successfully");
+    return createdUsers;
   } catch (error) {
     console.error("❌ Failed to create users:", error);
     throw error;
@@ -164,18 +196,20 @@ export async function createUsers(users: CognitoUserData[]): Promise<void> {
 
 /**
  * Resets Cognito User Pool by deleting all users and creating new ones
+ * Returns the created users with their sub IDs
  */
-export async function resetUserPool(users: CognitoUserData[]): Promise<void> {
+export async function resetUserPool(users: CognitoUserData[]): Promise<CreatedCognitoUser[]> {
   try {
     console.log("🔄 Resetting Cognito User Pool...");
 
     // Delete all existing users
     await deleteAllUsers();
 
-    // Create new users
-    await createUsers(users);
+    // Create new users and get their sub IDs
+    const createdUsers = await createUsers(users);
 
     console.log("✅ Cognito User Pool reset successfully");
+    return createdUsers;
   } catch (error) {
     console.error("❌ Failed to reset Cognito User Pool:", error);
     throw error;
