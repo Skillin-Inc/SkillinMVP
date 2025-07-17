@@ -21,8 +21,9 @@ import rateLimit from "express-rate-limit";
 const router = Router();
 
 function isValidCognitoSub(sub: string): boolean {
-  // Cognito userSub format: region_userpoolid_username or similar
-  return typeof sub === "string" && sub.length > 0;
+  // Cognito userSub format: UUID (e.g., "12345678-1234-1234-1234-123456789012")
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return typeof sub === "string" && uuidRegex.test(sub);
 }
 
 router.get("/", async (req, res) => {
@@ -40,14 +41,8 @@ router.get("/check-paid-status", async (req, res) => {
   const rawId = req.query.userId;
   console.log("Raw userId:", rawId);
 
-  const userId = parseInt(rawId as string, 10);
-  if (isNaN(userId)) {
-    res.status(400).json({ error: "Invalid userId" });
-    return;
-  }
-
   try {
-    const isPaid = await getIsPaidByUserId(userId);
+    const isPaid = await getIsPaidByUserId(rawId as string);
 
     if (isPaid === null) {
       res.status(404).json({ error: "User not found" });
@@ -134,13 +129,11 @@ router.post(
     }
 
     try {
-      const user = await verifyUser(emailOrPhone, password);
-      if (!user) {
-        res.status(401).json({ error: "Invalid credentials" });
-        return;
-      }
-
-      res.json({ success: true, user });
+      // Note: This endpoint is deprecated - use AWS Cognito for authentication
+      await verifyUser(); // Deprecated function always returns null
+      res.status(401).json({
+        error: "This endpoint is deprecated. Please use AWS Cognito for authentication.",
+      });
     } catch (error: unknown) {
       console.error(error);
       res.status(500).json({ error: "Internal server error" });
@@ -151,7 +144,8 @@ router.post(
 router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
   const body = req.body;
 
-  const required: (keyof NewUser)[] = ["firstName", "lastName", "email", "username", "password"];
+  // Required fields (password removed since we use Cognito for auth)
+  const required: (keyof NewUser)[] = ["firstName", "lastName", "email", "username"];
 
   for (const key of required) {
     if (body[key] === undefined) {
@@ -162,7 +156,13 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
 
   // Validate that id is provided (Cognito userSub)
   if (!body.id) {
-    res.status(400).json({ error: "Missing field: id (Cognito userSub)" });
+    res.status(400).json({ error: "Missing field: id (Cognito userSub is required)" });
+    return;
+  }
+
+  // Validate Cognito sub ID format
+  if (!isValidCognitoSub(body.id)) {
+    res.status(400).json({ error: "Invalid Cognito userSub format" });
     return;
   }
 

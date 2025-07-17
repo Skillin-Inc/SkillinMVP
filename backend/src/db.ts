@@ -88,7 +88,7 @@ export async function getUserByEmail(email: string) {
   return result.rows[0] ?? null;
 }
 
-export async function getIsPaidByUserId(id: number): Promise<boolean | null> {
+export async function getIsPaidByUserId(id: string): Promise<boolean | null> {
   const dbPool = await getPool();
   const result = await dbPool.query("SELECT is_paid FROM public.users WHERE id = $1", [id]);
   if (result.rows.length === 0) return null;
