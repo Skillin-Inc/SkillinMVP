@@ -1,5 +1,5 @@
 // src/server.ts
-import express, { Express, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import { serverConfig } from "./config/environment";
 import { createServer } from "http";
@@ -7,6 +7,8 @@ import { Server } from "socket.io";
 
 // Import route handlers
 
+import videoUploadRoutes from "./routes/videoUpload"
+import stripeRoutes from "./routes/stripe";
 import userRoutes from "./routes/users";
 import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
@@ -143,7 +145,9 @@ app.use("/api", stripeRoutes);
 // Protected routes (require Cognito authentication)
 // i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
+app.use("/", )
 app.use("/api", stripeRoutes);
+app.use("/videoUpload", videoUploadRoutes)
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
