@@ -1,4 +1,5 @@
 export interface RegisterData {
+  id?: string; // Cognito userSub
   firstName: string;
   lastName: string;
   email: string;

@@ -9,6 +9,7 @@ import {
 } from "amazon-cognito-identity-js";
 import { COGNITO_CONFIG } from "../config/cognitoConfig";
 import { API_CONFIG } from "../config/api";
+import { api } from "../services/api";
 
 // Initialize Cognito User Pool
 export const userPool = new CognitoUserPool({
@@ -22,6 +23,7 @@ export interface LoginData {
 }
 
 export interface RegisterData {
+  id?: string; // Cognito userSub
   firstName: string;
   lastName: string;
   email: string;
@@ -52,7 +54,7 @@ type AuthContextType = {
   logout: () => Promise<void>;
   switchMode: () => void;
   updateUser: (updatedUser: User) => Promise<void>;
-  confirmSignUp: (email: string, code: string) => Promise<void>;
+  confirmSignUp: (email: string, code: string, registrationData?: RegisterData) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   resendConfirmationCode: (email: string) => Promise<void>;
@@ -277,16 +279,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const confirmSignUp = async (email: string, code: string): Promise<void> => {
+  const confirmSignUp = async (email: string, code: string, registrationData?: RegisterData): Promise<void> => {
     return new Promise((resolve, reject) => {
       const cognitoUser = new CognitoUser({
         Username: email,
         Pool: userPool,
       });
 
-      cognitoUser.confirmRegistration(code, true, (err) => {
+      cognitoUser.confirmRegistration(code, true, async (err) => {
         if (err) {
           reject(err);
+          return;
+        }
+
+        // After successful confirmation, create database user with Cognito sub ID
+        if (registrationData) {
+          try {
+            // Authenticate user to get their session and sub ID
+            const authDetails = new AuthenticationDetails({
+              Username: email,
+              Password: registrationData.password,
+            });
+
+            cognitoUser.authenticateUser(authDetails, {
+              onSuccess: async (session: CognitoUserSession) => {
+                try {
+                  const subId = session.getIdToken().payload.sub;
+
+                  // Create database user with Cognito sub ID
+                  const userDataWithId = {
+                    ...registrationData,
+                    id: subId, // Use Cognito sub as database ID
+                  };
+                  await api.register(userDataWithId);
+
+                  resolve();
+                } catch (apiError) {
+                  console.error("Failed to create database user:", apiError);
+                  reject(apiError);
+                }
+              },
+              onFailure: (authError) => {
+                console.error("Failed to authenticate after confirmation:", authError);
+                reject(authError);
+              },
+            });
+          } catch (error) {
+            console.error("Failed to create database user:", error);
+            reject(error);
+          }
         } else {
           resolve();
         }

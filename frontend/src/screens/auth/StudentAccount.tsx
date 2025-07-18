@@ -56,7 +56,19 @@ export default function StudentAccount({ navigation, route }: Props) {
       Alert.alert("Success", "Account created successfully! Please confirm your email.", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("EmailConfirmation", { email }),
+          onPress: () =>
+            navigation.navigate("EmailConfirmation", {
+              email,
+              registrationData: {
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                username: username.trim(),
+                password,
+                userType: "student",
+              },
+            }),
         },
       ]);
     } catch (error) {

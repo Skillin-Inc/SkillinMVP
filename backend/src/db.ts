@@ -3,49 +3,33 @@ import { Pool } from "pg";
 import "dotenv/config";
 import { getRDSConnectionString } from "./aws-rds-config";
 
-// Global pool variable
 let pool: Pool | null = null;
 
-/**
- * Initialize database connection pool with AWS RDS
- * @returns Promise<Pool> - Initialized PostgreSQL pool
- */
 async function initializePool(): Promise<Pool> {
   if (pool) {
     return pool;
   }
 
   try {
-    console.log("🔄 Initializing database connection pool...");
-
-    // Get connection string from AWS Secrets Manager
     const connectionString = await getRDSConnectionString();
 
-    // Create new pool with RDS connection
     pool = new Pool({
       connectionString,
-      // Additional pool configuration for RDS
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-      connectionTimeoutMillis: 10000, // Return an error after 10 seconds if connection could not be established
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
     });
 
-    // Test the connection
     await executeQuery("SELECT NOW()");
-    console.log("✅ Database connection pool initialized successfully");
 
     return pool;
   } catch (error) {
-    console.error("❌ Failed to initialize database connection pool:", error);
+    console.error("Failed to initialize database connection pool:", error);
     pool = null;
     throw error;
   }
 }
 
-/**
- * Get the database pool, initializing if necessary
- * @returns Promise<Pool> - Database connection pool
- */
 export async function getPool(): Promise<Pool> {
   if (!pool) {
     return await initializePool();
@@ -53,12 +37,6 @@ export async function getPool(): Promise<Pool> {
   return pool;
 }
 
-/**
- * Execute a database query using the initialized pool
- * @param text - SQL query string
- * @param params - Query parameters
- * @returns Promise with query result
- */
 async function executeQuery(text: string, params?: any[]) {
   const dbPool = await getPool();
   return await dbPool.query(text, params);
@@ -126,14 +104,6 @@ export async function createUser(data: NewUser) {
   );
 
   return result.rows[0];
-}
-
-// Note: User verification is now handled by AWS Cognito
-// This function is deprecated and should not be used
-// @deprecated Use AWS Cognito for authentication instead
-export async function verifyUser() {
-  console.warn("verifyUser is deprecated - use AWS Cognito for authentication");
-  return null;
 }
 
 export interface NewMessage {

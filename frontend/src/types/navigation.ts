@@ -1,6 +1,7 @@
 // navigation.ts
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { PersonalInfo, TeachingExperience } from "./index";
+import { RegisterData } from "../services/api/types";
 
 export type StudentTabsParamList = {
   StudentHome: undefined;
@@ -85,6 +86,7 @@ export type AuthStackParamList = {
   };
   EmailConfirmation: {
     email: string;
+    registrationData?: RegisterData;
   };
   TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };

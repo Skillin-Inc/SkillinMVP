@@ -11,7 +11,6 @@ import {
 
 import "dotenv/config";
 
-// Demo users data (matching the database inserts)
 const DEMO_USERS: CognitoUserData[] = [
   {
     username: "student@email.com",
@@ -40,9 +39,6 @@ const DEMO_USERS: CognitoUserData[] = [
 ];
 
 async function insertDatabaseUsers(pool: Pool, createdUsers: CreatedCognitoUser[]) {
-  console.log("👥 Inserting users into database with Cognito sub IDs...");
-
-  // Find users by type
   const student = createdUsers.find((u) => u.userType === "student");
   const teacher = createdUsers.find((u) => u.userType === "teacher");
   const admin = createdUsers.find((u) => u.userType === "admin");
@@ -51,7 +47,6 @@ async function insertDatabaseUsers(pool: Pool, createdUsers: CreatedCognitoUser[
     throw new Error("Could not find all required user types");
   }
 
-  // Insert users with their Cognito sub IDs
   const userInsertQuery = `
     INSERT INTO "users" (
       "id", "first_name", "last_name", "email", "phone_number", "username", 
@@ -65,7 +60,7 @@ async function insertDatabaseUsers(pool: Pool, createdUsers: CreatedCognitoUser[
   `;
 
   await pool.query(userInsertQuery, [
-    // Student
+    // student
     student.sub,
     student.firstName,
     student.lastName,
@@ -80,7 +75,7 @@ async function insertDatabaseUsers(pool: Pool, createdUsers: CreatedCognitoUser[
     null,
     null,
     false,
-    // Teacher
+    // teacher
     teacher.sub,
     teacher.firstName,
     teacher.lastName,
@@ -95,7 +90,7 @@ async function insertDatabaseUsers(pool: Pool, createdUsers: CreatedCognitoUser[
     null,
     null,
     false,
-    // Admin
+    // admin
     admin.sub,
     admin.firstName,
     admin.lastName,
@@ -112,9 +107,6 @@ async function insertDatabaseUsers(pool: Pool, createdUsers: CreatedCognitoUser[
     false,
   ]);
 
-  console.log("✅ Successfully inserted users with Cognito sub IDs");
-
-  // Return the user IDs for use in other inserts
   return {
     studentId: student.sub,
     teacherId: teacher.sub,
@@ -123,9 +115,6 @@ async function insertDatabaseUsers(pool: Pool, createdUsers: CreatedCognitoUser[
 }
 
 async function insertSampleData(pool: Pool, userIds: { studentId: string; teacherId: string; adminId: string }) {
-  console.log("📊 Inserting sample categories, courses, and lessons...");
-
-  // Insert categories
   const categoriesQuery = `
     INSERT INTO "categories" ("id", "title") VALUES 
       ('550e8400-e29b-41d4-a716-446655440000', 'Poker'),
@@ -143,7 +132,6 @@ async function insertSampleData(pool: Pool, userIds: { studentId: string; teache
   `;
   await pool.query(categoriesQuery);
 
-  // Insert courses using the actual teacher ID
   const coursesQuery = `
     INSERT INTO "courses" ("id", "teacher_id", "category_id", "title", "description") VALUES
       ('330e8400-e29b-41d4-a716-446655440000', $1, '550e8400-e29b-41d4-a716-446655440000', 'Poker Fundamentals', 'Learn the basic skills of poker including hand rankings, betting strategies, and table etiquette. Perfect for beginners who want to master the fundamentals of poker.'),
@@ -152,7 +140,6 @@ async function insertSampleData(pool: Pool, userIds: { studentId: string; teache
   `;
   await pool.query(coursesQuery, [userIds.teacherId]);
 
-  // Insert lessons using the actual teacher ID
   const lessonsQuery = `
     INSERT INTO "lessons" ("id", "teacher_id", "course_id", "title", "description", "video_url") VALUES
       ('440e8400-e29b-41d4-a716-446655440000', $1, '330e8400-e29b-41d4-a716-446655440000', 'Hand Rankings and Basic Rules', 'Learn the hierarchy of poker hands and fundamental rules of the game to get started playing confidently.', 'https://example.com/poker-basics'),
@@ -163,62 +150,39 @@ async function insertSampleData(pool: Pool, userIds: { studentId: string; teache
       ('440e8400-e29b-41d4-a716-446655440005', $1, '330e8400-e29b-41d4-a716-446655440002', 'Basic Cooking Methods', 'Master fundamental cooking techniques including sautéing, roasting, boiling, and grilling to create versatile dishes.', 'https://example.com/cooking-methods')
   `;
   await pool.query(lessonsQuery, [userIds.teacherId]);
-
-  console.log("✅ Successfully inserted sample data");
 }
 
 async function setupDatabase() {
   let pool: Pool | null = null;
 
   try {
-    console.log("🚀 Starting database and Cognito setup...");
-
-    // Step 1: Validate Cognito configuration
-    console.log("\n🔍 Step 1: Validating Cognito configuration...");
     validateCognitoConfig();
 
-    // Step 2: Set up database
-    console.log("\n🔄 Step 2: Getting RDS connection string...");
     const connectionString = await getRDSConnectionString();
 
     pool = new Pool({
       connectionString,
     });
 
-    console.log("🔌 Connecting to database...");
     await pool.query("SELECT NOW()");
-    console.log("✅ Successfully connected to database");
 
     const schemaPath = path.join(__dirname, "database", "schema.sql");
     const schema = fs.readFileSync(schemaPath, "utf8");
 
-    console.log("🏗️ Setting up database schema...");
     await pool.query(schema);
-    console.log("✅ Successfully set up database schema");
 
-    // Step 3: Reset Cognito User Pool and get sub IDs
-    console.log("\n👥 Step 3: Resetting Cognito User Pool...");
     const createdUsers = await resetUserPool(DEMO_USERS);
-    console.log("✅ Successfully reset Cognito User Pool");
 
-    // Step 4: Insert users into database using Cognito sub IDs
-    console.log("\n💾 Step 4: Inserting users into database...");
     const userIds = await insertDatabaseUsers(pool, createdUsers);
 
-    // Step 5: Insert sample data
-    console.log("\n📊 Step 5: Inserting sample data...");
     await insertSampleData(pool, userIds);
 
-    console.log("\n🎉 Database and Cognito setup complete!");
-    console.log("\n📋 Created demo users with synced IDs:");
     createdUsers.forEach((user) => {
       console.log(`   - ${user.userType}: ${user.email} (sub: ${user.sub})`);
     });
-    console.log("\n🔐 Default password for all demo users: Password");
   } catch (error) {
-    console.error("\n❌ Setup failed:");
+    console.error("Setup failed:");
     console.error(error);
-    console.error("Please check your configuration and try again.");
     process.exit(1);
   } finally {
     if (pool) {

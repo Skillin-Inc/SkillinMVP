@@ -32,7 +32,6 @@ const port = process.env.PORT || 4040;
 
 const userSockets = new Map<string, string>();
 
-// Middleware
 app.use(express.json());
 app.use(
   cors({
@@ -41,13 +40,11 @@ app.use(
   })
 );
 
-// Add request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Serve favicon to prevent 404s
 app.get("/favicon.ico", (req: Request, res: Response) => {
   res.status(204).end();
 });
@@ -136,7 +133,6 @@ app.use("/progress", progressRoutes);
 // i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
 
-// 404 handler for unmatched routes
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     error: "Route not found",
@@ -145,7 +141,6 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// Global error handler
 app.use((err: Error, req: Request, res: Response) => {
   console.error("Unhandled error:", err);
   res.status(500).json({
@@ -154,14 +149,13 @@ app.use((err: Error, req: Request, res: Response) => {
   });
 });
 
-// Validate environment configuration before starting server
 try {
   validateEnvironmentConfig();
 } catch (error) {
-  console.error("❌ Server startup failed due to configuration issues:", error);
+  console.error("Server startup failed due to configuration issues:", error);
   process.exit(1);
 }
 
 server.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  console.log(`[server]: Server is running at http://localhost:${port}`);
 });
