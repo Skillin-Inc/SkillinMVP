@@ -1,4 +1,3 @@
-// src/server.ts
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { serverConfig } from "./config/environment";
@@ -7,8 +6,7 @@ import { Server } from "socket.io";
 
 // Import route handlers
 
-import videoUploadRoutes from "./routes/videoUpload"
-import stripeRoutes from "./routes/stripe";
+// General Routes
 import userRoutes from "./routes/users";
 import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
@@ -19,6 +17,13 @@ import stripeWebhookRouter from "./routes/stripeWebhook";
 import bodyParser from "body-parser";
 
 import lessonRoutes from "./routes/lessons";
+
+// Video Routes
+import videoUploadRoutes from "./routes/videoUpload";
+import videoStreamRoutes from "./routes/videoStream";
+
+// Payment Routes
+import stripeRoutes from "./routes/stripe";
 
 // Import Cognito auth middleware
 import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
@@ -148,6 +153,7 @@ app.use("/users", cognitoAuthMiddleware, userRoutes);
 app.use("/", )
 app.use("/api", stripeRoutes);
 app.use("/videoUpload", videoUploadRoutes)
+app.use('/videoStream', videoStreamRoutes);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
