@@ -22,7 +22,7 @@ import { checkIfPaid } from "../../services/payments";
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
 import { CategoryCard, QuickActionCard } from "../../components/cards";
-import { api, Category } from "../../services/api";
+import { api, Category } from "../../services/api/";
 import temp from "../../../assets/playingCards.png";
 
 type Props = CompositeScreenProps<

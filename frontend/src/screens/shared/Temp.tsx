@@ -3,7 +3,7 @@ import { Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from "react-n
 
 import { useScreenDimensions } from "../../hooks";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api } from "../../services/api";
+import { api } from "../../services/api/";
 import { COLORS } from "../../styles";
 
 export default function Temp() {

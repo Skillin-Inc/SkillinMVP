@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList, TextInput, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
-import { api, Course, Category } from "../../services/api";
+import { api, Course, Category } from "../../services/api/";
 import { StudentStackParamList } from "../../types/navigation";
 import { LoadingState, EmptyState } from "../../components/common";
 import { CourseCard } from "../../components/cards";

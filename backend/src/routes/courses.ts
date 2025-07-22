@@ -9,14 +9,11 @@ import {
   deleteCourse,
   NewCourse,
 } from "../db";
+import { isValidId } from "../utils";
 
 const router = Router();
 
 // Helper function to validate UUID
-function isValidUUID(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
-}
 
 router.post("/", async (req: Request<object, unknown, NewCourse>, res: Response): Promise<void> => {
   const body = req.body;
@@ -30,12 +27,12 @@ router.post("/", async (req: Request<object, unknown, NewCourse>, res: Response)
     }
   }
 
-  if (typeof body.teacher_id !== "string" || !isValidUUID(body.teacher_id)) {
+  if (typeof body.teacher_id !== "string" || !isValidId(body.teacher_id)) {
     res.status(400).json({ error: "teacher_id must be a valid UUID" });
     return;
   }
 
-  if (typeof body.category_id !== "string" || !isValidUUID(body.category_id)) {
+  if (typeof body.category_id !== "string" || !isValidId(body.category_id)) {
     res.status(400).json({ error: "category_id must be a valid UUID" });
     return;
   }
@@ -78,7 +75,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid course ID format" });
     return;
   }
@@ -99,7 +96,7 @@ router.get("/:id", async (req, res) => {
 router.get("/teacher/:teacherId", async (req, res) => {
   const teacherId = String(req.params.teacherId);
 
-  if (!isValidUUID(teacherId)) {
+  if (!isValidId(teacherId)) {
     res.status(400).json({ error: "Invalid teacher ID format" });
     return;
   }
@@ -118,7 +115,7 @@ router.get("/category/:categoryId", async (req, res) => {
   const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
   const offset = req.query.offset ? parseInt(String(req.query.offset), 10) : undefined;
 
-  if (!isValidUUID(categoryId)) {
+  if (!isValidId(categoryId)) {
     res.status(400).json({ error: "Invalid category ID format" });
     return;
   }
@@ -147,7 +144,7 @@ router.put("/:id", async (req, res) => {
   const id = String(req.params.id);
   const updateData = req.body;
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid course ID format" });
     return;
   }
@@ -161,7 +158,7 @@ router.put("/:id", async (req, res) => {
   }
 
   // Validate category_id if provided
-  if (updateData.category_id && (!isValidUUID(updateData.category_id) || typeof updateData.category_id !== "string")) {
+  if (updateData.category_id && (!isValidId(updateData.category_id) || typeof updateData.category_id !== "string")) {
     res.status(400).json({ error: "category_id must be a valid UUID" });
     return;
   }
@@ -186,7 +183,7 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid course ID format" });
     return;
   }

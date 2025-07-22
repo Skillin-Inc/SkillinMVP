@@ -18,7 +18,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api, NewLesson, Course } from "../../services/api";
+import { api, NewLesson, Course } from "../../services/api/";
 import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
 import { HeaderWithBack } from "../../components/common";
 import { FormInput, CourseSelector } from "../../components/forms";

@@ -4,9 +4,9 @@ import { Request, Response, NextFunction } from "express";
 
 // Cognito configuration
 const COGNITO_CONFIG = {
-  region: "us-west-2",
-  userPoolId: "us-west-2_Q82pOf5Ya",
-  clientId: "4vaofjh7b609c95ffo825hmdap",
+  region: "us-east-2",
+  userPoolId: "us-east-2_ce7KAadKf",
+  clientId: "5hqpvuhen3vutlbe21l20pvf8k",
 };
 
 // JWKS client for Cognito public keys

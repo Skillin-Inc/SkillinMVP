@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS } from "../../styles";
 import { useScreenDimensions } from "../../hooks";
-import { api } from "../../services/api";
+import { api } from "../../services/api/";
 import { StackScreenProps } from "@react-navigation/stack";
 import { AdminStackParamList, AdminTabsParamList } from "../../types";
 import { SectionHeader } from "../../components/common";

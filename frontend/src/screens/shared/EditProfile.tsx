@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../styles";
 import { StackScreenProps } from "@react-navigation/stack";
 import { StudentStackParamList, TeacherStackParamList } from "../../types";
-import { api, UpdateUserProfileData, transformBackendUserToUser } from "../../services/api";
+import { api, UpdateUserProfileData, transformBackendUserToUser } from "../../services/api/";
 import { AuthContext } from "../../hooks/AuthContext";
 import { FormInput } from "../../components/forms";
 import { LoadingState } from "../../components/common";

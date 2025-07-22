@@ -1,13 +1,10 @@
 import { Router, Request, Response } from "express";
 import { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory, NewCategory } from "../db";
+import { isValidId } from "../utils";
 
 const router = Router();
 
 // Helper function to validate UUID
-function isValidUUID(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
-}
 
 router.post("/", async (req: Request<object, unknown, NewCategory>, res: Response): Promise<void> => {
   const body = req.body;
@@ -56,7 +53,7 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid category ID format" });
     return;
   }
@@ -78,7 +75,7 @@ router.put("/:id", async (req, res) => {
   const id = String(req.params.id);
   const updateData = req.body;
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid category ID format" });
     return;
   }
@@ -111,7 +108,7 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid category ID format" });
     return;
   }

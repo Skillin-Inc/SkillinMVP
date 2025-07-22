@@ -20,7 +20,7 @@ import { MessageBubble, Message } from "../../components/media/MessageBubble";
 import { LoadingState } from "../../components/common";
 import AvatarPlaceholder from "../../../assets/icons/Avatar_Placeholder.png";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api, BackendMessage, BackendUser } from "../../services/api";
+import { api, BackendMessage, BackendUser } from "../../services/api/";
 import { websocketService, SocketMessage } from "../../services/websocket";
 
 type Props = StackScreenProps<StudentStackParamList | TeacherStackParamList | AdminStackParamList, "Chat">;

@@ -16,13 +16,9 @@ import {
   checkUsernameAvailability,
 } from "../db";
 import rateLimit from "express-rate-limit";
+import { isValidId } from "../utils";
 
 const router = Router();
-
-function isValidCognitoSub(sub: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return typeof sub === "string" && uuidRegex.test(sub);
-}
 
 router.get("/", async (req, res) => {
   try {
@@ -57,7 +53,7 @@ router.get("/check-paid-status", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidCognitoSub(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
@@ -153,7 +149,7 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
     return;
   }
 
-  if (!isValidCognitoSub(body.id)) {
+  if (!isValidId(body.id)) {
     res.status(400).json({ error: "Invalid Cognito userSub format" });
     return;
   }
@@ -224,7 +220,7 @@ const updateProfileHandler: RequestHandler<{ id: string }, unknown, UpdateUserPr
   const { id } = req.params;
   const updateData = req.body;
 
-  if (!isValidCognitoSub(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid user ID format" });
     return;
   }

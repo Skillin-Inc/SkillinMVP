@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../styles";
 import { StackScreenProps } from "@react-navigation/stack";
 import { StudentTabsParamList, TeacherTabsParamList, StudentStackParamList, TeacherStackParamList } from "../../types";
-import { api, Conversation } from "../../services/api";
+import { api, Conversation } from "../../services/api/";
 import { AuthContext } from "../../hooks/AuthContext";
 import { websocketService, SocketMessage } from "../../services/websocket";
 import { LoadingState, EmptyState, SectionHeader } from "../../components/common";
@@ -50,6 +50,7 @@ export default function Messages({ navigation }: Props) {
 
     try {
       setLoading(true);
+
       const [allUsersData, conversations] = await Promise.all([
         api.getAllUsers(),
         api.getConversationsForUser(currentUser.id),

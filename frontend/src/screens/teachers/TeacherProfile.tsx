@@ -14,7 +14,7 @@ import { COLORS } from "../../styles";
 import { SPACINGS } from "../../styles";
 import { StackScreenProps } from "@react-navigation/stack";
 import { TeacherStackParamList } from "../../types";
-import { User, api, transformBackendUserToUser } from "../../services/api";
+import { User, api, transformBackendUserToUser } from "../../services/api/";
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader } from "../../components/common";
 import { ImagePickerAvatar } from "../../components/forms";

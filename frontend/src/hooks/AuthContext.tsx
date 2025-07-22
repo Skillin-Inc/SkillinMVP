@@ -9,7 +9,7 @@ import {
 } from "amazon-cognito-identity-js";
 import { COGNITO_CONFIG } from "../config/cognitoConfig";
 import { API_CONFIG } from "../config/api";
-import { api } from "../services/api";
+import { api } from "../services/api/";
 
 // Initialize Cognito User Pool
 export const userPool = new CognitoUserPool({
@@ -112,25 +112,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // ✅ ADD: Fetch user data from your backend to get the correct user_type
               const cognitoUserSub = userData.sub || currentUser.getUsername();
 
-              // Get the JWT token for authenticated requests
-              const idToken = session.getIdToken().getJwtToken();
-
               // Fetch user data from your backend
               let backendUserData = null;
               try {
-                const backendResponse = await fetch(`${API_CONFIG.BASE_URL}/users/${cognitoUserSub}`, {
-                  method: "GET",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${idToken}`,
-                  },
-                });
-
-                if (backendResponse.ok) {
-                  backendUserData = await backendResponse.json();
-                } else {
-                  console.warn("Could not fetch user data from backend, using Cognito data only");
-                }
+                backendUserData = await api.getUserById(cognitoUserSub);
               } catch (error) {
                 console.warn("Error fetching user data from backend:", error);
               }
@@ -138,17 +123,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               // Use backend data if available, otherwise fall back to Cognito data
               const user: User = {
                 id: cognitoUserSub,
-                firstName: backendUserData?.first_name || userData.given_name || userData.first_name || "",
-                lastName: backendUserData?.last_name || userData.family_name || userData.last_name || "",
-                email: backendUserData?.email || userData.email || currentUser.getUsername(),
-                phoneNumber: backendUserData?.phone_number || userData.phone_number,
-                username:
-                  backendUserData?.username ||
-                  userData.preferred_username ||
-                  userData.email ||
-                  currentUser.getUsername(),
-                createdAt: backendUserData?.created_at || userData.created_at || new Date().toISOString(),
-                userType: backendUserData?.user_type || "student", // ✅ Use the user_type from your database
+                firstName: backendUserData?.first_name || "",
+                lastName: backendUserData?.last_name || "",
+                email: backendUserData?.email || "",
+                phoneNumber: backendUserData?.phone_number || "",
+                username: backendUserData?.username || "",
+                createdAt: backendUserData?.created_at || new Date().toISOString(),
+                userType: backendUserData?.user_type || "student",
                 cognitoUser: currentUser,
               };
 
