@@ -83,6 +83,7 @@ export type AuthStackParamList = {
     date_of_birth: string;
     email: string;
     phoneNumber?: string;
+    college: string;
   };
   EmailConfirmation: {
     email: string;

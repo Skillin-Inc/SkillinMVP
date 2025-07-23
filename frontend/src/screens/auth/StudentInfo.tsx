@@ -7,21 +7,31 @@ import { StackScreenProps } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
 import { AuthStackParamList } from "../../types";
 import { SectionHeader } from "../../components/common";
+import collegeData from "../../../assets/us_institutions.json";
 
 type Props = StackScreenProps<AuthStackParamList, "StudentInfo">;
 
 export default function StudentInfo({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
+  const collegeList = collegeData.map((c) => c.institution);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [email, setEmail] = useState("");
+  const [collegeValue, setcollegeValue] = useState("");
+
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const filtered = collegeList.filter((name) => name.toLowerCase().includes(collegeValue.toLowerCase())).slice(0, 5);
+  // Add 'Other' if not already present
+  const showOther = !filtered.some((name) => name.toLowerCase() === "other");
+  const suggestions = showOther ? [...filtered, "Other"] : filtered;
+
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleNext = () => {
-    if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim() || !email.trim()) {
+    if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim() || !email.trim() || !collegeValue.trim()) {
       alert("Please fill out all required fields.");
       return;
     }
@@ -37,6 +47,7 @@ export default function StudentInfo({ navigation }: Props) {
       date_of_birth: dateOfBirth.trim(),
       email: email.trim().toLowerCase(),
       phoneNumber: phoneNumber.trim() || undefined,
+      college: collegeValue.trim(),
     });
   };
 
@@ -96,9 +107,46 @@ export default function StudentInfo({ navigation }: Props) {
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => setEmail(text.toLowerCase())}
           />
         </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="What college do you attend"
+            value={collegeValue}
+            onChangeText={setcollegeValue}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          />
+        </View>
+        {showSuggestions && suggestions.length > 0 && (
+          <View
+            style={{
+              backgroundColor: "white",
+              borderRadius: 8,
+              elevation: 2,
+              position: "absolute",
+              left: 24,
+              right: 24,
+              zIndex: 10,
+            }}
+          >
+            {suggestions.map((name) => (
+              <TouchableOpacity
+                key={name}
+                onPress={() => {
+                  setcollegeValue(name);
+                  setShowSuggestions(false);
+                }}
+                style={{ padding: 12 }}
+              >
+                <Text>{name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         <View style={styles.inputContainer}>
           <Ionicons name="call-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
