@@ -42,8 +42,11 @@ router.post("/", async (req: Request<object, unknown, SendEmailBody>, res: Respo
 
     res.status(200).json({ message: "Email sent successfully!" });
   } catch (err: unknown) {
-    console.error("SendGrid Error:", err instanceof Error ? err.message : err);
-    res.status(500).json({ error: "Failed to send email." });
+    if (err instanceof Error) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 

@@ -14,7 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { api, Course, Category, Lesson } from "../../services/api";
+import { api, Course, Category, Lesson } from "../../services/api/";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditCourseModalProps {

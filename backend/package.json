@@ -6,13 +6,17 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node-dev src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "setup-db": "ts-node setup-database.ts"
+    "setup-db": "ts-node setup-database.ts",
+    "test-rds": "ts-node test-rds-connection.ts",
+    "log-db": "ts-node log-db.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.844.0",
+    "@aws-sdk/client-secrets-manager": "^3.844.0",
     "@sendgrid/mail": "^8.1.5",
     "axios": "^1.9.0",
     "cors": "^2.8.5",

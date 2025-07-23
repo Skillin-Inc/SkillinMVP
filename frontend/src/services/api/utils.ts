@@ -1,17 +1,44 @@
 import { API_CONFIG } from "../../config/api";
 import { BackendUser, User } from "./types";
+import { CognitoUserSession } from "amazon-cognito-identity-js";
 
-export const makeRequest = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
+// Helper to get auth token if available, otherwise undefined
+const getAuthToken = async (): Promise<string | undefined> => {
+  try {
+    // Dynamically import userPool to avoid circular dependency
+    const { userPool } = await import("../../hooks/AuthContext");
+    const currentUser = userPool.getCurrentUser();
+    if (currentUser) {
+      const session = await new Promise<CognitoUserSession>((resolve, reject) => {
+        currentUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
+          if (err) reject(err);
+          else if (session) resolve(session);
+          else reject(new Error("No session available"));
+        });
+      });
+      if (session && session.isValid()) {
+        return session.getIdToken().getJwtToken();
+      }
+    }
+  } catch {
+    // Ignore error, just return undefined
+  }
+  return undefined;
+};
+
+// Make request, only add Authorization header if token is available
+export const makeRequest = async <T>(endpoint: string, options: RequestInit = {}, requireAuth = false): Promise<T> => {
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
+  const baseHeaders: Record<string, string> = { "Content-Type": "application/json" };
+  const requestHeaders = options.headers as Record<string, string> | undefined;
+  const headers: Record<string, string> = { ...baseHeaders, ...requestHeaders };
 
-  const config: RequestInit = {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-    ...options,
-  };
-
+  let authToken: string | undefined;
+  if (requireAuth) {
+    authToken = await getAuthToken();
+    if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+  }
+  const config: RequestInit = { ...options, headers };
   try {
     const response = await fetch(url, config);
 
@@ -19,12 +46,9 @@ export const makeRequest = async <T>(endpoint: string, options: RequestInit = {}
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
-
     return response.json();
   } catch (error) {
-    if (error instanceof Error) {
-      throw error;
-    }
+    if (error instanceof Error) throw error;
     throw new Error("Network error occurred");
   }
 };

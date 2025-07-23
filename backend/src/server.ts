@@ -17,6 +17,7 @@ import lessonRoutes from "./routes/lessons";
 
 // Import Cognito auth middleware
 import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
+import { validateEnvironmentConfig } from "./aws-rds-config";
 
 const app: Express = express();
 const server = createServer(app);
@@ -31,7 +32,6 @@ const port = process.env.PORT || 4040;
 
 const userSockets = new Map<string, string>();
 
-// Middleware
 app.use(express.json());
 app.use(
   cors({
@@ -40,13 +40,11 @@ app.use(
   })
 );
 
-// Add request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
 
-// Serve favicon to prevent 404s
 app.get("/favicon.ico", (req: Request, res: Response) => {
   res.status(204).end();
 });
@@ -88,8 +86,8 @@ io.on("connection", (socket) => {
         is_read: newMessage.is_read,
         created_at: newMessage.created_at,
       });
-    } catch (error) {
-      console.error("Error handling message:", error);
+    } catch {
+      console.error("Error handling message");
       socket.emit("message_error", { error: "Failed to send message" });
     }
   });
@@ -115,11 +113,10 @@ app.post("/register", async (req: Request, res: Response) => {
     const newUser = await createUser(req.body);
     res.status(201).json(newUser);
   } catch (error: unknown) {
-    console.error("Registration error:", error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
@@ -135,7 +132,6 @@ app.use("/progress", progressRoutes);
 // i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
 
-// 404 handler for unmatched routes
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     error: "Route not found",
@@ -144,7 +140,6 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// Global error handler
 app.use((err: Error, req: Request, res: Response) => {
   console.error("Unhandled error:", err);
   res.status(500).json({
@@ -153,6 +148,13 @@ app.use((err: Error, req: Request, res: Response) => {
   });
 });
 
+try {
+  validateEnvironmentConfig();
+} catch (error) {
+  console.error("Server startup failed due to configuration issues:", error);
+  process.exit(1);
+}
+
 server.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  console.log(`[server]: Server is running at http://localhost:${port}`);
 });

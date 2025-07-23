@@ -19,6 +19,7 @@ export default function EmailConfirmation({ navigation, route }: Props) {
   const [confirmationCode, setConfirmationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const email = route.params?.email || "";
+  const registrationData = route.params?.registrationData;
 
   const handleConfirmSignUp = async () => {
     if (!confirmationCode.trim()) {
@@ -29,10 +30,12 @@ export default function EmailConfirmation({ navigation, route }: Props) {
     setIsLoading(true);
 
     try {
-      await confirmSignUp(email, confirmationCode.trim());
-      Alert.alert("Account Confirmed", "Your account has been successfully confirmed! Please complete your payment.", [
-        { text: "OK", onPress: () => navigation.navigate("RegisterPayment") },
-      ]);
+      await confirmSignUp(email, confirmationCode.trim(), registrationData);
+      Alert.alert(
+        "Account Confirmed",
+        "Your account has been successfully created and confirmed! Please complete your payment.",
+        [{ text: "OK", onPress: () => navigation.navigate("RegisterPayment") }]
+      );
     } catch (error: unknown) {
       console.error("Confirmation error:", error);
 

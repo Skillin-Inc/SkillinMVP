@@ -3,18 +3,26 @@ import { RegisterData, LoginData, User, BackendUser, UpdateUserProfileData, Logi
 import { makeRequest, transformBackendUserToUser } from "./utils";
 
 export const register = async (userData: RegisterData): Promise<User> => {
-  const backendUser = await makeRequest<BackendUser>(API_CONFIG.ENDPOINTS.USERS, {
-    method: "POST",
-    body: JSON.stringify(userData),
-  });
+  const backendUser = await makeRequest<BackendUser>(
+    API_CONFIG.ENDPOINTS.USERS,
+    {
+      method: "POST",
+      body: JSON.stringify(userData),
+    },
+    true
+  );
   return transformBackendUserToUser(backendUser);
 };
 
 export const login = async (loginData: LoginData): Promise<LoginResponse> => {
-  const response = await makeRequest<{ success: boolean; user: BackendUser }>(API_CONFIG.ENDPOINTS.LOGIN, {
-    method: "POST",
-    body: JSON.stringify(loginData),
-  });
+  const response = await makeRequest<{ success: boolean; user: BackendUser }>(
+    API_CONFIG.ENDPOINTS.LOGIN,
+    {
+      method: "POST",
+      body: JSON.stringify(loginData),
+    },
+    true
+  );
 
   return {
     success: response.success,
@@ -23,18 +31,22 @@ export const login = async (loginData: LoginData): Promise<LoginResponse> => {
 };
 
 export const getUserById = async (id: string): Promise<BackendUser> => {
-  return makeRequest<BackendUser>(`${API_CONFIG.ENDPOINTS.USERS}/${id}`);
+  return makeRequest<BackendUser>(`${API_CONFIG.ENDPOINTS.USERS}/${id}`, {}, true);
 };
 
 export const getAllUsers = async (): Promise<BackendUser[]> => {
-  return makeRequest<BackendUser[]>(API_CONFIG.ENDPOINTS.USERS);
+  return makeRequest<BackendUser[]>(API_CONFIG.ENDPOINTS.USERS, {}, true);
 };
 
 export const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
   const encodedEmail = encodeURIComponent(email);
-  return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`, {
-    method: "DELETE",
-  });
+  return makeRequest<{ success: boolean; message: string }>(
+    `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`,
+    {
+      method: "DELETE",
+    },
+    true
+  );
 };
 
 export const updateUserType = async (
@@ -42,10 +54,14 @@ export const updateUserType = async (
   userType: "student" | "teacher" | "admin"
 ): Promise<{ success: boolean; message: string }> => {
   const encodedEmail = encodeURIComponent(email);
-  return makeRequest<{ success: boolean; message: string }>(`${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}/user-type`, {
-    method: "PATCH",
-    body: JSON.stringify({ userType }),
-  });
+  return makeRequest<{ success: boolean; message: string }>(
+    `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}/user-type`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ userType }),
+    },
+    true
+  );
 };
 
 export const updateUserProfile = async (userId: string, updateData: UpdateUserProfileData): Promise<BackendUser> => {
@@ -54,7 +70,8 @@ export const updateUserProfile = async (userId: string, updateData: UpdateUserPr
     {
       method: "PATCH",
       body: JSON.stringify(updateData),
-    }
+    },
+    true
   );
   return response.user;
 };

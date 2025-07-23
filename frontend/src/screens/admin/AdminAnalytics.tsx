@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } 
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { api, BackendUser, Course, Lesson } from "../../services/api";
+import { api, BackendUser, Course, Lesson } from "../../services/api/";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface AnalyticsData {

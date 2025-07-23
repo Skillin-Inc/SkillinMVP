@@ -15,7 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { api, Category, Course } from "../../services/api";
+import { api, Category, Course } from "../../services/api/";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface CategoryWithStats extends Category {

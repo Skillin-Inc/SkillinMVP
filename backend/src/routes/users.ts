@@ -7,7 +7,6 @@ import {
   getUserByUsername,
   getUserByPhone,
   getUserByEmail,
-  verifyUser,
   getIsPaidByUserId,
   getAllUsers,
   deleteUserByEmail,
@@ -17,21 +16,20 @@ import {
   checkUsernameAvailability,
 } from "../db";
 import rateLimit from "express-rate-limit";
+import { isValidId } from "../utils";
 
 const router = Router();
-
-function isValidCognitoSub(sub: string): boolean {
-  // Cognito userSub format: region_userpoolid_username or similar
-  return typeof sub === "string" && sub.length > 0;
-}
 
 router.get("/", async (req, res) => {
   try {
     const users = await getAllUsers();
     res.json(users);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -40,14 +38,8 @@ router.get("/check-paid-status", async (req, res) => {
   const rawId = req.query.userId;
   console.log("Raw userId:", rawId);
 
-  const userId = parseInt(rawId as string, 10);
-  if (isNaN(userId)) {
-    res.status(400).json({ error: "Invalid userId" });
-    return;
-  }
-
   try {
-    const isPaid = await getIsPaidByUserId(userId);
+    const isPaid = await getIsPaidByUserId(rawId as string);
 
     if (isPaid === null) {
       res.status(404).json({ error: "User not found" });
@@ -56,15 +48,18 @@ router.get("/check-paid-status", async (req, res) => {
 
     res.json({ isPaid });
   } catch (err) {
-    console.error("Error checking paid status:", err);
-    res.status(500).json({ error: "Internal server error" });
+    if (err instanceof Error) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.get("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidCognitoSub(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
@@ -134,16 +129,14 @@ router.post(
     }
 
     try {
-      const user = await verifyUser(emailOrPhone, password);
-      if (!user) {
-        res.status(401).json({ error: "Invalid credentials" });
-        return;
-      }
-
-      res.json({ success: true, user });
+      // ADD COGNITO AUTH HERE
+      res.status(401).json({ error: "Not implemented" });
     } catch (error: unknown) {
-      console.error(error);
-      res.status(500).json({ error: "Internal server error" });
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Internal server error" });
+      }
     }
   }
 );
@@ -151,7 +144,7 @@ router.post(
 router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
   const body = req.body;
 
-  const required: (keyof NewUser)[] = ["firstName", "lastName", "email", "username", "password"];
+  const required: (keyof NewUser)[] = ["firstName", "lastName", "email", "username"];
 
   for (const key of required) {
     if (body[key] === undefined) {
@@ -160,9 +153,13 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
     }
   }
 
-  // Validate that id is provided (Cognito userSub)
   if (!body.id) {
-    res.status(400).json({ error: "Missing field: id (Cognito userSub)" });
+    res.status(400).json({ error: "Missing field: id (Cognito userSub is required)" });
+    return;
+  }
+
+  if (!isValidId(body.id)) {
+    res.status(400).json({ error: "Invalid Cognito userSub format" });
     return;
   }
 
@@ -170,11 +167,10 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
     const newUser = await createUser(body);
     res.status(201).json(newUser);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
   return;
@@ -232,7 +228,7 @@ const updateProfileHandler: RequestHandler<{ id: string }, unknown, UpdateUserPr
   const { id } = req.params;
   const updateData = req.body;
 
-  if (!isValidCognitoSub(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
