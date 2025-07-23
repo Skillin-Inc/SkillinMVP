@@ -244,9 +244,10 @@ export async function getRDSConnectionString(): Promise<string> {
     return connectionString;
   } catch (error) {
     if (error instanceof Error) {
-      console.error(error.message);
+      console.error("Failed to get RDS connection string from AWS Secrets Manager:", error.name);
+    } else {
+      console.error("Failed to get RDS connection string from AWS Secrets Manager");
     }
-    console.error("Failed to get RDS connection string from AWS Secrets Manager:");
 
     throw new Error(
       `Failed to get database connection string. AWS Secrets Manager failed: ${

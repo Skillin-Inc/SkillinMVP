@@ -88,7 +88,7 @@ io.on("connection", (socket) => {
       });
     } catch (error) {
       if (error instanceof Error) {
-        console.error("Error handling message:", error.message);
+        console.error("Error handling message:", error.name);
       } else {
         console.error("Error handling message");
       }

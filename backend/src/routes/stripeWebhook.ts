@@ -19,8 +19,8 @@ router.post(
       event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        console.error("Webhook Error:", err.message);
-        res.status(400).send(`Webhook Error: ${err.message}`);
+        console.error("Webhook Error:", err.name);
+        res.status(400).send(`Webhook Error: ${err.name}`);
         return;
       }
       res.status(400).send("Unknown Webhook Error");

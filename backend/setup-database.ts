@@ -182,9 +182,10 @@ async function setupDatabase() {
     });
   } catch (error) {
     if (error instanceof Error) {
-      console.error(error.message);
+      console.error("Setup failed:", error.name);
+    } else {
+      console.error("Setup failed");
     }
-    console.error("Setup failed:");
     process.exit(1);
   } finally {
     if (pool) {

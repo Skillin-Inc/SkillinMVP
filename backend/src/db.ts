@@ -25,9 +25,10 @@ async function initializePool(): Promise<Pool> {
     return pool;
   } catch (error) {
     if (error instanceof Error) {
-      console.error(error.message);
+      console.error("Failed to initialize database connection pool:", error.name);
+    } else {
+      console.error("Failed to initialize database connection pool");
     }
-    console.error("Failed to initialize database connection pool:");
     pool = null;
     throw error;
   }
@@ -640,9 +641,10 @@ export async function updateUserPaymentStatus(userId: string, isPaid: boolean) {
     console.log(`✅ Updated payment status for user ${userId} to ${isPaid}`);
   } catch (error) {
     if (error instanceof Error) {
-      console.error(error.message);
+      console.error(`❌ Failed to update user ${userId} payment status: ${error.name}`);
+    } else {
+      console.error(`❌ Failed to update user ${userId} payment status.`);
     }
-    console.error(`❌ Failed to update user ${userId} payment status.`);
     throw error;
   }
 }
