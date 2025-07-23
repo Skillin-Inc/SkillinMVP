@@ -126,7 +126,7 @@ app.post("/register", async (req: Request, res: Response) => {
 
 // Public routes (no authentication required)
 app.use("/categories", categoryRoutes);
-app.use("/courses", cognitoAuthMiddleware, courseRoutes);
+app.use("/courses", courseRoutes);
 app.use("/lessons", lessonRoutes);
 app.use("/messages", messageRoutes);
 app.use("/progress", progressRoutes);
