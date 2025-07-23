@@ -50,11 +50,10 @@ router.post("/", async (req: Request<object, unknown, NewProgress>, res: Respons
     const newProgress = await createProgress(progressData);
     res.status(201).json(newProgress);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
@@ -71,8 +70,11 @@ router.get("/user/:userId", async (req, res) => {
     const progress = await getProgressByUser(userId);
     res.json(progress);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -93,8 +95,11 @@ router.get("/:id", async (req, res) => {
     }
     res.json(progress);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -115,8 +120,11 @@ router.delete("/:id", async (req, res) => {
     }
     res.json({ success: true, message: "Progress deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -143,8 +151,11 @@ router.delete("/user/:userId/lesson/:lessonId", async (req, res) => {
     }
     res.json({ success: true, message: "Progress deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });

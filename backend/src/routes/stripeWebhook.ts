@@ -23,7 +23,6 @@ router.post(
         res.status(400).send(`Webhook Error: ${err.message}`);
         return;
       }
-      console.error("Unknown Webhook Error:", err);
       res.status(400).send("Unknown Webhook Error");
       return;
     }

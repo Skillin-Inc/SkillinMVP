@@ -87,7 +87,11 @@ io.on("connection", (socket) => {
         created_at: newMessage.created_at,
       });
     } catch (error) {
-      console.error("Error handling message:", error);
+      if (error instanceof Error) {
+        console.error("Error handling message:", error.message);
+      } else {
+        console.error("Error handling message");
+      }
       socket.emit("message_error", { error: "Failed to send message" });
     }
   });
@@ -113,11 +117,10 @@ app.post("/register", async (req: Request, res: Response) => {
     const newUser = await createUser(req.body);
     res.status(201).json(newUser);
   } catch (error: unknown) {
-    console.error("Registration error:", error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });

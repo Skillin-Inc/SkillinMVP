@@ -34,11 +34,10 @@ router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response)
     const newLesson = await createLesson(body);
     res.status(201).json(newLesson);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
   return;
@@ -49,8 +48,11 @@ router.get("/", async (req, res) => {
     const lessons = await getAllLessons();
     res.json(lessons);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -67,8 +69,11 @@ router.get("/teacher/:teacherId", async (req, res) => {
     const lessons = await getLessonsByTeacher(teacherId);
     res.json(lessons);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -85,8 +90,11 @@ router.get("/course/:courseId", async (req, res) => {
     const lessons = await getLessonsByCourse(courseId);
     res.json(lessons);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -107,8 +115,11 @@ router.get("/:id", async (req, res) => {
     }
     res.json(lesson);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -143,8 +154,11 @@ router.put("/:id", async (req, res) => {
     }
     res.json(updatedLesson);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error occurred" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
@@ -164,11 +178,10 @@ router.delete("/:id", async (req, res) => {
     }
     res.json({ success: true, message: "Lesson deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });

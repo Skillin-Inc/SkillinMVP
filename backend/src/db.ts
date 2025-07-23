@@ -24,7 +24,10 @@ async function initializePool(): Promise<Pool> {
 
     return pool;
   } catch (error) {
-    console.error("Failed to initialize database connection pool:", error);
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+    console.error("Failed to initialize database connection pool:");
     pool = null;
     throw error;
   }
@@ -636,8 +639,11 @@ export async function updateUserPaymentStatus(userId: string, isPaid: boolean) {
     await executeQuery("UPDATE users SET is_paid = $1 WHERE id = $2", [isPaid, userId]);
     console.log(`✅ Updated payment status for user ${userId} to ${isPaid}`);
   } catch (error) {
-    console.error(`❌ Failed to update user ${userId} payment status:`, error);
-    throw error; // Re-throw so calling code can handle it
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+    console.error(`❌ Failed to update user ${userId} payment status.`);
+    throw error;
   }
 }
 

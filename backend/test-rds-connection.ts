@@ -30,8 +30,12 @@ async function testRDSConnection(): Promise<void> {
 
     await pool.end();
   } catch (error) {
-    console.error("RDS Aurora connection test failed:");
-    console.error(error);
+    if (error instanceof Error) {
+      console.error("RDS Aurora connection test failed:", error.message);
+    } else {
+      console.error("RDS Aurora connection test failed");
+    }
+
     process.exit(1);
   }
 }

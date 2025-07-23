@@ -31,11 +31,10 @@ router.post("/", async (req: Request<object, unknown, NewCategory>, res: Respons
     const newCategory = await createCategory(categoryData);
     res.status(201).json(newCategory);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
@@ -45,8 +44,11 @@ router.get("/", async (req, res) => {
     const categories = await getAllCategories();
     res.json(categories);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
@@ -66,8 +68,11 @@ router.get("/:id", async (req, res) => {
     }
     res.json(category);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
@@ -96,11 +101,10 @@ router.put("/:id", async (req, res) => {
     }
     res.json(updatedCategory);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
@@ -121,8 +125,11 @@ router.delete("/:id", async (req, res) => {
     }
     res.json({ success: true, message: "Category deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 

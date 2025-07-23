@@ -36,11 +36,10 @@ router.post("/", async (req: Request<object, unknown, NewMessage>, res: Response
     const newMessage = await createMessage(body);
     res.status(201).json(newMessage);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
   return;
@@ -59,8 +58,11 @@ router.get("/between/:userId1/:userId2", async (req, res) => {
     const messages = await getMessagesBetweenUsers(userId1, userId2);
     res.json(messages);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -77,8 +79,11 @@ router.get("/conversations/:userId", async (req, res) => {
     const conversations = await getConversationsForUser(userId);
     res.json(conversations);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -96,8 +101,11 @@ router.put("/mark-read/:userId/:otherUserId", async (req, res) => {
     const result = await markMessagesAsRead(userId, otherUserId);
     res.json(result);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });

@@ -25,8 +25,11 @@ router.get("/", async (req, res) => {
     const users = await getAllUsers();
     res.json(users);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
@@ -45,8 +48,11 @@ router.get("/check-paid-status", async (req, res) => {
 
     res.json({ isPaid });
   } catch (err) {
-    console.error("Error checking paid status:", err);
-    res.status(500).json({ error: "Internal server error" });
+    if (err instanceof Error) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
@@ -126,8 +132,11 @@ router.post(
       // ADD COGNITO AUTH HERE
       res.status(401).json({ error: "Not implemented" });
     } catch (error: unknown) {
-      console.error(error);
-      res.status(500).json({ error: "Internal server error" });
+      if (error instanceof Error) {
+        res.status(500).json({ error: error.message });
+      } else {
+        res.status(500).json({ error: "Internal server error" });
+      }
     }
   }
 );
@@ -158,11 +167,10 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
     const newUser = await createUser(body);
     res.status(201).json(newUser);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
   return;

@@ -46,7 +46,7 @@ export function validateEnvironmentConfig(): void {
   }
 
   console.log(`   AWS Region: ${AWS_REGION}`);
-  console.log(`   RDS Secret: ${RDS_SECRET_NAME}`);
+  console.log("   RDS Secret: [HIDDEN]");
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -76,7 +76,7 @@ export async function getRDSSecret(): Promise<string> {
         await sleep(delay);
       }
 
-      console.log(`Retrieving RDS secret: ${RDS_SECRET_NAME} from region: ${AWS_REGION} (attempt ${attempt + 1})`);
+      console.log(`Retrieving RDS secret from region: ${AWS_REGION} (attempt ${attempt + 1})`);
 
       const command = new GetSecretValueCommand({
         SecretId: RDS_SECRET_NAME,
@@ -243,12 +243,15 @@ export async function getRDSConnectionString(): Promise<string> {
 
     return connectionString;
   } catch (error) {
-    console.error("Failed to get RDS connection string from AWS Secrets Manager:", error);
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
+    console.error("Failed to get RDS connection string from AWS Secrets Manager:");
 
     throw new Error(
       `Failed to get database connection string. AWS Secrets Manager failed: ${
         error instanceof Error ? error.message : String(error)
-      }. No DATABASE_URL fallback configured.`
+      }.`
     );
   }
 }

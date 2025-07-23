@@ -181,8 +181,10 @@ async function setupDatabase() {
       console.log(`   - ${user.userType}: ${user.email} (sub: ${user.sub})`);
     });
   } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    }
     console.error("Setup failed:");
-    console.error(error);
     process.exit(1);
   } finally {
     if (pool) {
