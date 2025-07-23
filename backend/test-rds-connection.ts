@@ -29,12 +29,8 @@ async function testRDSConnection(): Promise<void> {
     schemaTest.rows.forEach((row) => console.log(`     - ${row.table_name}`));
 
     await pool.end();
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("RDS Aurora connection test failed:", error.name);
-    } else {
-      console.error("RDS Aurora connection test failed");
-    }
+  } catch {
+    console.error("RDS Aurora connection test failed");
 
     process.exit(1);
   }

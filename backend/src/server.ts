@@ -86,12 +86,8 @@ io.on("connection", (socket) => {
         is_read: newMessage.is_read,
         created_at: newMessage.created_at,
       });
-    } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error handling message:", error.name);
-      } else {
-        console.error("Error handling message");
-      }
+    } catch {
+      console.error("Error handling message");
       socket.emit("message_error", { error: "Failed to send message" });
     }
   });

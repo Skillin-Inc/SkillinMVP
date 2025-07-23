@@ -34,12 +34,8 @@ async function logDB() {
         console.log("");
       }
     }
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Failed to connect to database:", error.name);
-    } else {
-      console.error("Failed to connect to database");
-    }
+  } catch {
+    console.error("Failed to connect to database");
     process.exit(1);
   } finally {
     if (pool) {

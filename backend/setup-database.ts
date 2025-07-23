@@ -180,12 +180,8 @@ async function setupDatabase() {
     createdUsers.forEach((user) => {
       console.log(`   - ${user.userType}: ${user.email} (sub: ${user.sub})`);
     });
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error("Setup failed:", error.name);
-    } else {
-      console.error("Setup failed");
-    }
+  } catch {
+    console.error("Setup failed");
     process.exit(1);
   } finally {
     if (pool) {
