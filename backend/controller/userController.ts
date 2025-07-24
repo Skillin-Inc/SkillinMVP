@@ -17,7 +17,7 @@ export const updateUserSubscriptionDetails = async (
   userId: string,
   stripeCustomerId: string,
   subscriptionStatus: string,
-  startDate: number,
+  startDate: number| null,
   endDate: number | null,
   cancelAtPeriodEnd: boolean
 ) => {
@@ -28,12 +28,17 @@ export const updateUserSubscriptionDetails = async (
          stripe_customer_id = $1,
          subscription_status = $2,
          subscription_start_date = to_timestamp($3),
-         subscription_end_date = ${endDate ? "to_timestamp($4)" : "NULL"},
+         subscription_end_date = to_timestamp($4),
          cancel_at_period_end = $5
        WHERE id = $6`,
-      endDate
-        ? [stripeCustomerId, subscriptionStatus, startDate, endDate, cancelAtPeriodEnd, userId]
-        : [stripeCustomerId, subscriptionStatus, startDate, cancelAtPeriodEnd, userId]
+      [
+        stripeCustomerId,
+        subscriptionStatus,
+        startDate,
+        endDate, 
+        cancelAtPeriodEnd,
+        userId,
+      ]
     );
 
     console.log(`✅ Updated subscription for user ${userId}`);
@@ -41,3 +46,4 @@ export const updateUserSubscriptionDetails = async (
     console.error(`❌ Failed to update subscription for user ${userId}:`, error);
   }
 };
+

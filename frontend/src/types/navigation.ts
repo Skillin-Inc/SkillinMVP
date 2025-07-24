@@ -35,6 +35,7 @@ export type StudentStackParamList = {
   Chat: { id: string };
   StudentSubscription: undefined;
   EditProfile: undefined;
+  Success: undefined;
 };
 
 export type TeacherStackParamList = {

@@ -31,6 +31,7 @@ router.post(
       res.status(400).send("Unknown Webhook Error");
       return;
     }
+    console.log("!!! Received Stripe webhook event.type:", event.type);
 
     switch (event.type) {
   case "checkout.session.completed":
@@ -47,34 +48,51 @@ router.post(
     break;
   }
 
-  case "customer.subscription.created":
-  case "customer.subscription.updated":
-  case "customer.subscription.deleted": {
-    const subscription = event.data.object as Stripe.Subscription;
-    const userId = subscription.metadata?.userId;
-    const customerId = subscription.customer?.toString() ?? "";
-    const status = subscription.status;
-    const startDate = subscription.start_date;
-    const endDate = subscription.cancel_at ?? null;
-    const cancelAtPeriodEnd = subscription.cancel_at_period_end;
+case "customer.subscription.created":
+case "customer.subscription.updated":
+case "customer.subscription.deleted": {
+  const subscription = event.data.object as Stripe.Subscription;
+  const userId = subscription.metadata?.userId;
+  const stripeCustomerId = subscription.customer?.toString() ?? "";
+  let subscriptionStatus: string = subscription.status;
+  const startDate = subscription.start_date ?? null;
+  const endDate = (subscription as any).current_period_end ?? null;
+  const cancelAtPeriodEnd = subscription.cancel_at_period_end;
+  const now = Math.floor(Date.now() / 1000);
 
-    if (userId) {
-      // update is_paid status
-      updateUserPaymentStatus(userId, status === "active");
+  let isPaid = false;
 
-      // update complete info
-      updateUserSubscriptionDetails(
-        userId,
-        customerId,
-        status,
-        startDate,
-        endDate,
-        cancelAtPeriodEnd
-      );
-    }
-
-    break;
+  if (
+    subscriptionStatus === "active" &&
+    cancelAtPeriodEnd &&
+    endDate &&
+    now > endDate
+  ) {
+    // exceeds endDate，turns inactive，isPaid = false
+    subscriptionStatus = "inactive";
+    isPaid = false;
+  } else if (subscriptionStatus === "active") {
+    isPaid = true;
+  } else {
+    isPaid = false;
+    subscriptionStatus = "inactive";
   }
+
+  if (userId) {
+    await updateUserPaymentStatus(userId, isPaid);
+
+    await updateUserSubscriptionDetails(
+      userId,
+      stripeCustomerId,
+      subscriptionStatus,   
+      startDate,
+      endDate,
+      cancelAtPeriodEnd
+    );
+  }
+  break;
+}
+
 
   default: {
     console.log(`Unhandled event type: ${event.type}`);

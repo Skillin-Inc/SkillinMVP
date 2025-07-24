@@ -109,11 +109,14 @@ router.post("/create-checkout-session", async (req: Request, res: Response) => {
       customer: customer.id,
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID!, // Your Stripe price/product ID from .env
+          price: process.env.STRIPE_PRICE_ID!, // Stripe price/product ID from .env
           quantity: 1,
         },
       ],
       metadata: { userId },
+       subscription_data: {
+    metadata: { userId }, 
+  },
       success_url: `${process.env.FRONTEND_URL}/success`, // Redirect after payment
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,   // Redirect if canceled
     });
