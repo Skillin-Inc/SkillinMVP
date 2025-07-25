@@ -18,7 +18,7 @@ router.post("/", async (req: Request, res: Response) => {
     headers.append("Tus-Resumable", "1.0.0");
 
     //Testing purposes
-    headers.append("Upload-Length", "1");
+    headers.append("Upload-Length");
 
     headers.append("Upload-Metadata", metadata);
 
