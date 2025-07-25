@@ -150,10 +150,9 @@ app.use("/api", stripeRoutes);
 // Protected routes (require Cognito authentication)
 // i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
-app.use("/", )
 app.use("/api", stripeRoutes);
-app.use("/videoUpload", videoUploadRoutes)
-app.use('/videoStream', videoStreamRoutes);
+app.use("/videoUpload", videoUploadRoutes);
+app.use("/videoStream", videoStreamRoutes);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
