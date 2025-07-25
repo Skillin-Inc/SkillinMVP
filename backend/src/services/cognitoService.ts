@@ -12,7 +12,8 @@ import "dotenv/config";
 
 const COGNITO_CONFIG = {
   region: process.env.AWS_REGION || "us-east-2",
-  userPoolId: process.env.COGNITO_USER_POOL_ID || "us-east-2_ce7KAadKf",
+  userPoolId: process.env.COGNITO_USER_POOL_ID || "us-east-2_BNd40QYUH",
+  clientId: process.env.COGNITO_CLIENT_ID || "4c40i6g29b45emna6k7st0dnfv",
 };
 
 const cognitoClient = new CognitoIdentityProviderClient({
@@ -79,24 +80,17 @@ export async function createUser(userData: CognitoUserData): Promise<CreatedCogn
   try {
     const createUserCommand = new AdminCreateUserCommand({
       UserPoolId: COGNITO_CONFIG.userPoolId,
-      Username: userData.username,
+      Username: userData.email, // Use email as username
       UserAttributes: [
         {
           Name: "email",
           Value: userData.email,
         },
         {
-          Name: "given_name",
-          Value: userData.firstName,
-        },
-        {
-          Name: "family_name",
-          Value: userData.lastName,
-        },
-        {
           Name: "email_verified",
           Value: "true",
         },
+        // Remove all other attributes - they'll be stored in your database
       ],
       TemporaryPassword: userData.password,
       MessageAction: MessageActionType.SUPPRESS,
@@ -106,16 +100,16 @@ export async function createUser(userData: CognitoUserData): Promise<CreatedCogn
 
     const setPasswordCommand = new AdminSetUserPasswordCommand({
       UserPoolId: COGNITO_CONFIG.userPoolId,
-      Username: userData.username,
+      Username: userData.email, // Use email as username
       Password: userData.password,
-      Permanent: true, // perm password?
+      Permanent: true,
     });
 
     await cognitoClient.send(setPasswordCommand);
 
     const getUserCommand = new AdminGetUserCommand({
       UserPoolId: COGNITO_CONFIG.userPoolId,
-      Username: userData.username,
+      Username: userData.email, // Use email as username
     });
 
     const userResponse = await cognitoClient.send(getUserCommand);
@@ -175,6 +169,10 @@ export function validateCognitoConfig(): void {
     issues.push("COGNITO_USER_POOL_ID is not configured");
   }
 
+  if (!COGNITO_CONFIG.clientId) {
+    issues.push("COGNITO_CLIENT_ID is not configured");
+  }
+
   if (issues.length > 0) {
     const errorMessage = `Cognito configuration validation failed:\n${issues
       .map((issue) => `  - ${issue}`)
@@ -185,4 +183,5 @@ export function validateCognitoConfig(): void {
 
   console.log(`   AWS Region: ${COGNITO_CONFIG.region}`);
   console.log(`   User Pool ID: ${COGNITO_CONFIG.userPoolId}`);
+  console.log(`   Client ID: ${COGNITO_CONFIG.clientId}`);
 }

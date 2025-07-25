@@ -12,14 +12,12 @@ const userPool = new CognitoUserPool({
   ClientId: COGNITO_CONFIG.ClientId,
 });
 
-export const signUp = (email: string, password: string, firstName?: string, lastName?: string): Promise<void> => {
+// Simplified signUp - only email attribute
+export const signUp = (email: string, password: string): Promise<void> => {
   return new Promise((resolve, reject) => {
-    const attributes = [
-      new CognitoUserAttribute({ Name: "email", Value: email }),
-      ...(firstName ? [new CognitoUserAttribute({ Name: "given_name", Value: firstName })] : []),
-      ...(lastName ? [new CognitoUserAttribute({ Name: "family_name", Value: lastName })] : []),
-    ];
+    const attributes = [new CognitoUserAttribute({ Name: "email", Value: email })];
 
+    // Use email as username
     userPool.signUp(email, password, attributes, [], (err) => {
       if (err) return reject(err);
       resolve();

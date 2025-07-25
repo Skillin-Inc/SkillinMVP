@@ -95,47 +95,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           if (session && session.isValid()) {
-            // Get user attributes from Cognito
-            const attributes = await new Promise<CognitoUserAttribute[]>((resolve, reject) => {
-              currentUser.getUserAttributes((err, attributes) => {
-                if (err) reject(err);
-                else resolve(attributes || []);
-              });
-            });
+            // Get Cognito sub ID from token
+            const cognitoUserSub = session.getIdToken().payload.sub;
 
-            if (attributes) {
-              const userData: Record<string, string> = attributes.reduce((acc, attr) => {
-                acc[attr.getName()] = attr.getValue();
-                return acc;
-              }, {} as Record<string, string>);
-
-              // ✅ ADD: Fetch user data from your backend to get the correct user_type
-              const cognitoUserSub = userData.sub || currentUser.getUsername();
-
-              // Fetch user data from your backend
-              let backendUserData = null;
-              try {
-                backendUserData = await api.getUserById(cognitoUserSub);
-              } catch (error) {
-                console.warn("Error fetching user data from backend:", error);
-              }
-
-              // Use backend data if available, otherwise fall back to Cognito data
-              const user: User = {
-                id: cognitoUserSub,
-                firstName: backendUserData?.first_name || "",
-                lastName: backendUserData?.last_name || "",
-                email: backendUserData?.email || "",
-                phoneNumber: backendUserData?.phone_number || "",
-                username: backendUserData?.username || "",
-                createdAt: backendUserData?.created_at || new Date().toISOString(),
-                userType: backendUserData?.user_type || "student",
-                cognitoUser: currentUser,
-              };
-
-              setUser(user);
-              setIsLoggedIn(true);
+            // Fetch user data from backend (source of truth)
+            let backendUserData = null;
+            try {
+              backendUserData = await api.getUserById(cognitoUserSub);
+            } catch (error) {
+              console.warn("Error fetching user data from backend:", error);
+              // If we can't get backend data, log them out
+              logout();
+              return;
             }
+
+            const user: User = {
+              id: cognitoUserSub,
+              firstName: backendUserData.first_name || "",
+              lastName: backendUserData.last_name || "",
+              email: backendUserData.email || "",
+              phoneNumber: backendUserData.phone_number || "",
+              username: backendUserData.username || backendUserData.email,
+              createdAt: backendUserData.created_at || new Date().toISOString(),
+              userType: backendUserData.user_type || "student",
+              cognitoUser: currentUser,
+            };
+
+            setUser(user);
+            setIsLoggedIn(true);
           }
         }
       } catch (error) {
@@ -151,79 +138,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (loginData: LoginData): Promise<User> => {
     return new Promise((resolve, reject) => {
       const authDetails = new AuthenticationDetails({
-        Username: loginData.emailOrPhone,
+        Username: loginData.emailOrPhone, // This should be email now
         Password: loginData.password,
       });
 
       const cognitoUser = new CognitoUser({
-        Username: loginData.emailOrPhone,
+        Username: loginData.emailOrPhone, // This should be email now
         Pool: userPool,
       });
 
       cognitoUser.authenticateUser(authDetails, {
         onSuccess: async (session: CognitoUserSession) => {
           try {
-            // Get user attributes from Cognito
-            const attributes = await new Promise<CognitoUserAttribute[]>((resolve, reject) => {
-              cognitoUser.getUserAttributes((err, attributes) => {
-                if (err) reject(err);
-                else resolve(attributes || []);
+            // Get the Cognito sub ID from the token
+            const cognitoUserSub = session.getIdToken().payload.sub;
+            const idToken = session.getIdToken().getJwtToken();
+
+            // Fetch user data from your backend (this is now the source of truth)
+            let backendUserData = null;
+            try {
+              const backendResponse = await fetch(`${API_CONFIG.BASE_URL}/users/${cognitoUserSub}`, {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${idToken}`,
+                },
               });
-            });
 
-            if (attributes) {
-              const userData: Record<string, string> = attributes.reduce((acc, attr) => {
-                acc[attr.getName()] = attr.getValue();
-                return acc;
-              }, {} as Record<string, string>);
-
-              // ✅ ADD: Fetch user data from your backend to get the correct user_type
-              const cognitoUserSub = userData.sub || cognitoUser.getUsername();
-
-              // Get the JWT token for authenticated requests
-              const idToken = session.getIdToken().getJwtToken();
-
-              // Fetch user data from your backend
-              let backendUserData = null;
-              try {
-                const backendResponse = await fetch(`${API_CONFIG.BASE_URL}/users/${cognitoUserSub}`, {
-                  method: "GET",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${idToken}`,
-                  },
-                });
-
-                if (backendResponse.ok) {
-                  backendUserData = await backendResponse.json();
-                } else {
-                  console.warn("Could not fetch user data from backend, using Cognito data only");
-                }
-              } catch (error) {
-                console.warn("Error fetching user data from backend:", error);
+              if (backendResponse.ok) {
+                backendUserData = await backendResponse.json();
+              } else {
+                throw new Error("Could not fetch user data from backend");
               }
-
-              // Use backend data if available, otherwise fall back to Cognito data
-              const user: User = {
-                id: cognitoUserSub,
-                firstName: backendUserData?.first_name || userData.given_name || userData.first_name || "",
-                lastName: backendUserData?.last_name || userData.family_name || userData.last_name || "",
-                email: backendUserData?.email || userData.email || cognitoUser.getUsername(),
-                phoneNumber: backendUserData?.phone_number || userData.phone_number,
-                username:
-                  backendUserData?.username ||
-                  userData.preferred_username ||
-                  userData.email ||
-                  cognitoUser.getUsername(),
-                createdAt: backendUserData?.created_at || userData.created_at || new Date().toISOString(),
-                userType: backendUserData?.user_type || "student", // ✅ Use the user_type from your database
-                cognitoUser: cognitoUser,
-              };
-
-              setUser(user);
-              setIsLoggedIn(true);
-              resolve(user);
+            } catch (error) {
+              console.error("Error fetching user data from backend:", error);
+              reject(error);
+              return;
             }
+
+            // Use backend data as the source of truth
+            const user: User = {
+              id: cognitoUserSub,
+              firstName: backendUserData.first_name || "",
+              lastName: backendUserData.last_name || "",
+              email: backendUserData.email || loginData.emailOrPhone,
+              phoneNumber: backendUserData.phone_number || "",
+              username: backendUserData.username || backendUserData.email,
+              createdAt: backendUserData.created_at || new Date().toISOString(),
+              userType: backendUserData.user_type || "student",
+              cognitoUser: cognitoUser,
+            };
+
+            setUser(user);
+            setIsLoggedIn(true);
+            resolve(user);
           } catch (error) {
             reject(error);
           }
@@ -237,19 +205,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (registerData: RegisterData): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const attributeList = [
-        new CognitoUserAttribute({ Name: "email", Value: registerData.email }),
-        new CognitoUserAttribute({ Name: "given_name", Value: registerData.firstName }),
-        new CognitoUserAttribute({ Name: "family_name", Value: registerData.lastName }),
-        new CognitoUserAttribute({ Name: "preferred_username", Value: registerData.username }),
-        ...(registerData.phoneNumber
-          ? [new CognitoUserAttribute({ Name: "phone_number", Value: registerData.phoneNumber })]
-          : []),
-        ...(registerData.userType
-          ? [new CognitoUserAttribute({ Name: "custom:user_type", Value: registerData.userType })]
-          : []),
-      ];
+      // Only set email attribute - remove all others
+      const attributeList = [new CognitoUserAttribute({ Name: "email", Value: registerData.email })];
 
+      // Use email as username since sign-in identifier is email
       userPool.signUp(registerData.email, registerData.password, attributeList, [], (err) => {
         if (err) {
           reject(err);
