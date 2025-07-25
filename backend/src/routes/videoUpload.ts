@@ -1,6 +1,4 @@
 import { Router, Request, Response } from "express";
-import Cloudflare from "cloudflare";
-import { DirectUploadCreateResponse } from "cloudflare/resources/stream/direct-upload";
 
 const router = Router();
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
