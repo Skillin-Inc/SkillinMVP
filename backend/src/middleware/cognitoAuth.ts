@@ -2,11 +2,11 @@ import jwt, { JwtHeader } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { Request, Response, NextFunction } from "express";
 
-// Cognito configuration
+// Cognito configuration - should match your new user pool
 const COGNITO_CONFIG = {
-  region: "us-east-2",
-  userPoolId: "us-east-2_ce7KAadKf",
-  clientId: "5hqpvuhen3vutlbe21l20pvf8k",
+  region: process.env.AWS_REGION || "us-east-2",
+  userPoolId: process.env.COGNITO_USER_POOL_ID || "us-east-2_ce7KAadKf",
+  clientId: process.env.COGNITO_CLIENT_ID || "5hqpvuhen3vutlbe21l20pvf8k",
 };
 
 // JWKS client for Cognito public keys
@@ -24,13 +24,11 @@ function getKey(header: JwtHeader, callback: (err: Error | null, key?: string) =
   });
 }
 
-// Define the decoded token structure
+// Updated interface - remove optional attributes
 interface DecodedToken {
   sub: string;
   email: string;
   "cognito:username": string;
-  given_name?: string;
-  family_name?: string;
   [key: string]: unknown;
 }
 
@@ -69,13 +67,15 @@ export async function cognitoAuthMiddleware(req: Request, res: Response, next: N
 
   try {
     const decoded = await verifyCognitoToken(token);
+
+    // Only set basic info from token - get the rest from database
     req.user = {
       sub: decoded.sub,
       email: decoded.email,
-      username: decoded["cognito:username"],
-      userType: "student",
-      firstName: decoded.given_name || "",
-      lastName: decoded.family_name || "",
+      username: decoded["cognito:username"] || decoded.email,
+      userType: "student", // Default - should be overridden by database lookup if needed
+      firstName: "", // Will be empty - get from database if needed
+      lastName: "", // Will be empty - get from database if needed
     };
     next();
   } catch (err) {

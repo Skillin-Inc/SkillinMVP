@@ -13,15 +13,15 @@ import "dotenv/config";
 
 const DEMO_USERS: CognitoUserData[] = [
   {
-    username: "student@email.com",
+    username: "student@email.com", // This will be ignored, email will be used
     email: "student@email.com",
-    firstName: "Demo",
-    lastName: "Student",
+    firstName: "Demo", // This will only be stored in your database
+    lastName: "Student", // This will only be stored in your database
     password: "Pass123!",
-    userType: "student",
+    userType: "student", // This will only be stored in your database
   },
   {
-    username: "teacher@email.com",
+    username: "teacher@email.com", // This will be ignored, email will be used
     email: "teacher@email.com",
     firstName: "Demo",
     lastName: "Teacher",
@@ -29,7 +29,7 @@ const DEMO_USERS: CognitoUserData[] = [
     userType: "teacher",
   },
   {
-    username: "admin@email.com",
+    username: "admin@email.com", // This will be ignored, email will be used
     email: "admin@email.com",
     firstName: "Demo",
     lastName: "Admin",
