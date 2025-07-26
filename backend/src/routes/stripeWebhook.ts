@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import Stripe from "stripe";
 import bodyParser from "body-parser";
-import { updateUserPaymentStatus } from "../db";
+import { updateUserPaymentStatus } from "../db/";
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

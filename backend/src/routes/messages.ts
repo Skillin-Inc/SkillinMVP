@@ -1,6 +1,12 @@
 // src/routes/messages.ts
 import { Router, Request, Response } from "express";
-import { createMessage, NewMessage, getMessagesBetweenUsers, getConversationsForUser, markMessagesAsRead } from "../db";
+import {
+  createMessage,
+  NewMessage,
+  getMessagesBetweenUsers,
+  getConversationsForUser,
+  markMessagesAsRead,
+} from "../db/";
 import { isValidId } from "../utils";
 
 const router = Router();

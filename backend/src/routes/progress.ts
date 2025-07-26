@@ -7,7 +7,7 @@ import {
   getProgressByUserAndLesson,
   deleteProgress,
   deleteProgressByUserAndLesson,
-} from "../db";
+} from "../db/";
 import { isValidId } from "../utils";
 
 const router = Router();

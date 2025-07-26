@@ -14,7 +14,7 @@ import {
   updateUserProfile,
   UpdateUserProfileData,
   checkUsernameAvailability,
-} from "../db";
+} from "../db/";
 import rateLimit from "express-rate-limit";
 import { isValidId } from "../utils";
 

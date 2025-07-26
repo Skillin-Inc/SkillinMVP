@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", async (data: { sender_id: string; receiver_id: string; content: string }) => {
     try {
-      const { createMessage } = await import("./db");
+      const { createMessage } = await import("./db/");
       const newMessage = await createMessage({
         sender_id: data.sender_id,
         receiver_id: data.receiver_id,
