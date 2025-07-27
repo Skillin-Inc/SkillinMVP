@@ -8,10 +8,7 @@ import {
   MessageActionType,
   UserType,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { cognitoConfig, validateCognitoConfig } from "../config/cognitoConfig";
-
-// Re-export for backward compatibility
-export { validateCognitoConfig };
+import { cognitoConfig } from "../config/environment";
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region: cognitoConfig.region,

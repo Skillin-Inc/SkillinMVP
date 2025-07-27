@@ -1,9 +1,10 @@
 import express, { Request, Response } from "express";
 import Stripe from "stripe";
+import { stripeConfig } from "../config/environment";
 
 const router = express.Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(stripeConfig.secretKey, {
   apiVersion: "2025-06-30.basil",
 });
 
@@ -37,30 +38,29 @@ const createBillingPortalSession = async (
 
     const session = await stripe.billingPortal.sessions.create({
       customer: customer.id,
-      return_url: "https://your-app.com/settings",  //todo
+      return_url: "https://your-app.com/settings", //todo
     });
 
     res.json({ url: session.url });
     console.log("✅ Created portal session:", session.url);
   } catch (error: unknown) {
-  console.error("❌ Error creating billing portal session:");
+    console.error("❌ Error creating billing portal session:");
 
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "raw" in error &&
-    typeof (error as { raw: unknown }).raw === "object"
-  ) {
-    console.error("Stripe error:", (error as { raw: unknown }).raw);
-  } else if (error instanceof Error) {
-    console.error("General error:", error.message);
-  } else {
-    console.error("Unknown error:", error);
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "raw" in error &&
+      typeof (error as { raw: unknown }).raw === "object"
+    ) {
+      console.error("Stripe error:", (error as { raw: unknown }).raw);
+    } else if (error instanceof Error) {
+      console.error("General error:", error.message);
+    } else {
+      console.error("Unknown error:", error);
+    }
+
+    res.status(500).json({ error: "Unable to create billing portal session" });
   }
-
-  res.status(500).json({ error: "Unable to create billing portal session" });
-}
-
 };
 
 router.post("/create-billing-portal-session", createBillingPortalSession);

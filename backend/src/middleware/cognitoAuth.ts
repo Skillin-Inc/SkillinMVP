@@ -1,7 +1,7 @@
 import jwt, { JwtHeader } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { Request, Response, NextFunction } from "express";
-import { cognitoConfig } from "../config/cognitoConfig";
+import { cognitoConfig } from "../config/environment";
 
 // JWKS client for Cognito public keys
 const client = jwksClient({
