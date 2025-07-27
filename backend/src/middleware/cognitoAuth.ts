@@ -1,17 +1,11 @@
 import jwt, { JwtHeader } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 import { Request, Response, NextFunction } from "express";
-
-// Cognito configuration - should match your new user pool
-const COGNITO_CONFIG = {
-  region: process.env.AWS_REGION || "us-east-2",
-  userPoolId: process.env.COGNITO_USER_POOL_ID || "us-east-2_ce7KAadKf",
-  clientId: process.env.COGNITO_CLIENT_ID || "5hqpvuhen3vutlbe21l20pvf8k",
-};
+import { cognitoConfig } from "../config/cognitoConfig";
 
 // JWKS client for Cognito public keys
 const client = jwksClient({
-  jwksUri: `https://cognito-idp.${COGNITO_CONFIG.region}.amazonaws.com/${COGNITO_CONFIG.userPoolId}/.well-known/jwks.json`,
+  jwksUri: `https://cognito-idp.${cognitoConfig.region}.amazonaws.com/${cognitoConfig.userPoolId}/.well-known/jwks.json`,
 });
 
 // Get the signing key
@@ -39,8 +33,8 @@ export function verifyCognitoToken(token: string): Promise<DecodedToken> {
       token,
       getKey,
       {
-        audience: COGNITO_CONFIG.clientId,
-        issuer: `https://cognito-idp.${COGNITO_CONFIG.region}.amazonaws.com/${COGNITO_CONFIG.userPoolId}`,
+        audience: cognitoConfig.clientId,
+        issuer: `https://cognito-idp.${cognitoConfig.region}.amazonaws.com/${cognitoConfig.userPoolId}`,
         algorithms: ["RS256"],
       },
       (err, decoded) => {
