@@ -8,10 +8,11 @@ import {
   MessageActionType,
   UserType,
 } from "@aws-sdk/client-cognito-identity-provider";
-import { cognitoConfig } from "../config/environment";
+import { cognitoConfig, awsConfig } from "../config/environment";
 
 const cognitoClient = new CognitoIdentityProviderClient({
   region: cognitoConfig.region,
+  credentials: awsConfig.credentials,
 });
 
 export interface CognitoUserData {

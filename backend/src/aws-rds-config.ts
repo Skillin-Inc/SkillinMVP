@@ -11,6 +11,7 @@ const RDS_ENGINE = databaseConfig.engine;
 
 export const secretsManagerClient = new SecretsManagerClient({
   region: AWS_REGION,
+  credentials: awsConfig.credentials,
 });
 
 export const rdsConfig = {

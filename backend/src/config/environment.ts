@@ -8,6 +8,8 @@ const environmentSchema = z.object({
 
   // aws
   AWS_REGION: z.string().default("us-east-2"),
+  AWS_ACCESS_KEY_ID: z.string().min(1, "AWS Access Key ID is required"),
+  AWS_SECRET_ACCESS_KEY: z.string().min(1, "AWS Secret Access Key is required"),
 
   // cognito
   COGNITO_USER_POOL_ID: z.string().default("us-east-2_BNd40QYUH"),
@@ -49,6 +51,10 @@ export const serverConfig = {
 
 export const awsConfig = {
   region: config.AWS_REGION,
+  credentials: {
+    accessKeyId: config.AWS_ACCESS_KEY_ID,
+    secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
+  },
 };
 
 export const cognitoConfig = {
