@@ -7,7 +7,6 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "setup-db": "ts-node setup-database.ts",
-    "test-rds": "ts-node test-rds-connection.ts",
     "log-db": "ts-node log-db.ts"
   },
   "keywords": [],
@@ -17,7 +16,6 @@
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.844.0",
     "@aws-sdk/client-secrets-manager": "^3.844.0",
-    "@sendgrid/mail": "^8.1.5",
     "axios": "^1.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -27,7 +25,8 @@
     "jwks-rsa": "^3.2.0",
     "pg": "^8.11.1",
     "socket.io": "^4.8.1",
-    "stripe": "^18.3.0"
+    "stripe": "^18.3.0",
+    "zod": "^4.0.10"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

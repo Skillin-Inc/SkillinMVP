@@ -1,7 +1,7 @@
 // src/server.ts
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
-import "dotenv/config";
+import { serverConfig } from "./config/environment";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
@@ -12,7 +12,7 @@ import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import progressRoutes from "./routes/progress";
-import sendEmailRoutes from "./routes/sendEmail";
+
 import lessonRoutes from "./routes/lessons";
 
 // Import Cognito auth middleware
@@ -23,19 +23,19 @@ const app: Express = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:8081",
+    origin: serverConfig.frontendUrl,
     methods: ["GET", "POST"],
   },
 });
 
-const port = process.env.PORT || 4040;
+const port = serverConfig.port;
 
 const userSockets = new Map<string, string>();
 
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:8081",
+    origin: serverConfig.frontendUrl,
     credentials: true,
   })
 );
@@ -59,7 +59,7 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", async (data: { sender_id: string; receiver_id: string; content: string }) => {
     try {
-      const { createMessage } = await import("./db");
+      const { createMessage } = await import("./db/");
       const newMessage = await createMessage({
         sender_id: data.sender_id,
         receiver_id: data.receiver_id,
@@ -104,7 +104,6 @@ io.on("connection", (socket) => {
 });
 
 // Public routes (no authentication required)
-app.use("/send-email", sendEmailRoutes);
 
 // Public registration endpoint (no authentication required)
 app.post("/register", async (req: Request, res: Response) => {

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory, NewCategory } from "../db";
+import { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory, NewCategory } from "../db/";
 import { isValidId } from "../utils";
 
 const router = Router();

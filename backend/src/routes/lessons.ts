@@ -8,7 +8,7 @@ import {
   getLessonsByCourse,
   updateLesson,
   deleteLesson,
-} from "../db";
+} from "../db/";
 import { isValidId } from "../utils";
 
 const router = Router();

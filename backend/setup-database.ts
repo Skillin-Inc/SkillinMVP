@@ -2,12 +2,7 @@ import { Pool } from "pg";
 import fs from "fs";
 import path from "path";
 import { getRDSConnectionString } from "./src/aws-rds-config";
-import {
-  resetUserPool,
-  validateCognitoConfig,
-  CognitoUserData,
-  CreatedCognitoUser,
-} from "./src/services/cognitoService";
+import { resetUserPool, CognitoUserData, CreatedCognitoUser } from "./src/services/cognitoService";
 
 import "dotenv/config";
 
@@ -156,8 +151,6 @@ async function setupDatabase() {
   let pool: Pool | null = null;
 
   try {
-    validateCognitoConfig();
-
     const connectionString = await getRDSConnectionString();
 
     pool = new Pool({

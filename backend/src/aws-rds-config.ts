@@ -1,16 +1,17 @@
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import "dotenv/config";
+import { awsConfig, databaseConfig } from "./config/environment";
 
-const AWS_REGION = process.env.AWS_REGION || "us-east-2";
-const RDS_SECRET_NAME = process.env.RDS_SECRET_NAME || "rds!cluster-d1aab255-8b30-49d0-a107-f2cc5e0c5cc6";
+const AWS_REGION = awsConfig.region;
+const RDS_SECRET_NAME = databaseConfig.secretName;
 
-const RDS_HOST = process.env.RDS_HOST;
-const RDS_PORT = process.env.RDS_PORT ? parseInt(process.env.RDS_PORT) : 5432;
-const RDS_DATABASE = process.env.RDS_DATABASE || "postgres";
-const RDS_ENGINE = process.env.RDS_ENGINE || "postgres";
+const RDS_HOST = databaseConfig.host;
+const RDS_PORT = databaseConfig.port;
+const RDS_DATABASE = databaseConfig.database;
+const RDS_ENGINE = databaseConfig.engine;
 
 export const secretsManagerClient = new SecretsManagerClient({
   region: AWS_REGION,
+  credentials: awsConfig.credentials,
 });
 
 export const rdsConfig = {
