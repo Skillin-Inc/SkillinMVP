@@ -15,7 +15,7 @@ import {
   UpdateUserProfileData,
   checkUsernameAvailability,
 } from "../db/";
-import rateLimit from "express-rate-limit";
+
 import { isValidId } from "../utils";
 
 const router = Router();
@@ -110,36 +110,6 @@ router.get("/by-email/:email", async (req, res) => {
   res.json(user);
   return;
 });
-
-const loginRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: "Too many login attempts from this IP, please try again later.",
-});
-
-router.post(
-  "/login",
-  loginRateLimiter,
-  async (req: Request<object, unknown, { emailOrPhone: string; password: string }>, res: Response): Promise<void> => {
-    const { emailOrPhone, password } = req.body;
-
-    if (!emailOrPhone || !password) {
-      res.status(400).json({ error: "Email/phone and password are required" });
-      return;
-    }
-
-    try {
-      // ADD COGNITO AUTH HERE
-      res.status(401).json({ error: "Not implemented" });
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: "Internal server error" });
-      }
-    }
-  }
-);
 
 router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
   const body = req.body;

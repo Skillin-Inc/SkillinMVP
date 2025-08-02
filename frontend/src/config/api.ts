@@ -4,7 +4,6 @@ export const API_CONFIG = {
   ENDPOINTS: {
     USERS: "/users",
     REGISTER: "/register",
-    LOGIN: "/users/login",
     MESSAGES: "/messages",
     LESSONS: "/lessons",
     COURSES: "/courses",

@@ -9,11 +9,6 @@ export interface RegisterData {
   userType?: "student" | "teacher" | "admin";
 }
 
-export interface LoginData {
-  emailOrPhone: string;
-  password: string;
-}
-
 export interface User {
   id: string;
   firstName: string;
@@ -52,11 +47,6 @@ export interface UpdateUserProfileData {
   phoneNumber?: string;
   dateOfBirth?: string;
   username?: string;
-}
-
-export interface LoginResponse {
-  success: boolean;
-  user: User;
 }
 
 export interface BackendMessage {

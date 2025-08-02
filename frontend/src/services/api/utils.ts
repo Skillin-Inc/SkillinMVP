@@ -1,12 +1,10 @@
 import { API_CONFIG } from "../../config/api";
 import { BackendUser, User } from "./types";
 import { CognitoUserSession } from "amazon-cognito-identity-js";
+import { userPool } from "../../config/userPool";
 
-// Helper to get auth token if available, otherwise undefined
 const getAuthToken = async (): Promise<string | undefined> => {
   try {
-    // Dynamically import userPool to avoid circular dependency
-    const { userPool } = await import("../../hooks/AuthContext");
     const currentUser = userPool.getCurrentUser();
     if (currentUser) {
       const session = await new Promise<CognitoUserSession>((resolve, reject) => {
@@ -21,12 +19,10 @@ const getAuthToken = async (): Promise<string | undefined> => {
       }
     }
   } catch {
-    // Ignore error, just return undefined
+    return undefined;
   }
-  return undefined;
 };
 
-// Make request, only add Authorization header if token is available
 export const makeRequest = async <T>(endpoint: string, options: RequestInit = {}, requireAuth = false): Promise<T> => {
   const url = `${API_CONFIG.BASE_URL}${endpoint}`;
   const baseHeaders: Record<string, string> = { "Content-Type": "application/json" };

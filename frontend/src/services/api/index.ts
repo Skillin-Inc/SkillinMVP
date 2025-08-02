@@ -17,7 +17,6 @@ import * as categories from "./categories";
 export const api = {
   // User methods
   register: users.register,
-  login: users.login,
   getUserById: users.getUserById,
   getAllUsers: users.getAllUsers,
   deleteUser: users.deleteUser,

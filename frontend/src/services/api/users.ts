@@ -1,5 +1,5 @@
 import { API_CONFIG } from "../../config/api";
-import { RegisterData, LoginData, User, BackendUser, UpdateUserProfileData, LoginResponse } from "./types";
+import { RegisterData, User, BackendUser, UpdateUserProfileData } from "./types";
 import { makeRequest, transformBackendUserToUser } from "./utils";
 
 export const register = async (userData: RegisterData): Promise<User> => {
@@ -12,22 +12,6 @@ export const register = async (userData: RegisterData): Promise<User> => {
     true
   );
   return transformBackendUserToUser(backendUser);
-};
-
-export const login = async (loginData: LoginData): Promise<LoginResponse> => {
-  const response = await makeRequest<{ success: boolean; user: BackendUser }>(
-    API_CONFIG.ENDPOINTS.LOGIN,
-    {
-      method: "POST",
-      body: JSON.stringify(loginData),
-    },
-    true
-  );
-
-  return {
-    success: response.success,
-    user: transformBackendUserToUser(response.user),
-  };
 };
 
 export const getUserById = async (id: string): Promise<BackendUser> => {
