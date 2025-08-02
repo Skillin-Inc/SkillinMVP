@@ -13,6 +13,19 @@ export const updateUserPaymentStatus = async (userId: string, isPaid: boolean) =
   }
 };
 
+export const updateFreeUserStatus = async (userId: string, isFree: boolean) => {
+  try {
+    await pool.query(
+      "UPDATE users SET is_free = $1 WHERE id = $2",
+      [isFree, userId]
+    );
+    console.log(`✅ Updated free status for user ${userId} to ${isFree}`);
+  } catch (error) {
+    console.error(`❌ Failed to update user ${userId} free status:`, error);
+  }
+};
+
+
 export const updateUserSubscriptionDetails = async (
   userId: string,
   stripeCustomerId: string,

@@ -33,14 +33,17 @@ type Props = CompositeScreenProps<
 
 
 export default function StudentProfile({ navigation, route }: Props) {
-  const { logout, user: currentUser } = useContext(AuthContext);
+  const { user: currentUser, isPaid, checkPaidStatus, freeMode,setFreeMode, logout} = useContext(AuthContext);
   const userId = route.params?.userId ?? currentUser?.id ?? "";
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  
 
   const isOwnProfile = currentUser?.id === userId;
+  const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
+
 
   useEffect(() => {
     loadUserProfile();
@@ -154,34 +157,75 @@ export default function StudentProfile({ navigation, route }: Props) {
     }
   };
 
-const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
-const handleOpenStripePortal = async () => {
-  if (!currentUser?.email) {
-    Alert.alert("Error", "Missing user email");
+ const handleSubscriptionPress = async () => {
+  if (!currentUser?.id || !currentUser?.email) {
+    Alert.alert("Error", "Missing user info");
     return;
   }
 
   try {
-    const response = await axios.post(`${apiUrl}/api/create-billing-portal-session`, {
-      email: currentUser.email,
-      name: `${currentUser.firstName} ${currentUser.lastName}`,
+    //  re check up to date payment status from DB
+    const paidRes = await fetch(`${BACKEND_URL}/api/check-paid-status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUser.id }),
     });
+    const paidData = await paidRes.json();
+    const latestIsPaid = paidData.isPaid;
+    const latestFreeMode = paidData.is_free;
 
-    const { url } = response.data;
-    console.log("Received portal URL:", url);
+    //   if there is setPaid / setFreeMode in context, update them
+    if (typeof setFreeMode === "function") setFreeMode(latestFreeMode);
+    if (typeof checkPaidStatus === "function") checkPaidStatus(currentUser.id); 
 
-    if (!url || typeof url !== "string") {
-      Alert.alert("Error", "Stripe portal URL not found.");
-      return;
+    console.log("💡 latestFreeMode:", latestFreeMode);
+    console.log("💡 latestIsPaid:", latestIsPaid);
+
+    //   redirect based on newest status
+    if (latestFreeMode && !latestIsPaid) {
+      // free user → redirect to checkout page
+      const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          email: currentUser.email,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        Linking.openURL(data.url);
+      } else {
+        Alert.alert("Error", "Failed to create checkout session.");
+      }
+    } else {
+      // paid user → open billing portal
+      const res = await fetch(`${BACKEND_URL}/api/create-billing-portal-session`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: currentUser.email,
+          name: `${currentUser.firstName} ${currentUser.lastName}`,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        Linking.openURL(data.url);
+      } else {
+        Alert.alert("Error", "Failed to open billing portal.");
+      }
     }
-
-    Linking.openURL(url);
   } catch (error) {
-    console.error("Portal open error:", error);
-    Alert.alert("Error", "Unable to open Stripe portal.");
+    console.error("Subscription error:", error);
+    Alert.alert("Error", "Something went wrong.");
   }
 };
+
+
+
 
 if (loading) {
   return (
@@ -299,7 +343,7 @@ if (loading) {
         icon="wallet-outline"
         title="Subscription"
         subtitle="Handle your payments"
-        onPress={handleOpenStripePortal}
+        onPress={handleSubscriptionPress}
       />
     </View>
 

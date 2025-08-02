@@ -26,6 +26,7 @@ CREATE TABLE "users" (
   "username" text UNIQUE NOT NULL,
   "hashed_password" text NOT NULL,
   "is_paid" boolean NOT NULL DEFAULT false,
+  "is_free" boolean NOT NULL DEFAULT false,
   "date_of_birth" DATE,
   "user_type" user_type NOT NULL DEFAULT 'student',
   "stripe_customer_id" TEXT,

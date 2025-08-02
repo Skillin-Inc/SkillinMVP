@@ -122,6 +122,7 @@ app.use("/courses", courseRoutes);
 //app.use("/teachers", teacherRoutes);
 app.use("/progress", progressRoutes);
 app.use("/api", stripeRoutes);
+app.use("/api", userRoutes);
 
 
 // 404 handler for unmatched routes

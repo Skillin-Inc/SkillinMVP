@@ -1,6 +1,7 @@
 // src/routes/users.ts
 import { Router, Request, Response, RequestHandler } from "express";
 import {
+  pool,
   createUser,
   NewUser,
   getUserById,
@@ -291,5 +292,49 @@ const checkUsernameHandler: RequestHandler<{ username: string }, unknown, { excl
 };
 
 router.post("/check-username/:username", checkUsernameHandler);
+
+
+router.post("/set-free-mode", async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    res.status(400).json({ error: "Missing userId" });
+    return;
+  }
+
+  try {
+    await pool.query(
+      "UPDATE users SET is_free = true WHERE id = $1",
+      [userId]
+    );
+
+    console.log(" Updated is_free for user:", userId); 
+    res.json({ success: true });
+  } catch (error) {
+    console.error(" Failed to update is_free:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/check-free-mode/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      "SELECT is_free FROM users WHERE id = $1",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({ isFree: result.rows[0].is_free });
+  } catch (error) {
+    console.error("Error checking free mode:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 export default router;

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import {
   View,
   Text,
@@ -28,7 +30,7 @@ type Props = CompositeScreenProps<
 >;
 
 export default function StudentHome({ navigation }: Props) {
-  const { user, isPaid, checkPaidStatus } = useContext(AuthContext);
+  const { user, isPaid, checkPaidStatus, freeMode,setFreeMode} = useContext(AuthContext);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -64,6 +66,7 @@ export default function StudentHome({ navigation }: Props) {
     await loadCategories();
     setRefreshing(false);
   };
+
   const handlePremiumFeature = () => {
     Alert.alert("Premium Feature", "This feature is premium-only and coming soon!");
   };
@@ -72,74 +75,6 @@ export default function StudentHome({ navigation }: Props) {
     navigation.navigate("StudentProfile", { userId: user?.id });
   };
 
-    if (!isPaid) { 
-    return (
-      <SafeAreaView style={styles.container}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "white",
-            padding: 20,
-          }}
-        >
-          <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
-            Subscription Required
-          </Text>
-          <Text style={{ fontSize: 16, textAlign: "center", marginBottom: 20 }}>
-            You have not subscribed yet. Please complete your payment.
-          </Text>
-          <TouchableOpacity
-            onPress={async () => {
-              try {
-                const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    userId: user?.id,
-                    email: user?.email,
-                  }),
-                });
-                const data = await res.json();
-                if (data.url) {
-                  Linking.openURL(data.url);
-                } else {
-                  Alert.alert("Error", "Failed to create checkout session.");
-                }
-              } catch (error) {
-                Alert.alert("Error", "Unable to initiate payment.");
-                console.error(error);
-              }
-            }}
-            style={{
-              backgroundColor: COLORS.purple,
-              padding: 12,
-              borderRadius: 8,
-              width: "100%",
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "white", fontWeight: "bold" }}>Subscribe Now</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-  onPress={() => user?.id && checkPaidStatus(user.id)}
-  style={{
-    backgroundColor: COLORS.purple,      
-    padding: 12,                         
-    borderRadius: 8,                     
-    width: "100%",                       
-    alignItems: "center",
-    marginBottom: 18,                     
-  }}
->
-  <Text style={{ color: "white", fontWeight: "bold"}}>I Already Paid  </Text>
-</TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   if (loading) {
     return (

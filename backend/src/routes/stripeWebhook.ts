@@ -1,7 +1,7 @@
 import express, { Request, Response } from "express";
 import Stripe from "stripe";
 import bodyParser from "body-parser";
-import { updateUserPaymentStatus, updateUserSubscriptionDetails} from "../../controller/userController"; 
+import { updateFreeUserStatus, updateUserPaymentStatus, updateUserSubscriptionDetails} from "../../controller/userController"; 
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -42,7 +42,8 @@ router.post(
 
     if (userId) {
       console.log("✅ Updating is_paid for user:", userId);
-      updateUserPaymentStatus(userId, true);
+      await updateUserPaymentStatus(userId, true);
+      await updateFreeUserStatus(userId, false);
     }
 
     break;
@@ -61,6 +62,8 @@ case "customer.subscription.deleted": {
   const now = Math.floor(Date.now() / 1000);
 
   let isPaid = false;
+  let isFree = true;
+
 
   if (
     subscriptionStatus === "active" &&
@@ -71,15 +74,21 @@ case "customer.subscription.deleted": {
     // exceeds endDate，turns inactive，isPaid = false
     subscriptionStatus = "inactive";
     isPaid = false;
+    isFree = true;
   } else if (subscriptionStatus === "active") {
     isPaid = true;
+    isFree = false;
+
   } else {
     isPaid = false;
     subscriptionStatus = "inactive";
+    isFree = true;
   }
 
   if (userId) {
     await updateUserPaymentStatus(userId, isPaid);
+    await updateFreeUserStatus(userId, isFree);
+
 
     await updateUserSubscriptionDetails(
       userId,

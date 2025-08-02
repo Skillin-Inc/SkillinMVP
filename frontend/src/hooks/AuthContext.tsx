@@ -28,6 +28,8 @@ type AuthContextType = {
   loading: boolean;
   user: User | null;
   isPaid: boolean;
+  freeMode: boolean;
+  setFreeMode: (value: boolean) => void;
   login: (loginData: LoginData) => Promise<User>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
@@ -44,6 +46,8 @@ export const AuthContext = createContext<AuthContextType>({
   loading: true,
   user: null,
   isPaid: false,
+  freeMode: false,
+  setFreeMode: () => {},
   login: async () => ({} as User),
   register: async () => {},
   logout: async () => {},
@@ -57,6 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [isPaid, setIsPaid] = useState(false);
+  const [freeMode, setFreeMode] = useState(false);
+
 
   const checkPaidStatus = async (userId: string) => { 
   try {
@@ -69,6 +75,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsPaid(data.isPaid);
   } catch (error) {
     console.error("Failed to check paid status:", error);
+  }
+};
+
+const checkFreeMode = async (userId: string) => {
+  try {
+    const res = await fetch(`${BACKEND_URL}/users/check-free-mode/${userId}`);
+    const data = await res.json();
+    setFreeMode(data.isFree);
+    await AsyncStorage.setItem("freeMode", data.isFree.toString());
+  } catch (error) {
+    console.error("Failed to check free mode:", error);
   }
 };
 
@@ -125,36 +142,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  useEffect(() => {
-    const loadLoginState = async () => {
-      try {
-        const userDataString = await AsyncStorage.getItem("userData");
-        if (userDataString) {
-          const storedUserData = JSON.parse(userDataString);
-          console.log("Raw stored userData:", storedUserData);
+ useEffect(() => {
+  const loadLoginState = async () => {
+    try {
+      const userDataString = await AsyncStorage.getItem("userData");
+      const freeModeValue = await AsyncStorage.getItem("freeMode");
 
-          const transformedUser = transformStoredUserData(storedUserData);
-          if (transformedUser) {
-            console.log("Transformed userData:", transformedUser);
-            setUser(transformedUser);
-            setIsLoggedIn(true);
-            checkPaidStatus(transformedUser.id);
+      setFreeMode(freeModeValue === "true"); 
 
-            if (JSON.stringify(storedUserData) !== JSON.stringify(transformedUser)) {
-              await AsyncStorage.setItem("userData", JSON.stringify(transformedUser));
-            }
-          } else {
-            await AsyncStorage.removeItem("userData");
+      if (userDataString) {
+        const storedUserData = JSON.parse(userDataString);
+        const transformedUser = transformStoredUserData(storedUserData);
+
+        if (transformedUser) {
+          setUser(transformedUser);
+          setIsLoggedIn(true);
+          checkPaidStatus(transformedUser.id);
+
+          if (JSON.stringify(storedUserData) !== JSON.stringify(transformedUser)) {
+            await AsyncStorage.setItem("userData", JSON.stringify(transformedUser));
           }
+        } else {
+          await AsyncStorage.removeItem("userData");
         }
-      } catch (error) {
-        console.error("Error loading login state:", error);
-        await AsyncStorage.removeItem("userData");
       }
-      setLoading(false);
-    };
-    loadLoginState();
-  }, []);
+    } catch (error) {
+      console.error("Error loading login state:", error);
+      await AsyncStorage.removeItem("userData");
+    }
+
+    setLoading(false);
+  };
+
+  loadLoginState();
+}, []);
 
   const login = async (loginData: LoginData): Promise<User> => {
     try {
@@ -163,6 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoggedIn(true);
       await AsyncStorage.setItem("userData", JSON.stringify(response.user));
       checkPaidStatus(response.user.id);
+      await checkFreeMode(response.user.id);
       return response.user;
     } catch (error) {
       console.error("Login error:", error);
@@ -185,9 +207,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       await AsyncStorage.removeItem("userData");
+      await AsyncStorage.removeItem("freeMode");
       setUser(null);
       setIsLoggedIn(false);
       setIsPaid(false);
+      setFreeMode(false);
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -208,7 +232,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, user, isPaid , switchMode, login, register, logout, updateUser,checkPaidStatus, }}>
+    <AuthContext.Provider value={{ isLoggedIn, loading, user, isPaid, freeMode, setFreeMode, switchMode, login, register, logout, updateUser,checkPaidStatus, }}>
       {children}
     </AuthContext.Provider>
   );

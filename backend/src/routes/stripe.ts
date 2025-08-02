@@ -1,5 +1,7 @@
 import express, { Request, Response } from "express";
 import Stripe from "stripe";
+import { pool } from "../db"; 
+
 
 const router = express.Router();
 
@@ -146,44 +148,18 @@ router.post("/check-paid-status", async (req: Request, res: Response) => {
   }
 
   try {
-    // Look up all Stripe customers (limit 1 for efficiency) and compare stored metadata.userId
-    const customers = await stripe.customers.list({
-      limit: 1,
-      expand: ["data.subscriptions"],
-      // Can't filter by metadata in the API, so must filter in code
-    });
-
-    // Debug log: Print all found userId metadata in Stripe customers
-    const trimmedUserId = String(userId).trim();
-    customers.data.forEach((c) => {
-      console.log("→ Stripe metadata.userId:", JSON.stringify(c.metadata?.userId));
-    });
-
-    // Find customer by matching metadata.userId
-    const customer = customers.data.find(
-      (c) => String(c.metadata?.userId || "").trim() === trimmedUserId
+    const result = await pool.query(
+      "SELECT is_paid, is_free FROM users WHERE id = $1",
+      [userId]
     );
 
-    if (!customer) {
-      res.json({ isPaid: false }); // No Stripe customer found → definitely not paid
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: "User not found" });
       return;
     }
 
-    // Now check for active/trialing subscriptions for this customer
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customer.id,
-      status: "all",
-      limit: 1,
-    });
-    console.log("subscriptions data", subscriptions.data);
-
-    // Find at least one subscription that's active or in trial period
-    const activeSub = subscriptions.data.find(
-      (sub) => sub.status === "active" || sub.status === "trialing"
-    );
-
-    // If found, isPaid=true, otherwise false
-    res.json({ isPaid: !!activeSub });
+    const { is_paid, is_free } = result.rows[0];
+    res.json({ isPaid: is_paid, is_free });
   } catch (error) {
     console.error("❌ Error checking paid status:", error);
     res.status(500).json({ error: "Failed to check payment status" });
