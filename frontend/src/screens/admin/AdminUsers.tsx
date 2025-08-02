@@ -47,7 +47,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ visible, user, onClose, o
 
     setLoading(true);
     try {
-      await api.updateUserType(user.email, userType);
+      await api.updateUserType(user.id, userType);
       Alert.alert("Success", "User updated successfully");
       onUpdate();
       onClose();
@@ -171,7 +171,7 @@ export default function AdminUsers() {
         style: "destructive",
         onPress: async () => {
           try {
-            await api.deleteUser(user.email);
+            await api.deleteUser(user.id);
             Alert.alert("Success", "User deleted successfully");
             fetchUsers();
           } catch (error) {

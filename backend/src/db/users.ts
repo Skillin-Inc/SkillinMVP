@@ -49,23 +49,23 @@ export async function createUser(data: NewUser) {
   return result.rows[0];
 }
 
-export async function deleteUserByEmail(email: string) {
+export async function deleteUserById(id: string) {
   const result = await executeQuery(
     `DELETE FROM public.users
-     WHERE email = $1
+     WHERE id = $1
      RETURNING *`,
-    [email]
+    [id]
   );
   return result.rows[0] ?? null;
 }
 
-export async function updateUserTypeByEmail(email: string, newUserType: "student" | "teacher" | "admin") {
+export async function updateUserTypeById(id: string, newUserType: "student" | "teacher" | "admin") {
   const result = await executeQuery(
     `UPDATE public.users
      SET user_type = $1
-     WHERE email = $2
+     WHERE id = $2
      RETURNING *`,
-    [newUserType, email]
+    [newUserType, id]
   );
 
   return result.rows[0] ?? null;

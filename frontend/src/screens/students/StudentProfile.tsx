@@ -42,8 +42,9 @@ export default function StudentProfile({ navigation, route }: Props) {
   const isOwnProfile = currentUser?.id === userId;
 
   useEffect(() => {
+    if (!currentUser) return;
     loadUserProfile();
-  }, [userId]);
+  }, [userId, currentUser]);
 
   const loadUserProfile = async () => {
     try {

@@ -22,10 +22,9 @@ export const getAllUsers = async (): Promise<BackendUser[]> => {
   return makeRequest<BackendUser[]>(API_CONFIG.ENDPOINTS.USERS, {}, true);
 };
 
-export const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
-  const encodedEmail = encodeURIComponent(email);
+export const deleteUser = async (userId: string): Promise<{ success: boolean; message: string }> => {
   return makeRequest<{ success: boolean; message: string }>(
-    `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`,
+    `${API_CONFIG.ENDPOINTS.USERS}/${userId}`,
     {
       method: "DELETE",
     },
@@ -34,12 +33,11 @@ export const deleteUser = async (email: string): Promise<{ success: boolean; mes
 };
 
 export const updateUserType = async (
-  email: string,
+  userId: string,
   userType: "student" | "teacher" | "admin"
 ): Promise<{ success: boolean; message: string }> => {
-  const encodedEmail = encodeURIComponent(email);
   return makeRequest<{ success: boolean; message: string }>(
-    `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}/user-type`,
+    `${API_CONFIG.ENDPOINTS.USERS}/${userId}/user-type`,
     {
       method: "PATCH",
       body: JSON.stringify({ userType }),

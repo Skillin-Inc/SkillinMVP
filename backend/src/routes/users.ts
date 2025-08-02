@@ -9,8 +9,8 @@ import {
   getUserByEmail,
   getIsPaidByUserId,
   getAllUsers,
-  deleteUserByEmail,
-  updateUserTypeByEmail,
+  deleteUserById,
+  updateUserTypeById,
   updateUserProfile,
   UpdateUserProfileData,
   checkUsernameAvailability,
@@ -146,16 +146,21 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
   return;
 });
 
-const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
-  const { email } = req.params;
+const deleteByIdHandler: RequestHandler<{ id: string }> = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid user ID format" });
+    return;
+  }
 
   try {
-    const deleted = await deleteUserByEmail(email);
+    const deleted = await deleteUserById(id);
 
     if (deleted) {
-      res.status(200).json({ message: "User deleted", user: deleted });
+      res.status(200).json({ success: true, message: "User deleted successfully" });
     } else {
-      res.status(404).json({ message: "No user found" });
+      res.status(404).json({ success: false, message: "No user found" });
     }
     return;
   } catch (err) {
@@ -163,15 +168,20 @@ const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res,
   }
 };
 
-router.delete("/:email", deleteByEmailHandler);
+router.delete("/:id", deleteByIdHandler);
 
 const updateUserTypeHandler: RequestHandler<
-  { email: string },
+  { id: string },
   unknown,
   { userType: "student" | "teacher" | "admin" }
 > = async (req, res, next) => {
-  const { email } = req.params;
+  const { id } = req.params;
   const { userType } = req.body;
+
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid user ID format" });
+    return;
+  }
 
   if (!userType || !["student", "teacher", "admin"].includes(userType)) {
     res.status(400).json({ error: "Invalid user type. Must be 'student', 'teacher', or 'admin'" });
@@ -179,12 +189,12 @@ const updateUserTypeHandler: RequestHandler<
   }
 
   try {
-    const updated = await updateUserTypeByEmail(email, userType);
+    const updated = await updateUserTypeById(id, userType);
 
     if (updated) {
-      res.status(200).json({ message: "User type updated", user: updated });
+      res.status(200).json({ success: true, message: "User type updated successfully" });
     } else {
-      res.status(404).json({ message: "No user found or no change made" });
+      res.status(404).json({ success: false, message: "No user found or no change made" });
     }
     return;
   } catch (err) {
@@ -192,7 +202,7 @@ const updateUserTypeHandler: RequestHandler<
   }
 };
 
-router.patch("/:email/user-type", updateUserTypeHandler);
+router.patch("/:id/user-type", updateUserTypeHandler);
 
 const updateProfileHandler: RequestHandler<{ id: string }, unknown, UpdateUserProfileData> = async (req, res, next) => {
   const { id } = req.params;

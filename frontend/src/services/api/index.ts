@@ -8,6 +8,8 @@ export * as lessons from "./lessons";
 export * as courses from "./courses";
 export * as categories from "./categories";
 
+export { userService } from "../userService";
+
 import * as users from "./users";
 import * as messages from "./messages";
 import * as lessons from "./lessons";
