@@ -151,8 +151,8 @@ app.use("/api", stripeRoutes);
 // i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
 app.use("/api", stripeRoutes);
-app.use("/videoUpload", videoUploadRoutes);
-app.use("/videoStream", videoStreamRoutes);
+app.use("/video-upload", videoUploadRoutes);
+app.use("/video-stream", videoStreamRoutes);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
