@@ -1,24 +1,16 @@
 // src/features/auth/AuthContext.tsx
 import React, { createContext, useEffect, useState } from "react";
 import {
-  CognitoUserPool,
   CognitoUser,
   AuthenticationDetails,
   CognitoUserAttribute,
   CognitoUserSession,
 } from "amazon-cognito-identity-js";
-import { COGNITO_CONFIG } from "../config/cognitoConfig";
-import { API_CONFIG } from "../config/api";
+import { userPool } from "../config/userPool";
 import { api } from "../services/api/";
 
-// Initialize Cognito User Pool
-export const userPool = new CognitoUserPool({
-  UserPoolId: COGNITO_CONFIG.UserPoolId,
-  ClientId: COGNITO_CONFIG.ClientId,
-});
-
 export interface LoginData {
-  emailOrPhone: string;
+  email: string;
   password: string;
 }
 
@@ -52,7 +44,6 @@ type AuthContextType = {
   login: (loginData: LoginData) => Promise<User>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
-  switchMode: () => void;
   updateUser: (updatedUser: User) => Promise<void>;
   confirmSignUp: (email: string, code: string, registrationData?: RegisterData) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -67,7 +58,6 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => ({} as User),
   register: async () => {},
   logout: async () => {},
-  switchMode: () => {},
   updateUser: async () => {},
   confirmSignUp: async () => {},
   forgotPassword: async () => {},
@@ -80,7 +70,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
-  // Check for existing Cognito session on app start
   useEffect(() => {
     const checkAuthState = async () => {
       try {
@@ -95,16 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
 
           if (session && session.isValid()) {
-            // Get Cognito sub ID from token
             const cognitoUserSub = session.getIdToken().payload.sub;
 
-            // Fetch user data from backend (source of truth)
             let backendUserData = null;
             try {
               backendUserData = await api.getUserById(cognitoUserSub);
             } catch (error) {
               console.warn("Error fetching user data from backend:", error);
-              // If we can't get backend data, log them out
               logout();
               return;
             }
@@ -138,50 +124,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (loginData: LoginData): Promise<User> => {
     return new Promise((resolve, reject) => {
       const authDetails = new AuthenticationDetails({
-        Username: loginData.emailOrPhone, // This should be email now
+        Username: loginData.email,
         Password: loginData.password,
       });
 
       const cognitoUser = new CognitoUser({
-        Username: loginData.emailOrPhone, // This should be email now
+        Username: loginData.email,
         Pool: userPool,
       });
 
       cognitoUser.authenticateUser(authDetails, {
         onSuccess: async (session: CognitoUserSession) => {
           try {
-            // Get the Cognito sub ID from the token
             const cognitoUserSub = session.getIdToken().payload.sub;
-            const idToken = session.getIdToken().getJwtToken();
 
-            // Fetch user data from your backend (this is now the source of truth)
             let backendUserData = null;
             try {
-              const backendResponse = await fetch(`${API_CONFIG.BASE_URL}/users/${cognitoUserSub}`, {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${idToken}`,
-                },
-              });
-
-              if (backendResponse.ok) {
-                backendUserData = await backendResponse.json();
-              } else {
-                throw new Error("Could not fetch user data from backend");
-              }
+              backendUserData = await api.getUserById(cognitoUserSub);
             } catch (error) {
               console.error("Error fetching user data from backend:", error);
               reject(error);
               return;
             }
 
-            // Use backend data as the source of truth
             const user: User = {
               id: cognitoUserSub,
               firstName: backendUserData.first_name || "",
               lastName: backendUserData.last_name || "",
-              email: backendUserData.email || loginData.emailOrPhone,
+              email: backendUserData.email || loginData.email,
               phoneNumber: backendUserData.phone_number || "",
               username: backendUserData.username || backendUserData.email,
               createdAt: backendUserData.created_at || new Date().toISOString(),
@@ -205,10 +175,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (registerData: RegisterData): Promise<void> => {
     return new Promise((resolve, reject) => {
-      // Only set email attribute - remove all others
       const attributeList = [new CognitoUserAttribute({ Name: "email", Value: registerData.email })];
 
-      // Use email as username since sign-in identifier is email
       userPool.signUp(registerData.email, registerData.password, attributeList, [], (err) => {
         if (err) {
           reject(err);
@@ -232,10 +200,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
-        // After successful confirmation, create database user with Cognito sub ID
         if (registrationData) {
           try {
-            // Authenticate user to get their session and sub ID
             const authDetails = new AuthenticationDetails({
               Username: email,
               Password: registrationData.password,
@@ -246,10 +212,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 try {
                   const subId = session.getIdToken().payload.sub;
 
-                  // Create database user with Cognito sub ID
                   const userDataWithId = {
                     ...registrationData,
-                    id: subId, // Use Cognito sub as database ID
+                    id: subId,
                   };
                   await api.register(userDataWithId);
 
@@ -320,11 +285,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoggedIn(false);
   };
 
-  const switchMode = () => {
-    // This function can be used to switch between different modes if needed
-    console.log("Switch mode called");
-  };
-
   const updateUser = async (updatedUser: User) => {
     setUser(updatedUser);
   };
@@ -355,7 +315,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         register,
         logout,
-        switchMode,
         updateUser,
         confirmSignUp,
         forgotPassword,

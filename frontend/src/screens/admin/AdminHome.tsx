@@ -53,7 +53,15 @@ export default function AdminHome({ navigation }: Props) {
     }
     setLoading(true);
     try {
-      const res = await api.deleteUser(email);
+      const allUsers = await api.getAllUsers();
+      const userToDelete = allUsers.find((user) => user.email === email);
+
+      if (!userToDelete) {
+        Alert.alert("Error", "User not found with that email.");
+        return;
+      }
+
+      const res = await api.deleteUser(userToDelete.id);
       Alert.alert("Success", res.message || "User deleted successfully.");
       setEmail("");
     } catch (err) {
@@ -71,7 +79,15 @@ export default function AdminHome({ navigation }: Props) {
     }
     setUpdateLoading(true);
     try {
-      const res = await api.updateUserType(updateEmail, selectedType);
+      const allUsers = await api.getAllUsers();
+      const userToUpdate = allUsers.find((user) => user.email === updateEmail);
+
+      if (!userToUpdate) {
+        Alert.alert("Error", "User not found with that email.");
+        return;
+      }
+
+      const res = await api.updateUserType(userToUpdate.id, selectedType);
       Alert.alert("Success", res.message || "User type updated successfully.");
       setUpdateEmail("");
     } catch (err) {

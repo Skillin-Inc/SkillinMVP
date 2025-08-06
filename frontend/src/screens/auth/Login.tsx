@@ -16,13 +16,13 @@ export default function Login({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const [emailOrPhone, setEmailOrPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [hidePassword, setHidePassword] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleLogin() {
-    if (!emailOrPhone.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       Alert.alert("Missing Fields", "Please fill out all fields.");
       return;
     }
@@ -31,7 +31,7 @@ export default function Login({ navigation }: Props) {
 
     try {
       const response = await login({
-        emailOrPhone: emailOrPhone.trim(),
+        email: email.trim(),
         password,
       });
 
@@ -64,7 +64,7 @@ export default function Login({ navigation }: Props) {
             { text: "OK" },
             {
               text: "Resend Confirmation",
-              onPress: () => handleResendConfirmation(emailOrPhone.trim()),
+              onPress: () => handleResendConfirmation(email.trim()),
             },
           ]);
         } else if (error.code === "NotAuthorizedException") {
@@ -115,8 +115,8 @@ export default function Login({ navigation }: Props) {
             style={styles.input}
             placeholder="Email"
             placeholderTextColor={COLORS.gray}
-            value={emailOrPhone}
-            onChangeText={(text) => setEmailOrPhone(text.toLowerCase())}
+            value={email}
+            onChangeText={(text) => setEmail(text.toLowerCase())}
             autoCapitalize="none"
             keyboardType="email-address"
             editable={!isLoading}

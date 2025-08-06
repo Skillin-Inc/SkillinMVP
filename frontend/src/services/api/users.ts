@@ -1,5 +1,5 @@
 import { API_CONFIG } from "../../config/api";
-import { RegisterData, LoginData, User, BackendUser, UpdateUserProfileData, LoginResponse } from "./types";
+import { RegisterData, User, BackendUser, UpdateUserProfileData } from "./types";
 import { makeRequest, transformBackendUserToUser } from "./utils";
 
 export const register = async (userData: RegisterData): Promise<User> => {
@@ -14,22 +14,6 @@ export const register = async (userData: RegisterData): Promise<User> => {
   return transformBackendUserToUser(backendUser);
 };
 
-export const login = async (loginData: LoginData): Promise<LoginResponse> => {
-  const response = await makeRequest<{ success: boolean; user: BackendUser }>(
-    API_CONFIG.ENDPOINTS.LOGIN,
-    {
-      method: "POST",
-      body: JSON.stringify(loginData),
-    },
-    true
-  );
-
-  return {
-    success: response.success,
-    user: transformBackendUserToUser(response.user),
-  };
-};
-
 export const getUserById = async (id: string): Promise<BackendUser> => {
   return makeRequest<BackendUser>(`${API_CONFIG.ENDPOINTS.USERS}/${id}`, {}, true);
 };
@@ -38,10 +22,9 @@ export const getAllUsers = async (): Promise<BackendUser[]> => {
   return makeRequest<BackendUser[]>(API_CONFIG.ENDPOINTS.USERS, {}, true);
 };
 
-export const deleteUser = async (email: string): Promise<{ success: boolean; message: string }> => {
-  const encodedEmail = encodeURIComponent(email);
+export const deleteUser = async (userId: string): Promise<{ success: boolean; message: string }> => {
   return makeRequest<{ success: boolean; message: string }>(
-    `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}`,
+    `${API_CONFIG.ENDPOINTS.USERS}/${userId}`,
     {
       method: "DELETE",
     },
@@ -50,12 +33,11 @@ export const deleteUser = async (email: string): Promise<{ success: boolean; mes
 };
 
 export const updateUserType = async (
-  email: string,
+  userId: string,
   userType: "student" | "teacher" | "admin"
 ): Promise<{ success: boolean; message: string }> => {
-  const encodedEmail = encodeURIComponent(email);
   return makeRequest<{ success: boolean; message: string }>(
-    `${API_CONFIG.ENDPOINTS.USERS}/${encodedEmail}/user-type`,
+    `${API_CONFIG.ENDPOINTS.USERS}/${userId}/user-type`,
     {
       method: "PATCH",
       body: JSON.stringify({ userType }),
