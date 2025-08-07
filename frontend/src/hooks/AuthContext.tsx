@@ -370,7 +370,7 @@ try {
                     ...registrationData,
                     id: subId,
                   };
-                  await api.register(userDataWithId);
+                  await api.createUser(userDataWithId);
 
                   resolve();
                 } catch (apiError) {

@@ -62,14 +62,13 @@ export async function cognitoAuthMiddleware(req: Request, res: Response, next: N
   try {
     const decoded = await verifyCognitoToken(token);
 
-    // Only set basic info from token - get the rest from database
     req.user = {
       sub: decoded.sub,
       email: decoded.email,
       username: decoded["cognito:username"] || decoded.email,
-      userType: "student", // Default - should be overridden by database lookup if needed
-      firstName: "", // Will be empty - get from database if needed
-      lastName: "", // Will be empty - get from database if needed
+      userType: "student",
+      firstName: "",
+      lastName: "",
     };
     next();
   } catch (err) {

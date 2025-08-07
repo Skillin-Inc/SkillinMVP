@@ -8,8 +8,6 @@ export * as lessons from "./lessons";
 export * as courses from "./courses";
 export * as categories from "./categories";
 
-export { userService } from "../userService";
-
 import * as users from "./users";
 import * as messages from "./messages";
 import * as lessons from "./lessons";
@@ -18,7 +16,7 @@ import * as categories from "./categories";
 
 export const api = {
   // User methods
-  register: users.register,
+  createUser: users.createUser,
   getUserById: users.getUserById,
   getAllUsers: users.getAllUsers,
   deleteUser: users.deleteUser,

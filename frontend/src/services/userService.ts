@@ -52,7 +52,7 @@ export const createUser = async (userData: RegisterData): Promise<void> => {
           id: cognitoUserSub,
         };
 
-        await api.register(userDataWithId);
+        await api.createUser(userDataWithId);
         resolve();
       } catch (backendError) {
         console.error("Backend user creation failed, rolling back Cognito user:", backendError);
@@ -158,7 +158,7 @@ export const deleteUser = async (userId: string): Promise<{ success: boolean; me
             userType: backendUserData.user_type,
           };
 
-          await api.register(recreateData);
+          await api.createUser(recreateData);
           console.log("Successfully recreated backend user after Cognito deletion failure");
 
           throw new Error("Failed to delete Cognito user, but backend user has been recreated to maintain consistency");
