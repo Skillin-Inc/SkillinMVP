@@ -49,6 +49,16 @@ app.get("/favicon.ico", (req: Request, res: Response) => {
   res.status(204).end();
 });
 
+// Health check endpoint for CI/CD
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || "development",
+  });
+});
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
