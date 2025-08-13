@@ -11,15 +11,12 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # If your secrets live under an Environment (e.g. Production), uncomment:
-    # environment: Production
+    # environment: Production   # <-- uncomment if your repo secrets live under an Environment
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
@@ -55,19 +52,30 @@ jobs:
           tar -czf deploy.tgz -C backend $FILES
           echo "Tar preview:"; tar -tzf deploy.tgz | sed -n '1,60p'
 
-      # --- Write SSH key from Base64 and probe ---
-      - name: Write SSH key & probe
+      # ---- Decode Base64 SSH key into a workflow output (no files needed) ----
+      - name: Decode SSH key
+        id: key
+        shell: bash
         run: |
-          echo "${{ secrets.EC2_KEY_B64 }}" | base64 -d > key.pem
-          chmod 600 key.pem
-          ssh -i key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'echo EC2_OK $(hostname)'
+          echo 'pem<<EOF' >> "$GITHUB_OUTPUT"
+          echo "${{ secrets.EC2_KEY_B64 }}" | base64 -d >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
+
+      # Optional: quick probe using the ssh-action
+      - name: Probe SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ steps.key.outputs.pem }}
+          script: echo "EC2_OK $(hostname)"
 
       - name: Ensure target dir on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key_path: key.pem
+          key: ${{ steps.key.outputs.pem }}
           script: |
             sudo mkdir -p "${{ secrets.EC2_PATH }}"
             sudo chown -R $USER:$USER "${{ secrets.EC2_PATH }}"
@@ -78,7 +86,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key_path: key.pem
+          key: ${{ steps.key.outputs.pem }}
           source: "deploy.tgz"
           target: "${{ secrets.EC2_PATH }}"
 
@@ -87,8 +95,7 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key_path: key.pem
-          # deploy + auto-detect entry + PM2
+          key: ${{ steps.key.outputs.pem }}
           script: |
             set -e
             cd "${{ secrets.EC2_PATH }}"
@@ -125,6 +132,6 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key_path: key.pem
+          key: ${{ steps.key.outputs.pem }}
           script: |
             curl -fsS http://127.0.0.1:3000/health || true
