@@ -94,12 +94,12 @@ jobs:
             fi
             ls -la
 
-      # --- Health check (best-effort) ---
-      # - name: Health check
-      #   uses: appleboy/ssh-action@v1.2.0
-      #   with:
-      #     host: ${{ secrets.EC2_HOST }}
-      #     username: ${{ secrets.EC2_USER }}
-      #     key: ${{ secrets.EC2_KEY }}
-      #     script: |
-      #       curl -fsS https://127.0.0.1:3000/health || true
+      #  --- Health check (best-effort) ---
+      - name: Health check
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            curl -fsS https://127.0.0.1:3000/health || true
