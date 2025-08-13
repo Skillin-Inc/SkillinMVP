@@ -1,0 +1,105 @@
+name: Deploy backend to EC2 (publish)
+
+on:
+  push:
+    branches: [ publish ]
+  workflow_dispatch:
+
+env:
+  APP_DIR: backend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # --- BUILD IN ./backend ---
+      - name: Install deps (backend)
+        working-directory: ./${{ env.APP_DIR }}
+        run: npm ci
+
+      - name: Build (backend)
+        working-directory: ./${{ env.APP_DIR }}
+        run: npm run build
+
+      - name: Verify dist exists
+        working-directory: ./${{ env.APP_DIR }}
+        run: |
+          ls -la
+          test -f dist/server.js || { echo "::error::dist/server.js not found"; exit 1; }
+
+      # --- PACKAGE FROM ./backend (env file optional) ---
+      - name: Create deploy.tgz
+        shell: bash
+        run: |
+          FILES="dist package.json package-lock.json"
+          if [ -f "${{ env.APP_DIR }}/env.production.example" ]; then
+            FILES="$FILES env.production.example"
+          fi
+          tar -czf deploy.tgz -C "${{ env.APP_DIR }}" $FILES
+          ls -lh deploy.tgz
+
+      # --- ENSURE TARGET DIR ---
+      - name: Ensure target dir on EC2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            sudo mkdir -p "${{ secrets.EC2_PATH }}"
+            sudo chown -R $USER:$USER "${{ secrets.EC2_PATH }}"
+            ls -ld "${{ secrets.EC2_PATH }}"
+
+      # --- UPLOAD ---
+      - name: Upload to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "deploy.tgz"
+          target: "${{ secrets.EC2_PATH }}"
+
+      # --- DEPLOY ON EC2 ---
+      - name: Extract, install prod deps, (re)start PM2
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.EC2_PATH }}"
+            tar -xzf deploy.tgz && rm -f deploy.tgz
+            npm ci --omit=dev
+
+            # If you keep a template env file, copy on first deploy
+            [ -f .env ] || { [ -f env.production.example ] && cp env.production.example .env || true; }
+
+            if command -v pm2 >/dev/null 2>&1; then
+              pm2 describe skillin >/dev/null 2>&1 && pm2 reload skillin || pm2 start dist/server.js --name skillin
+              pm2 save
+              pm2 list
+            else
+              echo "PM2 not found; install it (npm i -g pm2) or use systemd."
+              exit 1
+            fi
+            ls -la
+
+      # --- Health check (best-effort) ---
+      # - name: Health check
+      #   uses: appleboy/ssh-action@v1.2.0
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ${{ secrets.EC2_USER }}
+      #     key: ${{ secrets.EC2_KEY }}
+      #     script: |
+      #       curl -fsS https://127.0.0.1:3000/health || true
