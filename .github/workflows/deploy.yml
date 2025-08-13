@@ -11,20 +11,25 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # environment: Production   # <-- uncomment if your repo secrets live under an Environment
+    # If your secrets live under an Environment (e.g. Production), add:
+    # environment: Production
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: List backend
         run: ls -la "${{ env.APP_DIR }}"
 
+      # Install deps (use lockfile if present; fallback to npm install)
       - name: Install deps (backend)
         working-directory: ./backend
+        shell: bash
         run: |
           if [ -f package-lock.json ]; then
             npm ci --no-audit --no-fund
@@ -37,11 +42,12 @@ jobs:
         working-directory: ./backend
         run: npm run build
 
-      - name: Verify dist exists
+      - name: Verify build output
         working-directory: ./backend
+        shell: bash
         run: |
           ls -la dist || true
-          test -d dist || { echo "::error::No dist/ folder. Fix your build script."; exit 1; }
+          test -d dist || { echo "::error::No dist/ folder produced by build"; exit 1; }
 
       - name: Create deploy.tgz
         shell: bash
@@ -50,25 +56,35 @@ jobs:
           [ -f backend/package-lock.json ] && FILES="$FILES package-lock.json"
           [ -f backend/env.production.example ] && FILES="$FILES env.production.example"
           tar -czf deploy.tgz -C backend $FILES
-          echo "Tar preview:"; tar -tzf deploy.tgz | sed -n '1,60p'
+          echo "Tar preview:"; tar -tzf deploy.tgz | sed -n '1,80p'
 
-      # ---- Decode Base64 SSH key into a workflow output (no files needed) ----
+      # Ensure required secrets exist
+      - name: Validate secrets present
+        shell: bash
+        run: |
+          [ -n "${{ secrets.EC2_HOST }}" ]    || { echo "::error::EC2_HOST missing"; exit 1; }
+          [ -n "${{ secrets.EC2_USER }}" ]    || { echo "::error::EC2_USER missing"; exit 1; }
+          [ -n "${{ secrets.EC2_PATH }}" ]    || { echo "::error::EC2_PATH missing"; exit 1; }
+          [ -n "${{ secrets.EC2_KEY_B64 }}" ] || { echo "::error::EC2_KEY_B64 missing"; exit 1; }
+
+      # Decode Base64 key -> step output (avoid file permission issues)
       - name: Decode SSH key
         id: key
         shell: bash
         run: |
-          echo 'pem<<EOF' >> "$GITHUB_OUTPUT"
-          echo "${{ secrets.EC2_KEY_B64 }}" | base64 -d >> "$GITHUB_OUTPUT"
-          echo 'EOF' >> "$GITHUB_OUTPUT"
+          echo "${{ secrets.EC2_KEY_B64 }}" | base64 -d > key.pem
+          chmod 600 key.pem
+          {
+            echo "pem<<EOF"
+            cat key.pem
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-      # Optional: quick probe using the ssh-action
       - name: Probe SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ steps.key.outputs.pem }}
-          script: echo "EC2_OK $(hostname)"
+        shell: bash
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'echo EC2_OK $(hostname)'
 
       - name: Ensure target dir on EC2
         uses: appleboy/ssh-action@v1.2.0
@@ -77,6 +93,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ steps.key.outputs.pem }}
           script: |
+            set -e
             sudo mkdir -p "${{ secrets.EC2_PATH }}"
             sudo chown -R $USER:$USER "${{ secrets.EC2_PATH }}"
             ls -ld "${{ secrets.EC2_PATH }}"
@@ -109,13 +126,16 @@ jobs:
               npm install --omit=dev --no-audit --no-fund
             fi
 
+            # Detect entry from package.json main; fallback to common paths
             ENTRY=$(node -p "try{require('./package.json').main||''}catch(e){''}")
             if [ -z "$ENTRY" ] || [ ! -f "$ENTRY" ]; then
               for f in dist/server.js dist/src/server.js dist/index.js dist/app.js; do
-                [ -f "$f" ] && ENTRY="$f" && break
+                if [ -f "$f" ]; then ENTRY="$f"; break; fi
               done
             fi
-            [ -n "$ENTRY" ] && [ -f "$ENTRY" ] || { echo "No entry file found. Dist tree:"; ls -R dist || true; exit 1; }
+            if [ -z "$ENTRY" ] || [ ! -f "$ENTRY" ]; then
+              echo "No entry file found. Dist tree:"; ls -R dist || true; exit 1
+            fi
             echo "Using entry file: $ENTRY"
 
             if command -v pm2 >/dev/null 2>&1; then
@@ -123,8 +143,10 @@ jobs:
               pm2 save
               pm2 list
             else
-              echo "PM2 not found; install it (npm i -g pm2) or use systemd."
-              exit 1
+              echo "PM2 not found; installing"
+              npm i -g pm2
+              pm2 start "$ENTRY" --name skillin
+              pm2 save
             fi
 
       - name: Health check (best-effort)
