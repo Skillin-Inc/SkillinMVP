@@ -11,6 +11,8 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    # If your secrets live under an Environment (e.g. Production), uncomment:
+    # environment: Production
 
     steps:
       - name: Checkout
@@ -24,9 +26,8 @@ jobs:
       - name: List backend
         run: ls -la "${{ env.APP_DIR }}"
 
-      # Install deps (lockfile if present; otherwise npm install)
       - name: Install deps (backend)
-        working-directory: ./${{ env.APP_DIR }}
+        working-directory: ./backend
         run: |
           if [ -f package-lock.json ]; then
             npm ci --no-audit --no-fund
@@ -36,54 +37,58 @@ jobs:
           fi
 
       - name: Build (backend)
-        working-directory: ./${{ env.APP_DIR }}
+        working-directory: ./backend
         run: npm run build
 
       - name: Verify dist exists
-        working-directory: ./${{ env.APP_DIR }}
+        working-directory: ./backend
         run: |
           ls -la dist || true
           test -d dist || { echo "::error::No dist/ folder. Fix your build script."; exit 1; }
 
-      # Package from backend/ (include lockfile only if present)
       - name: Create deploy.tgz
         shell: bash
         run: |
           FILES="dist package.json"
-          [ -f "${{ env.APP_DIR }}/package-lock.json" ] && FILES="$FILES package-lock.json"
-          [ -f "${{ env.APP_DIR }}/env.production.example" ] && FILES="$FILES env.production.example"
-          tar -czf deploy.tgz -C "${{ env.APP_DIR }}" $FILES
+          [ -f backend/package-lock.json ] && FILES="$FILES package-lock.json"
+          [ -f backend/env.production.example ] && FILES="$FILES env.production.example"
+          tar -czf deploy.tgz -C backend $FILES
           echo "Tar preview:"; tar -tzf deploy.tgz | sed -n '1,60p'
 
-      # Ensure target dir exists on EC2
+      # --- Write SSH key from Base64 and probe ---
+      - name: Write SSH key & probe
+        run: |
+          echo "${{ secrets.EC2_KEY_B64 }}" | base64 -d > key.pem
+          chmod 600 key.pem
+          ssh -i key.pem -o StrictHostKeyChecking=no -o ConnectTimeout=10 ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'echo EC2_OK $(hostname)'
+
       - name: Ensure target dir on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY_B64 }}
+          key_path: key.pem
           script: |
             sudo mkdir -p "${{ secrets.EC2_PATH }}"
             sudo chown -R $USER:$USER "${{ secrets.EC2_PATH }}"
             ls -ld "${{ secrets.EC2_PATH }}"
 
-      # Upload the tarball
       - name: Upload to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY_B64 }}
+          key_path: key.pem
           source: "deploy.tgz"
           target: "${{ secrets.EC2_PATH }}"
 
-      # Extract on EC2, install prod deps, auto-detect entry, start/reload PM2
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY_B64 }}
+          key_path: key.pem
+          # deploy + auto-detect entry + PM2
           script: |
             set -e
             cd "${{ secrets.EC2_PATH }}"
@@ -91,28 +96,21 @@ jobs:
             tar -xzf deploy.tgz && rm -f deploy.tgz
             echo "After extract:" && ls -la
 
-            # Install production deps
             if [ -f package-lock.json ]; then
               npm ci --omit=dev --no-audit --no-fund
             else
               npm install --omit=dev --no-audit --no-fund
             fi
 
-            # Detect entry from package.json main (fallback to common paths)
             ENTRY=$(node -p "try{require('./package.json').main||''}catch(e){''}")
-            if [ -n "$ENTRY" ] && [ -f "$ENTRY" ]; then
-              :
-            else
+            if [ -z "$ENTRY" ] || [ ! -f "$ENTRY" ]; then
               for f in dist/server.js dist/src/server.js dist/index.js dist/app.js; do
-                if [ -f "$f" ]; then ENTRY="$f"; break; fi
+                [ -f "$f" ] && ENTRY="$f" && break
               done
             fi
-            if [ -z "$ENTRY" ] || [ ! -f "$ENTRY" ]; then
-              echo "No entry file found. Dist tree:"; ls -R dist || true; exit 1
-            fi
+            [ -n "$ENTRY" ] && [ -f "$ENTRY" ] || { echo "No entry file found. Dist tree:"; ls -R dist || true; exit 1; }
             echo "Using entry file: $ENTRY"
 
-            # Start/reload with PM2
             if command -v pm2 >/dev/null 2>&1; then
               pm2 describe skillin >/dev/null 2>&1 && pm2 reload skillin || pm2 start "$ENTRY" --name skillin
               pm2 save
@@ -122,12 +120,11 @@ jobs:
               exit 1
             fi
 
-      # Local health check on the EC2 host (HTTP, not HTTPS)
       - name: Health check (best-effort)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_KEY_B64 }}
+          key_path: key.pem
           script: |
             curl -fsS http://127.0.0.1:3000/health || true
