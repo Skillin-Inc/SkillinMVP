@@ -2,7 +2,7 @@ name: Deploy backend to EC2 (publish)
 
 on:
   push:
-    branches: [ publish ]
+    branches: [publish]
   workflow_dispatch:
 
 env:
@@ -10,7 +10,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: Amazon-Linux
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
       # --- BUILD IN ./backend ---
       - name: Install deps (backend)
         working-directory: ./${{ env.APP_DIR }}
-        run: npm ci
+        run: npm install all
 
       - name: Build (backend)
         working-directory: ./${{ env.APP_DIR }}
