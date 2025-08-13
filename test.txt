@@ -1,2 +1,1 @@
 test push to ec2 
-t
