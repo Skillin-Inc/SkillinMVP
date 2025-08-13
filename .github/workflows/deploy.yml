@@ -1,9 +1,8 @@
-Test this ssh into into ing it
 name: Deploy backend to EC2 (publish)
 
 on:
   push:
-    branches: [ publish ]
+    branches: [publish]
   workflow_dispatch:
 
 env:
@@ -158,7 +157,3 @@ jobs:
           key: ${{ steps.key.outputs.pem }}
           script: |
             curl -fsS http://127.0.0.1:3000/health || true
-
-
-
-      
