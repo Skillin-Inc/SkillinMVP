@@ -111,22 +111,74 @@ const checkFreeMode = async (userId: string) => {
   }
 };
 
-  // On app start: restore freeMode flag from AsyncStorage
-  // and remove any legacy "userData" (we now rely on Cognito session instead)
   useEffect(() => {
-    (async () => {
-      try {
-        const cachedFree = await AsyncStorage.getItem("freeMode");
-        if (cachedFree === "true" || cachedFree === "false") {
-          setFreeMode(cachedFree === "true"); // restore freeMode from local storage
+  const bootstrap = async () => {
+    try {
+      // 1. Try to restore Cognito user session
+      const currentUser = userPool.getCurrentUser();
+      if (currentUser) {
+        const session = await new Promise<CognitoUserSession>((resolve, reject) => {
+          currentUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
+            if (err) reject(err);
+            else if (session) resolve(session);
+            else reject(new Error("No session available"));
+          });
+        });
+
+        if (session && session.isValid()) {
+          const sub = session.getIdToken().payload.sub;
+
+          // 2. Fetch user data from backend
+          let backendUserData = null;
+          try {
+            backendUserData = await api.getUserById(sub);
+          } catch (error) {
+            console.warn("Error fetching user data from backend:", error);
+            logout();
+            return;
+          }
+
+          // 3. Build user object and store in context
+          const user: User = {
+            id: sub,
+            firstName: backendUserData.first_name || "",
+            lastName: backendUserData.last_name || "",
+            email: backendUserData.email || "",
+            phoneNumber: backendUserData.phone_number || "",
+            username: backendUserData.username || backendUserData.email,
+            createdAt: backendUserData.created_at || new Date().toISOString(),
+            userType: backendUserData.user_type || "student",
+            cognitoUser: currentUser,
+          };
+
+          setUser(user);
+          setIsLoggedIn(true);
+
+          // 4. Check paid/free status from backend and update state
+          await checkPaidStatus(user.id);
+          await checkFreeMode(user.id);
         }
-        // Remove old "userData" from AsyncStorage to avoid conflict with Cognito
-        await AsyncStorage.removeItem("userData");
-      } catch (e) {
-        console.warn("Bootstrap freeMode/userData cleanup failed:", e);
       }
-    })();
-  }, []);
+
+      // 5. Restore freeMode flag from AsyncStorage (if cached)
+      const cachedFree = await AsyncStorage.getItem("freeMode");
+      if (cachedFree === "true" || cachedFree === "false") {
+        setFreeMode(cachedFree === "true");
+      }
+
+      // 6. Remove legacy userData from AsyncStorage
+      await AsyncStorage.removeItem("userData");
+    } catch (e) {
+      console.error("Bootstrap failed:", e);
+    } finally {
+      // 7. Finish loading regardless of success/failure
+      setLoading(false);
+    }
+  };
+
+  bootstrap();
+}, []);
+
 
   // Restore Cognito session on app start
   useEffect(() => {
@@ -258,7 +310,6 @@ const checkFreeMode = async (userId: string) => {
       });
     });
   };
-
 
   const register = async (registerData: RegisterData): Promise<void> => {
     return new Promise((resolve, reject) => {

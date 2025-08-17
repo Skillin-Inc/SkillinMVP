@@ -9,6 +9,7 @@ import {
   Alert,
   SafeAreaView,
   RefreshControl,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps, useFocusEffect} from "@react-navigation/native";
@@ -44,7 +45,6 @@ export default function StudentHome({ navigation }: Props) {
       if (user?.id) checkPaidStatus(user.id);
     }, [user?.id])
   );
-
 
 
   const loadCategories = async () => {

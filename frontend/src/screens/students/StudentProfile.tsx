@@ -330,6 +330,13 @@ const handleSubscriptionPress = async () => {
   </View>
 )}
 
+            <View style={styles.section}>
+              <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+                <Text style={styles.signOutText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+        )
 
             <View style={styles.section}>
               <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
