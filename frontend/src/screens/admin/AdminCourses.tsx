@@ -14,7 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { api, Course, Category, Lesson } from "../../services/api";
+import { api, Course, Category, Lesson } from "../../services/api/";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditCourseModalProps {
@@ -276,9 +276,8 @@ export default function AdminCourses() {
       setLoading(true);
       const [allCourses, allCategories] = await Promise.all([api.getAllCourses(), api.getAllCategories()]);
 
-      // Fetch lessons for each course
       const coursesWithLessons = await Promise.all(
-        allCourses.map(async (course) => {
+        allCourses.map(async (course: Course) => {
           try {
             const lessons = await api.getLessonsByCourse(course.id);
             return { ...course, lessons, expanded: false };
@@ -590,7 +589,6 @@ function getStyles() {
       justifyContent: "center",
       alignItems: "center",
     },
-    // Modal styles
     modalContainer: {
       flex: 1,
       backgroundColor: COLORS.white,
@@ -664,7 +662,6 @@ function getStyles() {
     disabledButton: {
       opacity: 0.6,
     },
-    // Category selection modal
     categoryModalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",
@@ -710,7 +707,6 @@ function getStyles() {
       fontWeight: "600",
       textAlign: "center",
     },
-    // Lesson-related styles
     courseHeader: {
       marginBottom: 8,
     },

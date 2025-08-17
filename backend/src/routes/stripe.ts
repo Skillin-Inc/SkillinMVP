@@ -1,11 +1,13 @@
 import express, { Request, Response } from "express";
 import Stripe from "stripe";
-import { pool } from "../db"; 
-
+import rateLimit from "express-rate-limit";
+import { executeQuery } from "../db/connection"; 
+import { stripeConfig } from "../config/environment";
 
 const router = express.Router();
+const limiter = rateLimit({ windowMs: 60_000, max: 60 }); 
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(stripeConfig.secretKey, {
   apiVersion: "2025-06-30.basil",
 });
 
@@ -23,7 +25,7 @@ interface BillingPortalRequestBody {
 }
 
 router.post(
-  "/create-billing-portal-session",
+  "/create-billing-portal-session",limiter,
   async (
     req: Request<Record<string, unknown>, Record<string, unknown>, BillingPortalRequestBody>,
     res: Response
@@ -84,7 +86,7 @@ router.post(
  * Creates a Stripe Checkout session for the frontend, which redirects users
  * to Stripe's secure payment page for subscription payment.
  */
-router.post("/create-checkout-session", async (req: Request, res: Response) => {
+router.post("/create-checkout-session",limiter, async (req: Request, res: Response) => {
   const { userId, email } = req.body;
 
   if (!userId || !email) {
@@ -139,7 +141,7 @@ router.post("/create-checkout-session", async (req: Request, res: Response) => {
  * Checks if the user (by userId) currently has an active or trialing subscription in Stripe.
  * Used by frontend to lock/unlock premium features.
  */
-router.post("/check-paid-status", async (req: Request, res: Response) => {
+router.post("/check-paid-status",limiter, async (req: Request, res: Response) => {
   const { userId } = req.body;
 
   if (!userId) {
@@ -148,8 +150,8 @@ router.post("/check-paid-status", async (req: Request, res: Response) => {
   }
 
   try {
-    const result = await pool.query(
-      "SELECT is_paid, is_free FROM users WHERE id = $1",
+    const result = await executeQuery(
+      "SELECT is_paid, is_free FROM public.users WHERE id = $1",
       [userId]
     );
 
@@ -157,6 +159,7 @@ router.post("/check-paid-status", async (req: Request, res: Response) => {
       res.status(404).json({ error: "User not found" });
       return;
     }
+
 
     const { is_paid, is_free } = result.rows[0];
     res.json({ isPaid: is_paid, is_free });

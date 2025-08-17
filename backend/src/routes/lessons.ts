@@ -1,25 +1,22 @@
 import { Router, Request, Response } from "express";
 import {
   createLesson,
+  NewLesson,
   getAllLessons,
   getLessonById,
   getLessonsByTeacher,
   getLessonsByCourse,
   updateLesson,
   deleteLesson,
-  NewLesson,
-} from "../db";
+} from "../db/";
+import { isValidId } from "../utils";
 
 const router = Router();
 
-function isValidUUID(uuid: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(uuid);
-}
-
 router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response): Promise<void> => {
   const body = req.body;
-  const required: (keyof NewLesson)[] = ["teacher_id", "course_id", "title", "description"];
+
+  const required: (keyof NewLesson)[] = ["teacher_id", "course_id", "title", "description", "video_url"];
 
   for (const key of required) {
     if (body[key] === undefined) {
@@ -28,32 +25,22 @@ router.post("/", async (req: Request<object, unknown, NewLesson>, res: Response)
     }
   }
 
-  if (!isValidUUID(body.teacher_id) || !isValidUUID(body.course_id)) {
+  if (!isValidId(body.teacher_id) || !isValidId(body.course_id)) {
     res.status(400).json({ error: "teacher_id and course_id must be valid UUIDs" });
     return;
   }
 
-  if (!body.title.trim() || !body.description.trim()) {
-    res.status(400).json({ error: "Title and description cannot be empty" });
-    return;
-  }
-
-  const video_url = body.video_url || "";
-
   try {
-    const lessonData = {
-      teacher_id: body.teacher_id,
-      course_id: body.course_id,
-      title: body.title.trim(),
-      description: body.description.trim(),
-      video_url,
-    };
-    const newLesson = await createLesson(lessonData);
+    const newLesson = await createLesson(body);
     res.status(201).json(newLesson);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error occurred" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 router.get("/", async (req, res) => {
@@ -61,15 +48,19 @@ router.get("/", async (req, res) => {
     const lessons = await getAllLessons();
     res.json(lessons);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 router.get("/teacher/:teacherId", async (req, res) => {
   const teacherId = String(req.params.teacherId);
 
-  if (!isValidUUID(teacherId)) {
+  if (!isValidId(teacherId)) {
     res.status(400).json({ error: "Invalid teacher ID format" });
     return;
   }
@@ -78,15 +69,19 @@ router.get("/teacher/:teacherId", async (req, res) => {
     const lessons = await getLessonsByTeacher(teacherId);
     res.json(lessons);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 router.get("/course/:courseId", async (req, res) => {
   const courseId = String(req.params.courseId);
 
-  if (!isValidUUID(courseId)) {
+  if (!isValidId(courseId)) {
     res.status(400).json({ error: "Invalid course ID format" });
     return;
   }
@@ -95,15 +90,19 @@ router.get("/course/:courseId", async (req, res) => {
     const lessons = await getLessonsByCourse(courseId);
     res.json(lessons);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 router.get("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid lesson ID format" });
     return;
   }
@@ -116,16 +115,20 @@ router.get("/:id", async (req, res) => {
     }
     res.json(lesson);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 router.put("/:id", async (req, res) => {
   const id = String(req.params.id);
   const updateData = req.body;
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid lesson ID format" });
     return;
   }
@@ -138,7 +141,7 @@ router.put("/:id", async (req, res) => {
     return;
   }
 
-  if (updateData.course_id && (!isValidUUID(updateData.course_id) || typeof updateData.course_id !== "string")) {
+  if (updateData.course_id && (!isValidId(updateData.course_id) || typeof updateData.course_id !== "string")) {
     res.status(400).json({ error: "course_id must be a valid UUID" });
     return;
   }
@@ -151,15 +154,18 @@ router.put("/:id", async (req, res) => {
     }
     res.json(updatedLesson);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: error instanceof Error ? error.message : "Unknown error occurred" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.delete("/:id", async (req, res) => {
   const id = String(req.params.id);
 
-  if (!isValidUUID(id)) {
+  if (!isValidId(id)) {
     res.status(400).json({ error: "Invalid lesson ID format" });
     return;
   }
@@ -172,8 +178,11 @@ router.delete("/:id", async (req, res) => {
     }
     res.json({ success: true, message: "Lesson deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 

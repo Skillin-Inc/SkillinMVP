@@ -1,44 +1,49 @@
 // src/server.ts
 import express, { Express, Request, Response } from "express";
 import cors from "cors";
-import "dotenv/config";
+import { serverConfig } from "./config/environment";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-
-
 // Import route handlers
-import stripeRoutes from "./routes/stripe";
+
 import userRoutes from "./routes/users";
-import sendEmailRouter from "./routes/sendEmail";
 import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import progressRoutes from "./routes/progress";
+import stripeRoutes from "./routes/stripe";
 import stripeWebhookRouter from "./routes/stripeWebhook";
 import bodyParser from "body-parser";
 
+import lessonRoutes from "./routes/lessons";
+
+// Import Cognito auth middleware
+import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
+import { validateEnvironmentConfig } from "./aws-rds-config";
 
 const app: Express = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:8081",
+    origin: serverConfig.frontendUrl,
     methods: ["GET", "POST"],
   },
 });
 app.use("/api/webhook/stripe", bodyParser.raw({ type: "application/json" }), stripeWebhookRouter);
 
-// Middleware
+const port = serverConfig.port;
+
+const userSockets = new Map<string, string>();
+
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:8081",
+    origin: serverConfig.frontendUrl,
     credentials: true,
   })
 );
 
-// Add request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
@@ -49,11 +54,7 @@ app.use("/api", stripeWebhookRouter);
 // Stripe RESTful APIs for checkout, billing, payment status, etc.
 app.use("/stripe", stripeRoutes);
 
-const port = process.env.PORT || 4040;
 
-const userSockets = new Map<string, string>();
-
-// Serve favicon to prevent 404s
 app.get("/favicon.ico", (req: Request, res: Response) => {
   res.status(204).end();
 });
@@ -68,7 +69,7 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", async (data: { sender_id: string; receiver_id: string; content: string }) => {
     try {
-      const { createMessage } = await import("./db");
+      const { createMessage } = await import("./db/");
       const newMessage = await createMessage({
         sender_id: data.sender_id,
         receiver_id: data.receiver_id,
@@ -95,8 +96,8 @@ io.on("connection", (socket) => {
         is_read: newMessage.is_read,
         created_at: newMessage.created_at,
       });
-    } catch (error) {
-      console.error("Error handling message:", error);
+    } catch {
+      console.error("Error handling message");
       socket.emit("message_error", { error: "Failed to send message" });
     }
   });
@@ -112,20 +113,38 @@ io.on("connection", (socket) => {
   });
 });
 
+// Public routes (no authentication required)
 
-// API Routes
-app.use("/users", userRoutes);
-app.use("/send-email", sendEmailRouter);
-app.use("/messages", messageRoutes);
+// Public registration endpoint (no authentication required)
+app.post("/register", async (req: Request, res: Response) => {
+  try {
+    const { createUser } = await import("./db");
+    const newUser = await createUser(req.body);
+    res.status(201).json(newUser);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+});
+
+// Public routes (no authentication required)
 app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);
-//app.use("/teachers", teacherRoutes);
+app.use("/lessons", lessonRoutes);
+app.use("/messages", messageRoutes);
 app.use("/progress", progressRoutes);
 app.use("/api", stripeRoutes);
-app.use("/api", userRoutes);
+//app.use("/api", userRoutes);
 
 
-// 404 handler for unmatched routes
+
+// Protected routes (require Cognito authentication)
+// i think its stuff that is locked to that account and that account only? idk yet
+app.use("/users", cognitoAuthMiddleware, userRoutes);
+
 app.use((req: Request, res: Response) => {
   res.status(404).json({
     error: "Route not found",
@@ -134,7 +153,6 @@ app.use((req: Request, res: Response) => {
   });
 });
 
-// Global error handler
 app.use((err: Error, req: Request, res: Response) => {
   console.error("Unhandled error:", err);
   res.status(500).json({
@@ -143,6 +161,13 @@ app.use((err: Error, req: Request, res: Response) => {
   });
 });
 
+try {
+  validateEnvironmentConfig();
+} catch (error) {
+  console.error("Server startup failed due to configuration issues:", error);
+  process.exit(1);
+}
+
 server.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+  console.log(`[server]: Server is running at http://localhost:${port}`);
 });

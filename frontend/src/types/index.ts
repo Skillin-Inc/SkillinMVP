@@ -1,5 +1,5 @@
 export * from "./navigation";
-export { User } from "../services/api";
+export { User } from "../services/api/";
 
 // Teacher signup flow types
 export interface PersonalInfo {

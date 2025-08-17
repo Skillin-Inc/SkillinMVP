@@ -15,7 +15,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api, Lesson, Course } from "../../services/api";
+import { api, Course, Lesson } from "../../services/api/";
 import { TeacherStackParamList } from "../../types/navigation";
 import { HeaderWithBack, LoadingState, EmptyState, SectionHeader } from "../../components/common";
 import { VideoSection } from "../../components/media";

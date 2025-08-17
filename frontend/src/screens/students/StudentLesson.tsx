@@ -5,7 +5,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api, Lesson, Course } from "../../services/api";
+import { api, Course, Lesson } from "../../services/api/";
 import { StudentStackParamList } from "../../types/navigation";
 import { HeaderWithBack, LoadingState, EmptyState } from "../../components/common";
 
@@ -135,10 +135,10 @@ export default function StudentLesson({ navigation, route }: Props) {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {course && (
           <TouchableOpacity style={styles.courseContext} onPress={() => navigation.goBack()}>
-            <View style={styles.courseContextHeader}>
+            {/* <View style={styles.courseContextHeader}>
               <Ionicons name="arrow-back" size={16} color={COLORS.purple} />
               <Text style={styles.courseContextText}>Back to {course.title}</Text>
-            </View>
+            </View> */}
           </TouchableOpacity>
         )}
 

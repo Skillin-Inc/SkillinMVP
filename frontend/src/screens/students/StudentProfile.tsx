@@ -24,13 +24,12 @@ import { ImagePickerAvatar } from "../../components/forms";
 import { QuickActionCard } from "../../components/cards";
 import { COLORS, SPACINGS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
-import { User, api, transformBackendUserToUser } from "../../services/api";
+import { User, api, transformBackendUserToUser } from "../../services/api/";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<StudentTabsParamList, "StudentProfile">,
   StackScreenProps<StudentStackParamList>
 >;
-
 
 export default function StudentProfile({ navigation, route }: Props) {
   const { user: currentUser, isPaid, checkPaidStatus, freeMode,setFreeMode, logout} = useContext(AuthContext);
@@ -46,8 +45,9 @@ export default function StudentProfile({ navigation, route }: Props) {
 
 
   useEffect(() => {
+    if (!currentUser) return;
     loadUserProfile();
-  }, [userId]);
+  }, [userId, currentUser]);
 
   const loadUserProfile = async () => {
     try {
@@ -157,86 +157,62 @@ export default function StudentProfile({ navigation, route }: Props) {
     }
   };
 
-
- const handleSubscriptionPress = async () => {
+const handleSubscriptionPress = async () => {
   if (!currentUser?.id || !currentUser?.email) {
     Alert.alert("Error", "Missing user info");
     return;
   }
 
   try {
-    //  re check up to date payment status from DB
-    const paidRes = await fetch(`${BACKEND_URL}/api/check-paid-status`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: currentUser.id }),
+    // Step 1: from DB chk current status
+    const paidRes = await axios.post(`${BACKEND_URL}/api/check-paid-status`, {
+      userId: currentUser.id,
     });
-    const paidData = await paidRes.json();
+    const paidData = paidRes.data;
     const latestIsPaid = paidData.isPaid;
     const latestFreeMode = paidData.is_free;
 
-    //   if there is setPaid / setFreeMode in context, update them
+    // Step 2: sync update Context status
     if (typeof setFreeMode === "function") setFreeMode(latestFreeMode);
-    if (typeof checkPaidStatus === "function") checkPaidStatus(currentUser.id); 
+    if (typeof checkPaidStatus === "function") checkPaidStatus(currentUser.id);
 
     console.log("💡 latestFreeMode:", latestFreeMode);
     console.log("💡 latestIsPaid:", latestIsPaid);
 
-    //   redirect based on newest status
+    // Step 3: direct to different page based on different stage
     if (latestFreeMode && !latestIsPaid) {
-      // free user → redirect to checkout page
-      const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: currentUser.id,
-          email: currentUser.email,
-        }),
+      // unpaid → build checkout session
+      const res = await axios.post(`${BACKEND_URL}/api/create-checkout-session`, {
+        userId: currentUser.id,
+        email: currentUser.email,
       });
 
-      const data = await res.json();
-      if (data.url) {
-        Linking.openURL(data.url);
-      } else {
+      const { url } = res.data;
+      if (!url || typeof url !== "string") {
         Alert.alert("Error", "Failed to create checkout session.");
+        return;
       }
+      Linking.openURL(url);
+
     } else {
-      // paid user → open billing portal
-      const res = await fetch(`${BACKEND_URL}/api/create-billing-portal-session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: currentUser.email,
-          name: `${currentUser.firstName} ${currentUser.lastName}`,
-        }),
+      // Paid → open billing portal
+      const res = await axios.post(`${BACKEND_URL}/api/create-billing-portal-session`, {
+        email: currentUser.email,
+        name: `${currentUser.firstName} ${currentUser.lastName}`,
       });
 
-      const data = await res.json();
-      if (data.url) {
-        Linking.openURL(data.url);
-      } else {
+      const { url } = res.data;
+      if (!url || typeof url !== "string") {
         Alert.alert("Error", "Failed to open billing portal.");
+        return;
       }
+      Linking.openURL(url);
     }
   } catch (error) {
     console.error("Subscription error:", error);
     Alert.alert("Error", "Something went wrong.");
   }
 };
-
-
-
-
-if (loading) {
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <Text>Loading profile...</Text>
-      </View>
-    </SafeAreaView>
-  );
-}
-
 
   return (
     <SafeAreaView style={styles.container}>
@@ -293,20 +269,18 @@ if (loading) {
         <View style={styles.section}>
           <SectionHeader title="Personal Information" />
 
-
           <InfoCard
             icon="calendar-outline"
             label="Date of Birth"
             value={profileUser?.date_of_birth ?? "Not provided"}
           />
 
-<InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />
-</View>
+          <InfoCard icon="call-outline" label="Phone Number" value={profileUser?.phoneNumber ?? "Not provided"} />
+        </View>
 
-{isOwnProfile && (
-  <View style={styles.section}>
-    <SectionHeader title="Account Actions" />
-
+        {isOwnProfile && (
+          <View style={styles.section}>
+            <SectionHeader title="Account Actions" />
 
             <View style={styles.quickActions}>
               <QuickActionCard
@@ -332,12 +306,12 @@ if (loading) {
                 onPress={() => Alert.alert("Progress", "Feature coming soon!")}
               />
 
-      <QuickActionCard
-        icon="help-circle-outline"
-        title="Help & Support"
-        subtitle="Get assistance and FAQ"
-        onPress={handleSupport}
-      />
+              <QuickActionCard
+                icon="help-circle-outline"
+                title="Help & Support"
+                subtitle="Get assistance and FAQ"
+                onPress={handleSupport}
+              />
 
       <QuickActionCard
         icon="wallet-outline"
@@ -357,6 +331,14 @@ if (loading) {
 )}
 
 
+            <View style={styles.section}>
+              <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+                <Text style={styles.signOutText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+        )
+
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Skillin v1.0.0</Text>
         </View>
@@ -364,9 +346,6 @@ if (loading) {
     </SafeAreaView>
   );
 }
-
-
-
 
 const styles = StyleSheet.create({
   container: {

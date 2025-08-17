@@ -1,32 +1,34 @@
-import React, { useState, useMemo, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
+  TouchableOpacity,
   SafeAreaView,
   RefreshControl,
   SectionList,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { CompositeScreenProps } from "@react-navigation/native";
-import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { StackScreenProps } from "@react-navigation/stack";
-import { useFocusEffect } from "@react-navigation/native";
-
 import { COLORS } from "../../styles";
-import UserItem, { ChatUser } from "../../components/cards/UserItem";
-import {
-  StudentTabsParamList,
-  TeacherTabsParamList,
-  StudentStackParamList,
-  TeacherStackParamList,
-} from "../../types/navigation";
+import { StackScreenProps } from "@react-navigation/stack";
+import { StudentTabsParamList, TeacherTabsParamList, StudentStackParamList, TeacherStackParamList } from "../../types";
+import { api, Conversation } from "../../services/api/";
 import { AuthContext } from "../../hooks/AuthContext";
-import { api } from "../../services/api";
 import { websocketService, SocketMessage } from "../../services/websocket";
 import { LoadingState, EmptyState, SectionHeader } from "../../components/common";
+import { useFocusEffect } from "@react-navigation/native";
+import UserItem from "../../components/cards/UserItem";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+
+interface ChatUser {
+  id: string;
+  name: string;
+  lastMessage: string;
+  timestamp: string;
+  unreadCount: number;
+}
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<StudentTabsParamList | TeacherTabsParamList, "Messages">,
@@ -48,12 +50,13 @@ export default function Messages({ navigation }: Props) {
 
     try {
       setLoading(true);
+
       const [allUsersData, conversations] = await Promise.all([
         api.getAllUsers(),
         api.getConversationsForUser(currentUser.id),
       ]);
 
-      const conversationMap = new Map(conversations.map((conv) => [conv.other_user_id, conv]));
+      const conversationMap = new Map(conversations.map((conv: Conversation) => [conv.other_user_id, conv]));
 
       const conversationUsers = allUsersData
         .filter((user) => user.id !== currentUser?.id)

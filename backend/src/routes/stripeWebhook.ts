@@ -1,10 +1,11 @@
 import express, { Request, Response } from "express";
 import Stripe from "stripe";
 import bodyParser from "body-parser";
-import { updateFreeUserStatus, updateUserPaymentStatus, updateUserSubscriptionDetails} from "../../controller/userController"; 
+import { updateFreeUserStatus, updateUserPaymentStatus, updateUserSubscriptionDetails} from "../db/users"; 
+import { stripeConfig } from "../config/environment";
 
 const router = express.Router();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(stripeConfig.secretKey, {
   apiVersion: "2025-06-30.basil",
 });
 
@@ -16,18 +17,9 @@ router.post(
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(
-        req.body,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET!
-      );
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error("Webhook Error:", err.message);
-        res.status(400).send(`Webhook Error: ${err.message}`);
-        return;
-      }
-      console.error("Unknown Webhook Error:", err);
+      event = stripe.webhooks.constructEvent(req.body, sig, stripeConfig.webhookSecret);
+    } catch {
+      console.error("Webhook Error");
       res.status(400).send("Unknown Webhook Error");
       return;
     }

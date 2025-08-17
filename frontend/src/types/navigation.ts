@@ -1,6 +1,7 @@
 // navigation.ts
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { PersonalInfo, TeachingExperience } from "./index";
+import { RegisterData } from "../services/api/types";
 
 export type StudentTabsParamList = {
   StudentHome: undefined;
@@ -8,7 +9,6 @@ export type StudentTabsParamList = {
   Messages: undefined;
   StudentProfile: { userId?: string };
   Temp: undefined;
-  
 };
 
 export type TeacherTabsParamList = {
@@ -21,8 +21,7 @@ export type TeacherTabsParamList = {
 
 export type AdminTabsParamList = {
   AdminHome: undefined;
-  UserManagement: undefined;
-  CourseManagement: undefined;
+  Analytics: undefined;
   Messages: undefined;
 };
 
@@ -58,6 +57,9 @@ export type TeacherStackParamList = {
 
 export type AdminStackParamList = {
   AdminTabs: NavigatorScreenParams<AdminTabsParamList>;
+  AdminUsers: undefined;
+  AdminCourses: undefined;
+  AdminCategories: undefined;
   Chat: { id: string };
 };
 
@@ -76,6 +78,10 @@ export type TeacherAuthStackParamList = {
 export type AuthStackParamList = {
   Welcome: undefined;
   Login: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: {
+    email: string;
+  };
   RegisterPayment: undefined;
   StudentInfo: undefined;
   StudentAccount: {
@@ -84,6 +90,11 @@ export type AuthStackParamList = {
     date_of_birth: string;
     email: string;
     phoneNumber?: string;
+    college: string;
+  };
+  EmailConfirmation: {
+    email: string;
+    registrationData?: RegisterData;
   };
   TeacherNavigator: NavigatorScreenParams<TeacherAuthStackParamList>;
 };

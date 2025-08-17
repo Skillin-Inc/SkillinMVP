@@ -1,27 +1,43 @@
 // src/features/auth/AuthContext.tsx
 import React, { createContext, useEffect, useState } from "react";
+import {
+  CognitoUser,
+  AuthenticationDetails,
+  CognitoUserAttribute,
+  CognitoUserSession,
+} from "amazon-cognito-identity-js";
+import { userPool } from "../config/userPool";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { api, LoginData, RegisterData, User } from "../services/api";
+import { api } from "../services/api/";
 
-type StoredUserData = {
-  // frontend format
-  id?: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  id?: string; // Cognito userSub
+  firstName: string;
+  lastName: string;
+  email: string;
   phoneNumber?: string;
-  username?: string;
-  createdAt?: string;
+  username: string;
+  password: string;
   userType?: "student" | "teacher" | "admin";
+}
 
-  // backend format
-  first_name?: string;
-  last_name?: string;
-  phone_number?: string;
-  created_at?: string;
-  user_type?: "student" | "teacher" | "admin";
-};
+export interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  username: string;
+  createdAt: string;
+  userType: "student" | "teacher" | "admin";
+  cognitoUser?: CognitoUser;
+}
 
 type AuthContextType = {
   isLoggedIn: boolean;
@@ -33,9 +49,12 @@ type AuthContextType = {
   login: (loginData: LoginData) => Promise<User>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
-  switchMode: () => void;
   updateUser: (updatedUser: User) => Promise<void>;
   checkPaidStatus: (userId: string) => Promise<void>;
+  confirmSignUp: (email: string, code: string, registrationData?: RegisterData) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
+  resendConfirmationCode: (email: string) => Promise<void>;
 };
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -51,9 +70,12 @@ export const AuthContext = createContext<AuthContextType>({
   login: async () => ({} as User),
   register: async () => {},
   logout: async () => {},
-  switchMode: () => {},
   updateUser: async () => {},
   checkPaidStatus: async () => {},
+  confirmSignUp: async () => {},
+  forgotPassword: async () => {},
+  confirmForgotPassword: async () => {},
+  resendConfirmationCode: async () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -89,150 +111,320 @@ const checkFreeMode = async (userId: string) => {
   }
 };
 
-  const transformStoredUserData = (userData: unknown): User | null => {
-    if (!userData || typeof userData !== "object") return null;
-
-    const userObj = userData as StoredUserData;
-
-    try {
-      if (
-        userObj.first_name &&
-        userObj.last_name &&
-        userObj.email &&
-        userObj.username &&
-        userObj.id !== undefined &&
-        userObj.created_at
-      ) {
-        return {
-          id: userObj.id,
-          firstName: userObj.first_name,
-          lastName: userObj.last_name,
-          email: userObj.email,
-          phoneNumber: userObj.phone_number,
-          username: userObj.username,
-          createdAt: userObj.created_at,
-          userType: userObj.user_type ?? "student",
-        };
+  // On app start: restore freeMode flag from AsyncStorage
+  // and remove any legacy "userData" (we now rely on Cognito session instead)
+  useEffect(() => {
+    (async () => {
+      try {
+        const cachedFree = await AsyncStorage.getItem("freeMode");
+        if (cachedFree === "true" || cachedFree === "false") {
+          setFreeMode(cachedFree === "true"); // restore freeMode from local storage
+        }
+        // Remove old "userData" from AsyncStorage to avoid conflict with Cognito
+        await AsyncStorage.removeItem("userData");
+      } catch (e) {
+        console.warn("Bootstrap freeMode/userData cleanup failed:", e);
       }
+    })();
+  }, []);
 
-      if (
-        userObj.firstName &&
-        userObj.lastName &&
-        userObj.email &&
-        userObj.username &&
-        userObj.id !== undefined &&
-        userObj.createdAt
-      ) {
-        return {
-          id: userObj.id,
-          firstName: userObj.firstName,
-          lastName: userObj.lastName,
-          email: userObj.email,
-          phoneNumber: userObj.phoneNumber,
-          username: userObj.username,
-          createdAt: userObj.createdAt,
-          userType: userObj.userType ?? "student",
+  // Restore Cognito session on app start
+  useEffect(() => {
+    const checkAuthState = async () => {
+      try {
+        const currentUser = userPool.getCurrentUser();
+        if (!currentUser) {
+          // No Cognito user found, reset state
+          setUser(null);
+          setIsLoggedIn(false);
+          setIsPaid(false);
+          return;
+        }
+
+        // Retrieve current session from Cognito
+        const session = await new Promise<CognitoUserSession>((resolve, reject) => {
+          currentUser.getSession((err: Error | null, s: CognitoUserSession | null) => {
+            if (err) reject(err);
+            else if (s) resolve(s);
+            else reject(new Error("No session available"));
+          });
+        });
+
+        if (!session || !session.isValid()) {
+          // Session invalid → reset state
+          setUser(null);
+          setIsLoggedIn(false);
+          setIsPaid(false);
+          return;
+        }
+
+        // Extract Cognito user sub (unique ID)
+        const sub = session.getIdToken().payload.sub;
+
+        // Fetch backend user profile by Cognito sub
+        let backendUserData: any = null;
+        try {
+          backendUserData = await api.getUserById(sub);
+        } catch (error) {
+          console.warn("Error fetching user data from backend:", error);
+          await logout(); // clear state if backend fetch fails
+          return;
+        }
+
+        // Build unified User object
+        const u: User = {
+          id: sub,
+          firstName: backendUserData.first_name || "",
+          lastName: backendUserData.last_name || "",
+          email: backendUserData.email || "",
+          phoneNumber: backendUserData.phone_number || "",
+          username: backendUserData.username || backendUserData.email,
+          createdAt: backendUserData.created_at || new Date().toISOString(),
+          userType: backendUserData.user_type || "student",
+          cognitoUser: currentUser,
         };
-      }
 
-      return null;
-    } catch (error) {
-      console.error("Error transforming user data:", error);
-      return null;
-    }
+        setUser(u);
+        setIsLoggedIn(true);
+
+        // After restoring session, also check payment/freeMode status
+        checkPaidStatus(u.id);
+        checkFreeMode(u.id);
+      } catch (error) {
+        console.error("Error checking auth state:", error);
+      } finally {
+        setLoading(false); // always stop loading state
+      }
+    };
+
+    checkAuthState();
+  }, []);
+
+  // Cognito login flow + payment/freeMode checks
+  const login = async (loginData: LoginData): Promise<User> => {
+    return new Promise((resolve, reject) => {
+      const authDetails = new AuthenticationDetails({
+        Username: loginData.email,
+        Password: loginData.password,
+      });
+
+      const cognitoUser = new CognitoUser({
+        Username: loginData.email,
+        Pool: userPool,
+      });
+
+      // Authenticate with Cognito
+      cognitoUser.authenticateUser(authDetails, {
+        onSuccess: async (session: CognitoUserSession) => {
+          try {
+            const sub = session.getIdToken().payload.sub;
+
+            // Fetch backend user data after Cognito login
+            let backendUserData: any = null;
+            try {
+              backendUserData = await api.getUserById(sub);
+            } catch (error) {
+              console.error("Error fetching user data from backend:", error);
+              reject(error);
+              return;
+            }
+
+            // Build User object
+            const u: User = {
+              id: sub,
+              firstName: backendUserData.first_name || "",
+              lastName: backendUserData.last_name || "",
+              email: backendUserData.email || loginData.email,
+              phoneNumber: backendUserData.phone_number || "",
+              username: backendUserData.username || backendUserData.email,
+              createdAt: backendUserData.created_at || new Date().toISOString(),
+              userType: backendUserData.user_type || "student",
+              cognitoUser,
+            };
+
+            setUser(u);
+            setIsLoggedIn(true);
+
+            // After successful login, check payment/freeMode
+            Promise.all([checkPaidStatus(u.id), checkFreeMode(u.id)]).finally(() => {});
+            resolve(u);
+          } catch (error) {
+            reject(error);
+          }
+        },
+        onFailure: (err) => {
+          reject(err); // reject on Cognito auth failure
+        },
+      });
+    });
   };
 
- useEffect(() => {
-  const loadLoginState = async () => {
-    try {
-      const userDataString = await AsyncStorage.getItem("userData");
-      const freeModeValue = await AsyncStorage.getItem("freeMode");
 
-      setFreeMode(freeModeValue === "true"); 
+  const register = async (registerData: RegisterData): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const attributeList = [new CognitoUserAttribute({ Name: "email", Value: registerData.email })];
 
-      if (userDataString) {
-        const storedUserData = JSON.parse(userDataString);
-        const transformedUser = transformStoredUserData(storedUserData);
+      userPool.signUp(registerData.email, registerData.password, attributeList, [], (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  };
 
-        if (transformedUser) {
-          setUser(transformedUser);
-          setIsLoggedIn(true);
-          checkPaidStatus(transformedUser.id);
+  const confirmSignUp = async (email: string, code: string, registrationData?: RegisterData): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: userPool,
+      });
 
-          if (JSON.stringify(storedUserData) !== JSON.stringify(transformedUser)) {
-            await AsyncStorage.setItem("userData", JSON.stringify(transformedUser));
+      cognitoUser.confirmRegistration(code, true, async (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        if (registrationData) {
+          try {
+            const authDetails = new AuthenticationDetails({
+              Username: email,
+              Password: registrationData.password,
+            });
+
+            cognitoUser.authenticateUser(authDetails, {
+              onSuccess: async (session: CognitoUserSession) => {
+                try {
+                  const subId = session.getIdToken().payload.sub;
+
+                  const userDataWithId = {
+                    ...registrationData,
+                    id: subId,
+                  };
+                  await api.register(userDataWithId);
+
+                  resolve();
+                } catch (apiError) {
+                  console.error("Failed to create database user:", apiError);
+                  reject(apiError);
+                }
+              },
+              onFailure: (authError) => {
+                console.error("Failed to authenticate after confirmation:", authError);
+                reject(authError);
+              },
+            });
+          } catch (error) {
+            console.error("Failed to create database user:", error);
+            reject(error);
           }
         } else {
-          await AsyncStorage.removeItem("userData");
+          resolve();
         }
-      }
-    } catch (error) {
-      console.error("Error loading login state:", error);
-      await AsyncStorage.removeItem("userData");
-    }
-
-    setLoading(false);
+      });
+    });
   };
 
-  loadLoginState();
-}, []);
+  const forgotPassword = async (email: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: userPool,
+      });
 
-  const login = async (loginData: LoginData): Promise<User> => {
-    try {
-      const response = await api.login(loginData);
-      setUser(response.user);
-      setIsLoggedIn(true);
-      await AsyncStorage.setItem("userData", JSON.stringify(response.user));
-      checkPaidStatus(response.user.id);
-      await checkFreeMode(response.user.id);
-      return response.user;
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
+      cognitoUser.forgotPassword({
+        onSuccess: () => {
+          resolve();
+        },
+        onFailure: (err) => {
+          reject(err);
+        },
+      });
+    });
   };
 
-  const register = async (registerData: RegisterData) => {
-    try {
-      const newUser = await api.register(registerData);
-      setUser(newUser);
-      setIsLoggedIn(false);
-      await AsyncStorage.setItem("userData", JSON.stringify(newUser));
-    } catch (error) {
-      console.error("Registration error:", error);
-      throw error;
-    }
+  const confirmForgotPassword = async (email: string, code: string, newPassword: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: userPool,
+      });
+
+      cognitoUser.confirmPassword(code, newPassword, {
+        onSuccess: () => {
+          resolve();
+        },
+        onFailure: (err) => {
+          reject(err);
+        },
+      });
+    });
   };
 
-  const logout = async () => {
-    try {
-      await AsyncStorage.removeItem("userData");
-      await AsyncStorage.removeItem("freeMode");
-      setUser(null);
-      setIsLoggedIn(false);
-      setIsPaid(false);
-      setFreeMode(false);
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-  const switchMode = () => {
-    if (!user) return;
-    const updatedUser: User = { ...user, userType: user.userType === "teacher" ? "student" : "teacher" };
+const logout = async () => {
+  try {
+    const currentUser = userPool.getCurrentUser();
+    if (currentUser) currentUser.signOut();
+  } catch (e) {
+    console.warn("Cognito signOut failed:", e);
+  }
+
+  try {
+    await AsyncStorage.removeItem("userData");
+    await AsyncStorage.removeItem("freeMode");
+  } catch (e) {
+    console.warn("AsyncStorage clear failed:", e);
+  }
+
+  setUser(null);
+  setIsLoggedIn(false);
+  setIsPaid(false);
+  setFreeMode(false);
+};
+
+  const updateUser = async (updatedUser: User) => {
     setUser(updatedUser);
   };
 
-  const updateUser = async (updatedUser: User) => {
-    try {
-      setUser(updatedUser);
-      await AsyncStorage.setItem("userData", JSON.stringify(updatedUser));
-    } catch (error) {
-      console.error("Error updating user:", error);
-    }
+  const resendConfirmationCode = async (email: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const cognitoUser = new CognitoUser({
+        Username: email,
+        Pool: userPool,
+      });
+
+      cognitoUser.resendConfirmationCode((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, loading, user, isPaid, freeMode, setFreeMode, switchMode, login, register, logout, updateUser,checkPaidStatus, }}>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        loading,
+        user,
+        isPaid,
+        freeMode,
+        setFreeMode,
+        login,
+        register,
+        logout,
+        updateUser,
+        checkPaidStatus,
+        confirmSignUp,
+        forgotPassword,
+        confirmForgotPassword,
+        resendConfirmationCode,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

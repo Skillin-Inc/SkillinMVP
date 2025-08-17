@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
   View,
@@ -10,7 +9,6 @@ import {
   Alert,
   SafeAreaView,
   RefreshControl,
-  Linking
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps, useFocusEffect} from "@react-navigation/native";
@@ -21,7 +19,7 @@ import { StudentTabsParamList, StudentStackParamList } from "../../types/navigat
 import { AuthContext } from "../../hooks/AuthContext";
 import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
 import { CategoryCard, QuickActionCard } from "../../components/cards";
-import { api, Category } from "../../services/api";
+import { api, Category } from "../../services/api/";
 import temp from "../../../assets/playingCards.png";
 
 type Props = CompositeScreenProps<
@@ -30,7 +28,7 @@ type Props = CompositeScreenProps<
 >;
 
 export default function StudentHome({ navigation }: Props) {
-  const { user, isPaid, checkPaidStatus, freeMode,setFreeMode} = useContext(AuthContext);
+  const { user, checkPaidStatus} = useContext(AuthContext);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,7 +45,7 @@ export default function StudentHome({ navigation }: Props) {
     }, [user?.id])
   );
 
-  const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
+
 
   const loadCategories = async () => {
     try {

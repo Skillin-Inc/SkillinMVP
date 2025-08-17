@@ -5,8 +5,7 @@ import { Platform } from "react-native";
 
 import { AdminTabsParamList } from "../types/navigation";
 import AdminHome from "../screens/admin/AdminHome";
-import AdminUsers from "../screens/admin/AdminUsers";
-import AdminCourses from "../screens/admin/AdminCourses";
+import AdminAnalytics from "../screens/admin/AdminAnalytics";
 import Messages from "../screens/shared/Messages";
 import { COLORS } from "../styles";
 
@@ -21,10 +20,8 @@ export default function AdminTabs() {
 
           if (route.name === "AdminHome") {
             iconName = focused ? "shield" : "shield-outline";
-          } else if (route.name === "UserManagement") {
-            iconName = focused ? "people" : "people-outline";
-          } else if (route.name === "CourseManagement") {
-            iconName = focused ? "school" : "school-outline";
+          } else if (route.name === "Analytics") {
+            iconName = focused ? "bar-chart" : "bar-chart-outline";
           } else if (route.name === "Messages") {
             iconName = focused ? "chatbubbles" : "chatbubbles-outline";
           } else {
@@ -66,19 +63,11 @@ export default function AdminTabs() {
         }}
       />
       <AdminTab.Screen
-        name="UserManagement"
-        component={AdminUsers}
+        name="Analytics"
+        component={AdminAnalytics}
         options={{
-          tabBarLabel: "Users",
-          title: "User Management",
-        }}
-      />
-      <AdminTab.Screen
-        name="CourseManagement"
-        component={AdminCourses}
-        options={{
-          tabBarLabel: "Courses",
-          title: "Course Management",
+          tabBarLabel: "Analytics",
+          title: "Platform Analytics",
         }}
       />
       <AdminTab.Screen name="Messages" component={Messages} />

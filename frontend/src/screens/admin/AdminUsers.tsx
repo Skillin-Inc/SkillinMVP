@@ -14,7 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { api, BackendUser } from "../../services/api";
+import { api, BackendUser } from "../../services/api/";
 import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditUserModalProps {
@@ -47,7 +47,7 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ visible, user, onClose, o
 
     setLoading(true);
     try {
-      await api.updateUserType(user.email, userType);
+      await api.updateUserType(user.id, userType);
       Alert.alert("Success", "User updated successfully");
       onUpdate();
       onClose();
@@ -171,7 +171,7 @@ export default function AdminUsers() {
         style: "destructive",
         onPress: async () => {
           try {
-            await api.deleteUser(user.email);
+            await api.deleteUser(user.id);
             Alert.alert("Success", "User deleted successfully");
             fetchUsers();
           } catch (error) {
@@ -395,7 +395,6 @@ function getStyles() {
       justifyContent: "center",
       alignItems: "center",
     },
-    // Modal styles
     modalContainer: {
       flex: 1,
       backgroundColor: COLORS.white,
@@ -470,7 +469,6 @@ function getStyles() {
     disabledButton: {
       opacity: 0.6,
     },
-    // Type selection modal
     typeModalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",

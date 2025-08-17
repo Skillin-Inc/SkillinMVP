@@ -23,7 +23,7 @@ export default function StudentAccount({ navigation, route }: Props) {
   const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { firstName, lastName, email, phoneNumber } = route.params;
+  const { firstName, lastName, email, phoneNumber } = route.params; // route " college " also
 
   async function handleSignUp() {
     if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -53,11 +53,22 @@ export default function StudentAccount({ navigation, route }: Props) {
         password,
       });
 
-
-      Alert.alert("Success", "Account created successfully! You are now logged in.", [
+      Alert.alert("Success", "Account created successfully! Please confirm your email.", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("RegisterPayment"),
+          onPress: () =>
+            navigation.navigate("EmailConfirmation", {
+              email,
+              registrationData: {
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                username: username.trim(),
+                password,
+                userType: "student",
+              },
+            }),
         },
       ]);
     } catch (error) {
