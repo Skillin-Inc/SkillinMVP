@@ -32,7 +32,7 @@ export default function AppNavigator() {
         {user && shouldBlock && (
           <Stack.Screen
             name="SubscriptionGate"
-            component={SubscriptionGate as any}
+            component={SubscriptionGate}
             initialParams={{
               user,
               checkPaidStatus,

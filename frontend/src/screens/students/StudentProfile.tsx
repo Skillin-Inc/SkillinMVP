@@ -32,12 +32,12 @@ type Props = CompositeScreenProps<
 >;
 
 export default function StudentProfile({ navigation, route }: Props) {
-  const { user: currentUser, isPaid, checkPaidStatus, freeMode,setFreeMode, logout} = useContext(AuthContext);
+  const { user: currentUser, checkPaidStatus,setFreeMode, logout} = useContext(AuthContext);
   const userId = route.params?.userId ?? currentUser?.id ?? "";
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   
 
   const isOwnProfile = currentUser?.id === userId;

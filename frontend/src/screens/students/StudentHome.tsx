@@ -9,7 +9,6 @@ import {
   Alert,
   SafeAreaView,
   RefreshControl,
-  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { CompositeScreenProps, useFocusEffect} from "@react-navigation/native";

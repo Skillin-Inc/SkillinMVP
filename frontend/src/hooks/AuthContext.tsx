@@ -39,6 +39,17 @@ export interface User {
   cognitoUser?: CognitoUser;
 }
 
+
+export interface BackendUserData {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone_number?: string;
+  username?: string;
+  created_at?: string;
+  user_type?: "student" | "teacher" | "admin";
+}
+
 type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
@@ -214,7 +225,9 @@ const checkFreeMode = async (userId: string) => {
         const sub = session.getIdToken().payload.sub;
 
         // Fetch backend user profile by Cognito sub
-        let backendUserData: any = null;
+        
+        
+       let backendUserData: BackendUserData | null = null;
         try {
           backendUserData = await api.getUserById(sub);
         } catch (error) {
@@ -230,7 +243,7 @@ const checkFreeMode = async (userId: string) => {
           lastName: backendUserData.last_name || "",
           email: backendUserData.email || "",
           phoneNumber: backendUserData.phone_number || "",
-          username: backendUserData.username || backendUserData.email,
+          username: backendUserData?.username ?? backendUserData?.email ?? "",
           createdAt: backendUserData.created_at || new Date().toISOString(),
           userType: backendUserData.user_type || "student",
           cognitoUser: currentUser,
@@ -272,7 +285,7 @@ const checkFreeMode = async (userId: string) => {
             const sub = session.getIdToken().payload.sub;
 
             // Fetch backend user data after Cognito login
-            let backendUserData: any = null;
+            let backendUserData: BackendUserData | null = null;
             try {
               backendUserData = await api.getUserById(sub);
             } catch (error) {
@@ -288,7 +301,7 @@ const checkFreeMode = async (userId: string) => {
               lastName: backendUserData.last_name || "",
               email: backendUserData.email || loginData.email,
               phoneNumber: backendUserData.phone_number || "",
-              username: backendUserData.username || backendUserData.email,
+              username: backendUserData?.username ?? backendUserData?.email ?? "",
               createdAt: backendUserData.created_at || new Date().toISOString(),
               userType: backendUserData.user_type || "student",
               cognitoUser,
@@ -298,8 +311,11 @@ const checkFreeMode = async (userId: string) => {
             setIsLoggedIn(true);
 
             // After successful login, check payment/freeMode
-            Promise.all([checkPaidStatus(u.id), checkFreeMode(u.id)]).finally(() => {});
-            resolve(u);
+try {
+  await Promise.all([checkPaidStatus(u.id), checkFreeMode(u.id)]);
+} catch (e) {
+  console.warn("checkPaid/free failed:", e);
+}            resolve(u);
           } catch (error) {
             reject(error);
           }

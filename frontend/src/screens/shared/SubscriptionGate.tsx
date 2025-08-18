@@ -10,7 +10,7 @@ type Props = NativeStackScreenProps<StudentStackParamList, "SubscriptionGate">;
 const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
 
 
-export default function SubscriptionGate({ route, navigation }: Props) {
+export default function SubscriptionGate({ route }: Props) {
   const { user, checkPaidStatus, setFreeMode} = route.params;
 
   return (

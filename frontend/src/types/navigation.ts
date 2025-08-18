@@ -36,7 +36,7 @@ export type StudentStackParamList = {
   EditProfile: undefined;
   Success: undefined;
   SubscriptionGate: {
-    user: any;
+    user: { id: string , email:string} ;
     checkPaidStatus: (id: string) => void;
     setFreeMode: (val: boolean) => void;
     BACKEND_URL: string;
@@ -106,7 +106,7 @@ export type RootStackParamList = {
   TeacherStack: NavigatorScreenParams<TeacherStackParamList>;
   AdminStack: NavigatorScreenParams<AdminStackParamList>;
   SubscriptionGate: {
-    user: any;
+    user: { id: string , email:string};
     checkPaidStatus: (userId: string) => void;
     setFreeMode: (v: boolean) => void;
     BACKEND_URL: string;

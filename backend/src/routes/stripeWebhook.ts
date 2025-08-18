@@ -30,7 +30,7 @@ router.post(
   case "invoice.paid": {
     const session = event.data.object as Stripe.Checkout.Session;
     const userId = session.metadata?.userId;
-    const customerId = session.customer?.toString() ?? "";
+    //const customerId = session.customer?.toString() ?? "";
 
     if (userId) {
       console.log("✅ Updating is_paid for user:", userId);
@@ -41,15 +41,26 @@ router.post(
     break;
   }
 
+  type SubWithPeriod = Stripe.Subscription & {
+  current_period_end?: number; // unix sec
+  start_date?: number;         // unix sec
+};
 case "customer.subscription.created":
 case "customer.subscription.updated":
 case "customer.subscription.deleted": {
-  const subscription = event.data.object as Stripe.Subscription;
+  const subscription = event.data.object as SubWithPeriod;
+
   const userId = subscription.metadata?.userId;
-  const stripeCustomerId = subscription.customer?.toString() ?? "";
+
+  const stripeCustomerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer?.id ?? "";
+
   let subscriptionStatus: string = subscription.status;
-  const startDate = subscription.start_date ?? null;
-  const endDate = (subscription as any).current_period_end ?? null;
+
+  const startDate = subscription.start_date ?? null;            
+  const endDate = subscription.current_period_end ?? null;       
   const cancelAtPeriodEnd = subscription.cancel_at_period_end;
   const now = Math.floor(Date.now() / 1000);
 
