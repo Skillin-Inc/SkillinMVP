@@ -37,7 +37,7 @@ export default function StudentProfile({ navigation, route }: Props) {
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
-  const [_loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   
 
   const isOwnProfile = currentUser?.id === userId;
