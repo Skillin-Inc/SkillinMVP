@@ -12,6 +12,9 @@ import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import progressRoutes from "./routes/progress";
+import stripeRoutes from "./routes/stripe";
+import stripeWebhookRouter from "./routes/stripeWebhook";
+import bodyParser from "body-parser";
 
 import lessonRoutes from "./routes/lessons";
 
@@ -27,6 +30,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+app.use("/api/webhook/stripe", bodyParser.raw({ type: "application/json" }), stripeWebhookRouter);
 
 const port = serverConfig.port;
 
@@ -44,6 +48,12 @@ app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
+
+// Stripe Webhook events (must be first, before body parsers)
+app.use("/api", stripeWebhookRouter); 
+// Stripe RESTful APIs for checkout, billing, payment status, etc.
+app.use("/stripe", stripeRoutes);
+
 
 app.get("/favicon.ico", (req: Request, res: Response) => {
   res.status(204).end();
@@ -126,6 +136,10 @@ app.use("/courses", courseRoutes);
 app.use("/lessons", lessonRoutes);
 app.use("/messages", messageRoutes);
 app.use("/progress", progressRoutes);
+app.use("/api", stripeRoutes);
+//app.use("/api", userRoutes);
+
+
 
 // Protected routes (require Cognito authentication)
 // i think its stuff that is locked to that account and that account only? idk yet

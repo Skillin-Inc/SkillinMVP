@@ -140,3 +140,45 @@ export async function updateUserPaymentStatus(userId: string, isPaid: boolean) {
     throw error;
   }
 }
+
+export async function updateFreeUserStatus(userId: string, isFree: boolean) {
+  try {
+    const result = await executeQuery(
+      "UPDATE public.users SET is_free = $1 WHERE id = $2",
+      [isFree, userId]
+    );
+    console.log(`✅ Updated free status for user ${userId} to ${isFree}`);
+    return result.rowCount ?? 0;
+  } catch (error) {
+    console.error(`❌ Failed to update user ${userId} free status.`);
+    throw error;
+  }
+}
+
+export async function updateUserSubscriptionDetails(
+  userId: string,
+  stripeCustomerId: string,
+  subscriptionStatus: string,
+  startDate: number | null, // epoch seconds or null
+  endDate: number | null,   // epoch seconds or null
+  cancelAtPeriodEnd: boolean
+) {
+  try {
+    const result = await executeQuery(
+      `UPDATE public.users
+       SET
+         stripe_customer_id        = $1,
+         subscription_status       = $2,
+         subscription_start_date   = CASE WHEN $3 IS NULL THEN NULL ELSE to_timestamp($3) END,
+         subscription_end_date     = CASE WHEN $4 IS NULL THEN NULL ELSE to_timestamp($4) END,
+         cancel_at_period_end      = $5
+       WHERE id = $6`,
+      [stripeCustomerId, subscriptionStatus, startDate, endDate, cancelAtPeriodEnd, userId]
+    );
+    console.log(`✅ Updated subscription for user ${userId}`);
+    return result.rowCount ?? 0;
+  } catch (error) {
+    console.error(`❌ Failed to update subscription for user ${userId}.`);
+    throw error;
+  }
+}

@@ -9,7 +9,9 @@ import TeacherProfile from "../screens/teachers/TeacherProfile";
 import Chat from "../screens/shared/Chat";
 import EditProfile from "../screens/shared/EditProfile";
 import { StudentStackParamList } from "../types/navigation";
-import StudentSubscription from "../screens/students/StudentSubscription"; // 
+import StudentSubscription from "../screens/students/StudentSubscription"; 
+import SuccessScreen from "../screens/payment/SuccessScreen";
+import SubscriptionGate from "../screens/shared/SubscriptionGate";
 
 const Stack = createStackNavigator<StudentStackParamList>();
 
@@ -28,6 +30,9 @@ export default function StudentStack() {
       <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen name="StudentSubscription" component={StudentSubscription} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
+      <Stack.Screen name="Success" component={SuccessScreen} />
+      <Stack.Screen name="SubscriptionGate" component={SubscriptionGate} />
+
     </Stack.Navigator>
   );
 }

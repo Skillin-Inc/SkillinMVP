@@ -32,14 +32,17 @@ type Props = CompositeScreenProps<
 >;
 
 export default function StudentProfile({ navigation, route }: Props) {
-  const { logout, user: currentUser } = useContext(AuthContext);
+  const { user: currentUser, checkPaidStatus,setFreeMode, logout} = useContext(AuthContext);
   const userId = route.params?.userId ?? currentUser?.id ?? "";
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [avatarUri, setAvatarUri] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
+  
 
   const isOwnProfile = currentUser?.id === userId;
+  const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
+
 
   useEffect(() => {
     if (!currentUser) return;
@@ -154,44 +157,62 @@ export default function StudentProfile({ navigation, route }: Props) {
     }
   };
 
-  const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+const handleSubscriptionPress = async () => {
+  if (!currentUser?.id || !currentUser?.email) {
+    Alert.alert("Error", "Missing user info");
+    return;
+  }
 
-  const handleOpenStripePortal = async () => {
-    if (!currentUser?.email) {
-      Alert.alert("Error", "Missing user email");
-      return;
-    }
+  try {
+    // Step 1: from DB chk current status
+    const paidRes = await axios.post(`${BACKEND_URL}/api/check-paid-status`, {
+      userId: currentUser.id,
+    });
+    const paidData = paidRes.data;
+    const latestIsPaid = paidData.isPaid;
+    const latestFreeMode = paidData.is_free;
 
-    try {
-      const response = await axios.post(`${apiUrl}/api/create-billing-portal-session`, {
+    // Step 2: sync update Context status
+    if (typeof setFreeMode === "function") setFreeMode(latestFreeMode);
+    if (typeof checkPaidStatus === "function") checkPaidStatus(currentUser.id);
+
+    console.log("💡 latestFreeMode:", latestFreeMode);
+    console.log("💡 latestIsPaid:", latestIsPaid);
+
+    // Step 3: direct to different page based on different stage
+    if (latestFreeMode && !latestIsPaid) {
+      // unpaid → build checkout session
+      const res = await axios.post(`${BACKEND_URL}/api/create-checkout-session`, {
+        userId: currentUser.id,
+        email: currentUser.email,
+      });
+
+      const { url } = res.data;
+      if (!url || typeof url !== "string") {
+        Alert.alert("Error", "Failed to create checkout session.");
+        return;
+      }
+      Linking.openURL(url);
+
+    } else {
+      // Paid → open billing portal
+      const res = await axios.post(`${BACKEND_URL}/api/create-billing-portal-session`, {
         email: currentUser.email,
         name: `${currentUser.firstName} ${currentUser.lastName}`,
       });
 
-      const { url } = response.data;
-      console.log("Received portal URL:", url);
-
+      const { url } = res.data;
       if (!url || typeof url !== "string") {
-        Alert.alert("Error", "Stripe portal URL not found.");
+        Alert.alert("Error", "Failed to open billing portal.");
         return;
       }
-
       Linking.openURL(url);
-    } catch (error) {
-      console.error("Portal open error:", error);
-      Alert.alert("Error", "Unable to open Stripe portal.");
     }
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-          <Text>Loading profile...</Text>
-        </View>
-      </SafeAreaView>
-    );
+  } catch (error) {
+    console.error("Subscription error:", error);
+    Alert.alert("Error", "Something went wrong.");
   }
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -292,13 +313,22 @@ export default function StudentProfile({ navigation, route }: Props) {
                 onPress={handleSupport}
               />
 
-              <QuickActionCard
-                icon="wallet-outline"
-                title="Subscription"
-                subtitle="Handle your payments"
-                onPress={handleOpenStripePortal}
-              />
-            </View>
+      <QuickActionCard
+        icon="wallet-outline"
+        title="Subscription"
+        subtitle="Handle your payments"
+        onPress={handleSubscriptionPress}
+      />
+    </View>
+
+    <View style={styles.section}>
+      <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+        <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+)}
 
             <View style={styles.section}>
               <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
@@ -306,8 +336,15 @@ export default function StudentProfile({ navigation, route }: Props) {
                 <Text style={styles.signOutText}>Sign Out</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        )}
+        )
+
+            <View style={styles.section}>
+              <TouchableOpacity style={styles.signOutButton} onPress={handleLogout}>
+                <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
+                <Text style={styles.signOutText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+        )
 
         <View style={styles.versionContainer}>
           <Text style={styles.versionText}>Skillin v1.0.0</Text>
