@@ -1,24 +1,15 @@
 import { API_CONFIG } from "../../config/api";
 import { BackendUser, User } from "./types";
-import { CognitoUserSession } from "amazon-cognito-identity-js";
-import { userPool } from "../../config/userPool";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 const getAuthToken = async (): Promise<string | undefined> => {
   try {
-    const currentUser = userPool.getCurrentUser();
-    if (currentUser) {
-      const session = await new Promise<CognitoUserSession>((resolve, reject) => {
-        currentUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
-          if (err) reject(err);
-          else if (session) resolve(session);
-          else reject(new Error("No session available"));
-        });
-      });
-      if (session && session.isValid()) {
-        return session.getIdToken().getJwtToken();
-      }
+    const session = await fetchAuthSession();
+    if (session && session.tokens?.idToken) {
+      return session.tokens.idToken.toString();
     }
-  } catch {
+  } catch (error) {
+    console.error("Error getting auth token:", error);
     return undefined;
   }
 };
