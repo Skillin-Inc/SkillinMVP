@@ -44,48 +44,28 @@ export interface User {
   authUser?: AuthUser;
 }
 
-export interface BackendUserData {
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  phone_number?: string;
-  username?: string;
-  created_at?: string;
-  user_type?: "student" | "teacher" | "admin";
-}
-
 type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
   user: User | null;
-  isPaid: boolean;
-  freeMode: boolean;
-  setFreeMode: (value: boolean) => void;
   login: (loginData: LoginData) => Promise<User>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (updatedUser: User) => Promise<void>;
-  checkPaidStatus: (userId: string) => Promise<void>;
   confirmSignUp: (email: string, code: string, registrationData?: RegisterData) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   resendConfirmationCode: (email: string) => Promise<void>;
 };
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_API_URL;
-
 export const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
   loading: true,
   user: null,
-  isPaid: false,
-  freeMode: false,
-  setFreeMode: () => {},
   login: async () => ({} as User),
   register: async () => {},
   logout: async () => {},
   updateUser: async () => {},
-  checkPaidStatus: async () => {},
   confirmSignUp: async () => {},
   forgotPassword: async () => {},
   confirmForgotPassword: async () => {},
@@ -96,103 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [isPaid, setIsPaid] = useState(false);
-  const [freeMode, setFreeMode] = useState(false);
 
-  const checkPaidStatus = async (userId: string) => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/stripe/check-paid-status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
-      const data = await res.json();
-      setIsPaid(data.isPaid);
-    } catch (error) {
-      console.error("Failed to check paid status:", error);
-    }
-  };
-
-  const checkFreeMode = async (userId: string) => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/users/check-free-mode/${userId}`);
-      const data = await res.json();
-      setFreeMode(data.isFree);
-      await AsyncStorage.setItem("freeMode", data.isFree.toString());
-    } catch (error) {
-      console.error("Failed to check free mode:", error);
-    }
-  };
-
-  useEffect(() => {
-    const bootstrap = async () => {
-      try {
-        // 1. Try to restore Cognito user session
-        const currentUser = userPool.getCurrentUser();
-        if (currentUser) {
-          const session = await new Promise<CognitoUserSession>((resolve, reject) => {
-            currentUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
-              if (err) reject(err);
-              else if (session) resolve(session);
-              else reject(new Error("No session available"));
-            });
-          });
-
-          if (session && session.isValid()) {
-            const sub = session.getIdToken().payload.sub;
-
-            // 2. Fetch user data from backend
-            let backendUserData = null;
-            try {
-              backendUserData = await api.getUserById(sub);
-            } catch (error) {
-              console.warn("Error fetching user data from backend:", error);
-              logout();
-              return;
-            }
-
-            // 3. Build user object and store in context
-            const user: User = {
-              id: sub,
-              firstName: backendUserData.first_name || "",
-              lastName: backendUserData.last_name || "",
-              email: backendUserData.email || "",
-              phoneNumber: backendUserData.phone_number || "",
-              username: backendUserData.username || backendUserData.email,
-              createdAt: backendUserData.created_at || new Date().toISOString(),
-              userType: backendUserData.user_type || "student",
-              cognitoUser: currentUser,
-            };
-
-            setUser(user);
-            setIsLoggedIn(true);
-
-            // 4. Check paid/free status from backend and update state
-            await checkPaidStatus(user.id);
-            await checkFreeMode(user.id);
-          }
-        }
-
-        // 5. Restore freeMode flag from AsyncStorage (if cached)
-        const cachedFree = await AsyncStorage.getItem("freeMode");
-        if (cachedFree === "true" || cachedFree === "false") {
-          setFreeMode(cachedFree === "true");
-        }
-
-        // 6. Remove legacy userData from AsyncStorage
-        await AsyncStorage.removeItem("userData");
-      } catch (e) {
-        console.error("Bootstrap failed:", e);
-      } finally {
-        // 7. Finish loading regardless of success/failure
-        setLoading(false);
-      }
-    };
-
-    bootstrap();
-  }, []);
-
-  // Restore Cognito session on app start
   useEffect(() => {
     const checkAuthState = async () => {
       try {
@@ -226,57 +110,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(user);
           setIsLoggedIn(true);
         }
-
-        // Retrieve current session from Cognito
-        const session = await new Promise<CognitoUserSession>((resolve, reject) => {
-          currentUser.getSession((err: Error | null, s: CognitoUserSession | null) => {
-            if (err) reject(err);
-            else if (s) resolve(s);
-            else reject(new Error("No session available"));
-          });
-        });
-
-        if (!session || !session.isValid()) {
-          // Session invalid → reset state
-          setUser(null);
-          setIsLoggedIn(false);
-          setIsPaid(false);
-          return;
-        }
-
-        // Extract Cognito user sub (unique ID)
-        const sub = session.getIdToken().payload.sub;
-
-        // Fetch backend user profile by Cognito sub
-
-        let backendUserData: BackendUserData | null = null;
-        try {
-          backendUserData = await api.getUserById(sub);
-        } catch (error) {
-          console.warn("Error fetching user data from backend:", error);
-          await logout(); // clear state if backend fetch fails
-          return;
-        }
-
-        // Build unified User object
-        const u: User = {
-          id: sub,
-          firstName: backendUserData.first_name || "",
-          lastName: backendUserData.last_name || "",
-          email: backendUserData.email || "",
-          phoneNumber: backendUserData.phone_number || "",
-          username: backendUserData?.username ?? backendUserData?.email ?? "",
-          createdAt: backendUserData.created_at || new Date().toISOString(),
-          userType: backendUserData.user_type || "student",
-          cognitoUser: currentUser,
-        };
-
-        setUser(u);
-        setIsLoggedIn(true);
-
-        // After restoring session, also check payment/freeMode status
-        checkPaidStatus(u.id);
-        checkFreeMode(u.id);
       } catch (error) {
         // This is expected when user is not authenticated - don't log as error
         if (error instanceof Error && error.name !== "UserUnAuthenticatedException") {
@@ -285,14 +118,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error("User is not authenticated");
         }
       } finally {
-        setLoading(false); // always stop loading state
+        setLoading(false);
       }
     };
 
     checkAuthState();
   }, []);
 
-  // Cognito login flow + payment/freeMode checks
   const login = async (loginData: LoginData): Promise<User> => {
     try {
       console.log("Attempting to sign in with:", { email: loginData.email });
@@ -548,14 +380,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoggedIn,
         loading,
         user,
-        isPaid,
-        freeMode,
-        setFreeMode,
         login,
         register,
         logout,
         updateUser,
-        checkPaidStatus,
         confirmSignUp,
         forgotPassword,
         confirmForgotPassword,
