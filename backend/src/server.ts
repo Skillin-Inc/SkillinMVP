@@ -1,5 +1,4 @@
-// src/server.ts
-import express, { Express, Request, Response } from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import { serverConfig } from "./config/environment";
 import { createServer } from "http";
@@ -7,22 +6,28 @@ import { Server } from "socket.io";
 
 // Import route handlers
 
+// General Routes
 import userRoutes from "./routes/users";
 import messageRoutes from "./routes/messages";
 import categoryRoutes from "./routes/categories";
 import courseRoutes from "./routes/courses";
 import progressRoutes from "./routes/progress";
-import stripeRoutes from "./routes/stripe";
 import stripeWebhookRouter from "./routes/stripeWebhook";
 import bodyParser from "body-parser";
 
 import lessonRoutes from "./routes/lessons";
 
+// Video Routes
+import videoUploadRoutes from "./routes/videoUpload";
+import videoStreamRoutes from "./routes/videoStream";
+
+// Payment Routes
+import stripeRoutes from "./routes/stripe";
+
 // Import Cognito auth middleware
 import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
 import { validateEnvironmentConfig } from "./aws-rds-config";
-
-const app: Express = express();
+const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -50,10 +55,9 @@ app.use((req, res, next) => {
 });
 
 // Stripe Webhook events (must be first, before body parsers)
-app.use("/api", stripeWebhookRouter); 
+app.use("/api", stripeWebhookRouter);
 // Stripe RESTful APIs for checkout, billing, payment status, etc.
 app.use("/stripe", stripeRoutes);
-
 
 app.get("/favicon.ico", (req: Request, res: Response) => {
   res.status(204).end();
@@ -139,11 +143,12 @@ app.use("/progress", progressRoutes);
 app.use("/api", stripeRoutes);
 //app.use("/api", userRoutes);
 
-
-
 // Protected routes (require Cognito authentication)
 // i think its stuff that is locked to that account and that account only? idk yet
 app.use("/users", cognitoAuthMiddleware, userRoutes);
+app.use("/api", stripeRoutes);
+app.use("/video-upload", videoUploadRoutes);
+app.use("/video-stream", videoStreamRoutes);
 
 app.use((req: Request, res: Response) => {
   res.status(404).json({
