@@ -59,8 +59,8 @@ app.use("/api", stripeWebhookRouter);
 // Stripe RESTful APIs for checkout, billing, payment status, etc.
 app.use("/stripe", stripeRoutes);
 
-app.get("/favicon.ico", (req: Request, res: Response) => {
-  res.status(204).end();
+app.get("/", (req, res) => {
+  res.status(200).send("hello world");
 });
 
 io.on("connection", (socket) => {
