@@ -2,7 +2,7 @@ import express, { Request, Response } from "express";
 import Stripe from "stripe";
 import rateLimit from "express-rate-limit";
 import { executeQuery } from "../db/connection"; 
-import { stripeConfig } from "../config/environment";
+import { stripeConfig, serverConfig } from "../config/environment";
 
 const router = express.Router();
 const limiter = rateLimit({ windowMs: 60_000, max: 60 }); 
@@ -53,7 +53,7 @@ router.post(
       // Create Stripe Billing Portal session for the customer
       const session = await stripe.billingPortal.sessions.create({
         customer: customer.id,
-        return_url: `${process.env.FRONTEND_URL}/settings`, // After managing billing, user returns here
+        return_url: `${serverConfig.frontendUrl}/settings`, // After managing billing, user returns here
       });
 
       res.json({ url: session.url });
@@ -113,7 +113,7 @@ router.post("/create-checkout-session",limiter, async (req: Request, res: Respon
       customer: customer.id,
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID!, // Stripe price/product ID from .env
+          price: stripeConfig.priceId, // Stripe price/product ID from config
           quantity: 1,
         },
       ],
@@ -121,8 +121,8 @@ router.post("/create-checkout-session",limiter, async (req: Request, res: Respon
        subscription_data: {
     metadata: { userId }, 
   },
-      success_url: `${process.env.FRONTEND_URL}/success`, // Redirect after payment
-      cancel_url: `${process.env.FRONTEND_URL}/cancel`,   // Redirect if canceled
+      success_url: `${serverConfig.frontendUrl}/success`, // Redirect after payment
+      cancel_url: `${serverConfig.frontendUrl}/cancel`,   // Redirect if canceled
     });
 
     res.json({ url: session.url });

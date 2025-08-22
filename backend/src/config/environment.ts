@@ -25,6 +25,7 @@ const environmentSchema = z.object({
   // stripe
   STRIPE_SECRET_KEY: z.string().min(1, "Stripe secret key is required"),
   STRIPE_WEBHOOK_SECRET: z.string().min(1, "Stripe webhook secret is required"),
+  STRIPE_PRICE_ID: z.string().min(1, "Stripe price ID is required"),
 });
 
 function validateEnvironment() {
@@ -74,4 +75,5 @@ export const databaseConfig = {
 export const stripeConfig = {
   secretKey: config.STRIPE_SECRET_KEY,
   webhookSecret: config.STRIPE_WEBHOOK_SECRET,
+  priceId: config.STRIPE_PRICE_ID,
 };

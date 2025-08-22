@@ -48,6 +48,8 @@ type AuthContextType = {
   isLoggedIn: boolean;
   loading: boolean;
   user: User | null;
+  isPaid: boolean;
+  freeMode: boolean;
   login: (loginData: LoginData) => Promise<User>;
   register: (registerData: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
@@ -56,12 +58,16 @@ type AuthContextType = {
   forgotPassword: (email: string) => Promise<void>;
   confirmForgotPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   resendConfirmationCode: (email: string) => Promise<void>;
+  checkPaidStatus: (userId: string) => Promise<void>;
+  setFreeMode: (enabled: boolean) => void;
 };
 
 export const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
   loading: true,
   user: null,
+  isPaid: false,
+  freeMode: false,
   login: async () => ({} as User),
   register: async () => {},
   logout: async () => {},
@@ -70,12 +76,16 @@ export const AuthContext = createContext<AuthContextType>({
   forgotPassword: async () => {},
   confirmForgotPassword: async () => {},
   resendConfirmationCode: async () => {},
+  checkPaidStatus: async () => {},
+  setFreeMode: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [isPaid, setIsPaid] = useState(false);
+  const [freeMode, setFreeMode] = useState(false);
 
   useEffect(() => {
     const checkAuthState = async () => {
@@ -109,6 +119,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           setUser(user);
           setIsLoggedIn(true);
+          
+          // Check payment status
+          await checkPaidStatus(user.id);
         }
       } catch (error) {
         // This is expected when user is not authenticated - don't log as error
@@ -215,6 +228,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("Login successful, setting user state");
       setUser(user);
       setIsLoggedIn(true);
+      
+      // Check payment status after successful login
+      await checkPaidStatus(user.id);
+      
       return user;
     } catch (error) {
       console.error("Login error details:", {
@@ -374,12 +391,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const checkPaidStatus = async (userId: string): Promise<void> => {
+    try {
+      const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/stripe/check-paid-status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await response.json();
+      setIsPaid(data.isPaid || false);
+      setFreeMode(data.is_free || false);
+    } catch (error) {
+      console.error("Error checking paid status:", error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         isLoggedIn,
         loading,
         user,
+        isPaid,
+        freeMode,
         login,
         register,
         logout,
@@ -388,6 +422,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         forgotPassword,
         confirmForgotPassword,
         resendConfirmationCode,
+        checkPaidStatus,
+        setFreeMode,
       }}
     >
       {children}
