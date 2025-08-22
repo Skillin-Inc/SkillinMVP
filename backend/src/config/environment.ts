@@ -12,8 +12,8 @@ const environmentSchema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string().min(1, "AWS Secret Access Key is required"),
 
   // cognito
-  COGNITO_USER_POOL_ID: z.string().default("us-east-2_BNd40QYUH"),
-  COGNITO_CLIENT_ID: z.string().default("4c40i6g29b45emna6k7st0dnfv"),
+  COGNITO_USER_POOL_ID: z.string().min(1, "Cognito user pool ID is required"),
+  COGNITO_CLIENT_ID: z.string().min(1, "Cognito client ID is required"),
 
   // database
   RDS_SECRET_NAME: z.string().default("rds!cluster-d1aab255-8b30-49d0-a107-f2cc5e0c5cc6"),
@@ -25,6 +25,7 @@ const environmentSchema = z.object({
   // stripe
   STRIPE_SECRET_KEY: z.string().min(1, "Stripe secret key is required"),
   STRIPE_WEBHOOK_SECRET: z.string().min(1, "Stripe webhook secret is required"),
+  STRIPE_PRICE_ID: z.string().min(1, "Stripe price ID is required"),
 });
 
 function validateEnvironment() {
@@ -74,4 +75,5 @@ export const databaseConfig = {
 export const stripeConfig = {
   secretKey: config.STRIPE_SECRET_KEY,
   webhookSecret: config.STRIPE_WEBHOOK_SECRET,
+  priceId: config.STRIPE_PRICE_ID,
 };

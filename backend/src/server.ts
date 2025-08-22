@@ -118,23 +118,6 @@ io.on("connection", (socket) => {
 });
 
 // Public routes (no authentication required)
-
-// Public registration endpoint (no authentication required)
-app.post("/register", async (req: Request, res: Response) => {
-  try {
-    const { createUser } = await import("./db");
-    const newUser = await createUser(req.body);
-    res.status(201).json(newUser);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      res.status(500).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: "Internal server error" });
-    }
-  }
-});
-
-// Public routes (no authentication required)
 app.use("/categories", categoryRoutes);
 app.use("/courses", courseRoutes);
 app.use("/lessons", lessonRoutes);

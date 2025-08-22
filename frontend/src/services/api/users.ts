@@ -2,7 +2,7 @@ import { API_CONFIG } from "../../config/api";
 import { RegisterData, User, BackendUser, UpdateUserProfileData } from "./types";
 import { makeRequest, transformBackendUserToUser } from "./utils";
 
-export const register = async (userData: RegisterData): Promise<User> => {
+export const createUser = async (userData: RegisterData): Promise<User> => {
   const backendUser = await makeRequest<BackendUser>(
     API_CONFIG.ENDPOINTS.USERS,
     {

@@ -2,6 +2,7 @@ import React from "react";
 import { Text, TouchableOpacity, Alert,Linking } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchAuthSession } from "aws-amplify/auth";
 import { COLORS } from "../../styles";
 import { StudentStackParamList } from "../../types/navigation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -25,18 +26,19 @@ export default function SubscriptionGate({ route }: Props) {
       <TouchableOpacity
         onPress={async () => {
           try {
-            
-            const res = await fetch(`${BACKEND_URL}/api/create-checkout-session`, {
+            console.log("Creating checkout session for user:", user?.id, user?.email);
+            const res = await fetch(`${BACKEND_URL}/stripe/create-checkout-session`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ userId: user?.id, email: user?.email }),
             });
             const data = await res.json();
+            console.log("Checkout session response:", data);
             if (data.url) Linking.openURL(data.url);
             else Alert.alert("Error", "Failed to create checkout session.");
           } catch (error) {
             Alert.alert("Error", "Unable to initiate payment.");
-            console.error(error);
+            console.error("Checkout error:", error);
           }
         }}
         style={{
@@ -52,7 +54,27 @@ export default function SubscriptionGate({ route }: Props) {
 
 
       <TouchableOpacity
-        onPress={() => user?.id && checkPaidStatus(user.id)}
+        onPress={async () => {
+          try {
+            console.log("Checking paid status for user:", user?.id);
+            const res = await fetch(`${BACKEND_URL}/stripe/check-paid-status`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId: user?.id }),
+            });
+            const data = await res.json();
+            console.log("Paid status response:", data);
+            if (data.isPaid) {
+              Alert.alert("Success", "Payment confirmed! Redirecting...");
+              checkPaidStatus(user?.id);
+            } else {
+              Alert.alert("Payment not found", "No active subscription found. Please complete payment first.");
+            }
+          } catch (error) {
+            Alert.alert("Error", "Unable to check payment status.");
+            console.error("Check paid status error:", error);
+          }
+        }}
         style={{
           backgroundColor: COLORS.purple,
           padding: 12,
@@ -67,22 +89,38 @@ export default function SubscriptionGate({ route }: Props) {
       <TouchableOpacity
         onPress={async () => {
           try {
+            console.log("Setting free mode for user:", user?.id);
             console.log("BACKEND_URL:", BACKEND_URL);
-            const res = await fetch(`${BACKEND_URL}/api/set-free-mode`, {
+            
+            // Get authentication token
+            const session = await fetchAuthSession();
+            const token = session.tokens?.idToken?.toString();
+            
+            if (!token) {
+              Alert.alert("Error", "Authentication token not found. Please log in again.");
+              return;
+            }
+
+            const res = await fetch(`${BACKEND_URL}/users/set-free-mode`, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
               body: JSON.stringify({ userId: user?.id }),
             });
             const data = await res.json();
+            console.log("Free mode response:", data);
             if (data.success) {
               await AsyncStorage.setItem("freeMode", "true");
               setFreeMode(true);
+              Alert.alert("Success", "Free mode enabled! You now have limited access.");
             } else {
               Alert.alert("Error", "Failed to enable free mode.");
             }
           } catch (error) {
             console.error("Start free mode error:", error);
-            Alert.alert("Error", "Unable to start free mode11.");
+            Alert.alert("Error", "Unable to start free mode.");
           }
         }}
         style={{
