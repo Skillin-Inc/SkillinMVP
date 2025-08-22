@@ -6,11 +6,13 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { AuthContext } from "../../hooks/AuthContext";
 import { COLORS, SPACINGS } from "../../styles";
 import { StudentTabsParamList } from "../../types/navigation";
+import { SectionHeader, EmptyState } from "../../components/common";
+import { StatsCard } from "../../components/cards";
 
 type Props = BottomTabScreenProps<StudentTabsParamList, "StudentProgress">;
 
 interface ProgressLesson {
-  id: number;
+  id: string;
   title: string;
   courseTitle: string;
   progress: number; // 0-100
@@ -27,7 +29,7 @@ export default function StudentProgress({ navigation }: Props) {
   const onRefresh = async () => {
     setRefreshing(true);
     // TODO: Fetch progress lessons from API
-    // const lessons = await apiService.getStudentProgressLessons(user?.id);
+    // const lessons = await api.getStudentProgressLessons(user?.id);
     // setProgressLessons(lessons);
     console.log(user);
     setProgressLessons([]);
@@ -84,45 +86,8 @@ export default function StudentProgress({ navigation }: Props) {
     </TouchableOpacity>
   );
 
-  const EmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <View style={styles.emptyIcon}>
-        <Ionicons name="play-circle-outline" size={64} color={COLORS.gray} />
-      </View>
-      <Text style={styles.emptyTitle}>No Lessons in Progress</Text>
-      <Text style={styles.emptyText}>
-        Start watching lessons to see your progress here. Your partially watched lessons will appear in this section.
-      </Text>
-      <TouchableOpacity style={styles.browseButton} onPress={() => navigation.navigate("StudentHome")}>
-        <Ionicons name="search-outline" size={20} color={COLORS.white} />
-        <Text style={styles.browseButtonText}>Browse Courses</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const StatsCard = ({
-    icon,
-    label,
-    value,
-    color = COLORS.purple,
-  }: {
-    icon: keyof typeof Ionicons.glyphMap;
-    label: string;
-    value: string;
-    color?: string;
-  }) => (
-    <View style={styles.statsCard}>
-      <View style={[styles.statsIcon, { backgroundColor: color }]}>
-        <Ionicons name={icon} size={20} color={COLORS.white} />
-      </View>
-      <Text style={styles.statsValue}>{value}</Text>
-      <Text style={styles.statsLabel}>{label}</Text>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerSpacer} />
         <View style={styles.headerTitleContainer}>
@@ -138,7 +103,6 @@ export default function StudentProgress({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Progress Overview */}
         <View style={styles.overviewSection}>
           <View style={styles.overviewHeader}>
             <View style={styles.overviewIcon}>
@@ -154,17 +118,20 @@ export default function StudentProgress({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Progress Lessons */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Continue Watching</Text>
-            <Text style={styles.sectionSubtitle}>
-              {progressLessons.length} {progressLessons.length === 1 ? "lesson" : "lessons"}
-            </Text>
-          </View>
+          <SectionHeader
+            title="Continue Watching"
+            subtitle={`${progressLessons.length} ${progressLessons.length === 1 ? "lesson" : "lessons"}`}
+          />
 
           {progressLessons.length === 0 ? (
-            <EmptyState />
+            <EmptyState
+              icon="play-circle-outline"
+              title="No Lessons in Progress"
+              subtitle="Start watching lessons to see your progress here. Your partially watched lessons will appear in this section."
+              buttonText="Browse Courses"
+              onButtonPress={() => navigation.navigate("StudentHome")}
+            />
           ) : (
             <View style={styles.progressList}>
               {progressLessons.map((lesson) => (
@@ -174,7 +141,6 @@ export default function StudentProgress({ navigation }: Props) {
           )}
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
 
@@ -187,7 +153,10 @@ export default function StudentProgress({ navigation }: Props) {
               <Text style={styles.actionSubtitle}>Discover new content</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate("StudentProfile")}>
+            <TouchableOpacity
+              style={styles.actionCard}
+              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id || "" })}
+            >
               <View style={styles.actionIcon}>
                 <Ionicons name="person-outline" size={24} color={COLORS.purple} />
               </View>

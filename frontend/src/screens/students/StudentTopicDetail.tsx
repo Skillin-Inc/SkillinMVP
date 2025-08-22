@@ -1,54 +1,43 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, FlatList, TextInput } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, FlatList, TextInput, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
-import { apiService, Course, Category } from "../../services/api";
+import { api, Course, Category } from "../../services/api/";
 import { StudentStackParamList } from "../../types/navigation";
+import { LoadingState, EmptyState } from "../../components/common";
+import { CourseCard } from "../../components/cards";
 
 type Props = StackScreenProps<StudentStackParamList, "StudentTopicDetail">;
 
-interface CourseCardProps {
-  course: Course;
-  onPress?: () => void;
-}
-
-const CourseCard = ({ course, onPress }: CourseCardProps) => (
-  <TouchableOpacity style={styles.courseCard} onPress={onPress}>
-    <View style={styles.courseHeader}>
-      <Text style={styles.courseTitle}>{course.title}</Text>
-      <View style={styles.teacherBadge}>
-        <Ionicons name="person" size={14} color="#666" />
-        <Text style={styles.teacherName}>
-          {course.teacher_first_name} {course.teacher_last_name}
-        </Text>
-      </View>
-    </View>
-    <Text style={styles.courseDescription} numberOfLines={3}>
-      {course.description}
-    </Text>
-    <View style={styles.courseFooter}>
-      <Text style={styles.courseDate}>Created {new Date(course.created_at).toLocaleDateString()}</Text>
-      <Ionicons name="chevron-forward" size={20} color="#414288" />
-    </View>
-  </TouchableOpacity>
-);
+const COURSES_PER_PAGE = 10;
 
 export default function StudentTopicDetail({ navigation, route }: Props) {
   const { id } = route.params;
 
   const [courses, setCourses] = useState<Course[]>([]);
+  const [allCourses, setAllCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMoreCourses, setHasMoreCourses] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryId, setCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCoursesForTopic();
+    loadInitialCourses();
   }, [id]);
 
-  const loadCoursesForTopic = async () => {
+  useEffect(() => {
+    filterCourses();
+  }, [searchQuery, allCourses]);
+
+  const loadInitialCourses = async () => {
     try {
       setLoading(true);
+      setCourses([]);
+      setAllCourses([]);
+      setHasMoreCourses(true);
 
-      const categories = await apiService.getAllCategories();
+      const categories = await api.getAllCategories();
       const matchingCategory = categories.find(
         (category: Category) => category.title.toLowerCase() === id.toLowerCase()
       );
@@ -56,43 +45,96 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
       if (!matchingCategory) {
         Alert.alert("Error", `Topic "${id}" not found.`);
         setCourses([]);
+        setAllCourses([]);
+        setCategoryId(null);
         return;
       }
 
-      const coursesData = await apiService.getCoursesByCategory(matchingCategory.id);
-      setCourses(coursesData);
+      setCategoryId(matchingCategory.id);
+
+      const coursesData = await api.getCoursesByCategory(matchingCategory.id, COURSES_PER_PAGE, 0);
+      setAllCourses(coursesData);
+
+      // Check if there are more courses to load
+      if (coursesData.length < COURSES_PER_PAGE) {
+        setHasMoreCourses(false);
+      }
     } catch (error) {
       console.error("Error loading courses:", error);
       Alert.alert("Error", "Failed to load courses. Please try again.");
       setCourses([]);
+      setAllCourses([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadMoreCourses = async () => {
+    if (!categoryId || loadingMore || !hasMoreCourses) return;
+
+    try {
+      setLoadingMore(true);
+      const nextOffset = allCourses.length;
+      const moreCourses = await api.getCoursesByCategory(categoryId, COURSES_PER_PAGE, nextOffset);
+
+      if (moreCourses.length === 0 || moreCourses.length < COURSES_PER_PAGE) {
+        setHasMoreCourses(false);
+      }
+
+      setAllCourses((prev) => [...prev, ...moreCourses]);
+    } catch (error) {
+      console.error("Error loading more courses:", error);
+      Alert.alert("Error", "Failed to load more courses. Please try again.");
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const filterCourses = () => {
+    if (!searchQuery.trim()) {
+      setCourses(allCourses);
+      return;
+    }
+
+    const filtered = allCourses.filter((course) => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        course.title.toLowerCase().includes(searchLower) ||
+        course.description.toLowerCase().includes(searchLower) ||
+        (course.teacher_first_name && course.teacher_first_name.toLowerCase().includes(searchLower)) ||
+        (course.teacher_last_name && course.teacher_last_name.toLowerCase().includes(searchLower)) ||
+        (course.teacher_username && course.teacher_username.toLowerCase().includes(searchLower))
+      );
+    });
+    setCourses(filtered);
   };
 
   const handleCoursePress = (course: Course) => {
     navigation.navigate("StudentCourse", { courseId: course.id });
   };
 
-  const filteredCourses = courses.filter(
-    (course) =>
-      course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const renderLoadMoreButton = () => {
+    if (searchQuery.trim() || !hasMoreCourses) return null;
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="school-outline" size={64} color="#ccc" />
-      <Text style={styles.emptyTitle}>{searchQuery ? "No Matching Courses" : "No Courses Available"}</Text>
-      <Text style={styles.emptySubtitle}>
-        {searchQuery ? `No courses match "${searchQuery}" in ${id}.` : `There are no courses available for ${id} yet.`}
-      </Text>
-    </View>
-  );
+    return (
+      <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreCourses} disabled={loadingMore}>
+        {loadingMore ? (
+          <View style={styles.loadMoreContent}>
+            <ActivityIndicator size="small" color="#414288" />
+            <Text style={styles.loadMoreText}>Loading more courses...</Text>
+          </View>
+        ) : (
+          <Text style={[styles.loadMoreText, { marginLeft: 0 }]}>Load More Courses</Text>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   const renderCourseItem = ({ item }: { item: Course }) => (
     <CourseCard course={item} onPress={() => handleCoursePress(item)} />
   );
+
+  const displayedCourses = searchQuery.trim() ? courses : allCourses;
 
   return (
     <View style={styles.container}>
@@ -105,7 +147,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
         <Text style={styles.subtitle}>
           {loading
             ? "Loading courses..."
-            : `${filteredCourses.length} course${filteredCourses.length !== 1 ? "s" : ""} ${
+            : `${displayedCourses.length} course${displayedCourses.length !== 1 ? "s" : ""} ${
                 searchQuery ? "found" : "available"
               }`}
         </Text>
@@ -117,7 +159,7 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
             <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search courses..."
+              placeholder="Search courses and teachers..."
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholderTextColor="#999"
@@ -132,19 +174,25 @@ export default function StudentTopicDetail({ navigation, route }: Props) {
       )}
 
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#414288" />
-          <Text style={styles.loadingText}>Loading courses...</Text>
-        </View>
-      ) : filteredCourses.length === 0 ? (
-        renderEmptyState()
+        <LoadingState text="Loading courses..." color="#414288" />
+      ) : displayedCourses.length === 0 ? (
+        <EmptyState
+          icon="school-outline"
+          title={searchQuery ? "No Matching Courses" : "No Courses Available"}
+          subtitle={
+            searchQuery
+              ? `No courses match "${searchQuery}" in ${id}.`
+              : `There are no courses available for ${id} yet.`
+          }
+        />
       ) : (
         <FlatList
-          data={filteredCourses}
+          data={displayedCourses}
           renderItem={renderCourseItem}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.coursesList}
           showsVerticalScrollIndicator={false}
+          ListFooterComponent={renderLoadMoreButton}
         />
       )}
     </View>
@@ -301,5 +349,26 @@ const styles = StyleSheet.create({
   courseDate: {
     fontSize: 14,
     color: "#888",
+  },
+  loadMoreButton: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 16,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#414288",
+  },
+  loadMoreContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  loadMoreText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#414288",
+    marginLeft: 4,
   },
 });

@@ -3,15 +3,12 @@ import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
   SafeAreaView,
   Alert,
   ActivityIndicator,
-  Modal,
-  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
@@ -21,8 +18,10 @@ import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, NewLesson, Course } from "../../services/api";
+import { api, NewLesson, Course } from "../../services/api/";
 import { TeacherTabsParamList, TeacherStackParamList } from "../../types/navigation";
+import { HeaderWithBack } from "../../components/common";
+import { FormInput, CourseSelector } from "../../components/forms";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TeacherTabsParamList, "TeacherCreateLesson">,
@@ -69,7 +68,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
     if (!user) return;
 
     try {
-      const coursesData = await apiService.getCoursesByTeacher(user.id);
+      const coursesData = await api.getCoursesByTeacher(user.id);
       setCourses(coursesData);
     } catch (error) {
       console.error("Error loading courses:", error);
@@ -117,13 +116,13 @@ export default function TeacherCreateLesson({ navigation }: Props) {
     try {
       const lessonData: NewLesson = {
         teacher_id: user.id,
-        course_id: parseInt(formData.courseId),
+        course_id: formData.courseId,
         title: formData.title.trim(),
         description: formData.description.trim(),
         video_url: "", // Empty for now, will be added via file upload later
       };
 
-      await apiService.createLesson(lessonData);
+      await api.createLesson(lessonData);
 
       Alert.alert("Success", "Lesson created successfully!", [
         {
@@ -241,15 +240,7 @@ export default function TeacherCreateLesson({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitleText}>Create Lesson</Text>
-        </View>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithBack title="Create Lesson" onBackPress={() => navigation.goBack()} />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -259,18 +250,15 @@ export default function TeacherCreateLesson({ navigation }: Props) {
         </View>
 
         <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Lesson Title *</Text>
-            <TextInput
-              style={[styles.input, errors.title ? styles.inputError : null]}
-              placeholder="Enter lesson title..."
-              value={formData.title}
-              onChangeText={(value) => updateFormData("title", value)}
-              maxLength={100}
-              placeholderTextColor={COLORS.gray}
-            />
-            {errors.title ? <Text style={styles.errorText}>{errors.title}</Text> : null}
-          </View>
+          <FormInput
+            label="Lesson Title"
+            placeholder="Enter lesson title..."
+            value={formData.title}
+            onChangeText={(value) => updateFormData("title", value)}
+            maxLength={100}
+            required
+            error={errors.title}
+          />
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Course *</Text>
@@ -304,66 +292,35 @@ export default function TeacherCreateLesson({ navigation }: Props) {
             {errors.courseId ? <Text style={styles.errorText}>{errors.courseId}</Text> : null}
           </View>
 
-          <Modal visible={showCourseModal} transparent animationType="slide">
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select Course</Text>
-                  <TouchableOpacity onPress={() => setShowCourseModal(false)}>
-                    <Ionicons name="close" size={24} color={COLORS.black} />
-                  </TouchableOpacity>
-                </View>
-                <FlatList
-                  data={courses}
-                  keyExtractor={(item) => item.id.toString()}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity
-                      style={styles.courseItem}
-                      onPress={() => {
-                        setSelectedCourse(item);
-                        updateFormData("courseId", item.id.toString());
-                        setShowCourseModal(false);
-                      }}
-                    >
-                      <Text style={styles.courseItemText}>{item.title}</Text>
-                      {selectedCourse?.id === item.id && <Ionicons name="checkmark" size={20} color={COLORS.purple} />}
-                    </TouchableOpacity>
-                  )}
-                />
-                <TouchableOpacity
-                  style={styles.createCourseItem}
-                  onPress={() => {
-                    setShowCourseModal(false);
-                    navigation.navigate("TeacherCreateCourse");
-                  }}
-                >
-                  <View style={styles.createCourseContent}>
-                    <Ionicons name="add-circle-outline" size={20} color={COLORS.purple} />
-                    <Text style={styles.createCourseText}>Create New Course</Text>
-                  </View>
-                  <Ionicons name="arrow-forward" size={20} color={COLORS.purple} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
+          <CourseSelector
+            visible={showCourseModal}
+            courses={courses.map((c) => ({ id: c.id, title: c.title }))}
+            selectedCourse={selectedCourse ? { id: selectedCourse.id, title: selectedCourse.title } : null}
+            onSelect={(course) => {
+              const fullCourse = courses.find((c) => c.id === course.id);
+              if (fullCourse) {
+                setSelectedCourse(fullCourse);
+                updateFormData("courseId", course.id.toString());
+              }
+            }}
+            onClose={() => setShowCourseModal(false)}
+            onCreateNew={() => navigation.navigate("TeacherCreateCourse")}
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Description *</Text>
-            <TextInput
-              style={[styles.textArea, errors.description ? styles.inputError : null]}
-              placeholder="Describe what students will learn in this lesson..."
-              value={formData.description}
-              onChangeText={(value) => updateFormData("description", value)}
-              multiline
-              numberOfLines={4}
-              maxLength={500}
-              placeholderTextColor={COLORS.gray}
-            />
-            {errors.description ? <Text style={styles.errorText}>{errors.description}</Text> : null}
-            <Text style={styles.characterCount}>{formData.description.length}/500 characters</Text>
-          </View>
+          <FormInput
+            label="Description"
+            placeholder="Describe what students will learn in this lesson..."
+            value={formData.description}
+            onChangeText={(value) => updateFormData("description", value)}
+            multiline
+            numberOfLines={4}
+            maxLength={500}
+            required
+            error={errors.description}
+            characterCount={formData.description.length}
+            maxCharacters={500}
+          />
 
-          {/* Video Upload Section */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Lesson Video</Text>
             <Text style={styles.helperText}>Upload a video for your lesson (optional)</Text>

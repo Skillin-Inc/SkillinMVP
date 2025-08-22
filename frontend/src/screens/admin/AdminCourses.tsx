@@ -14,7 +14,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { COLORS } from "../../styles";
-import { apiService, Course, Category, Lesson } from "../../services/api";
+import { api, Course, Category, Lesson } from "../../services/api/";
+import { LoadingState, SectionHeader } from "../../components/common";
 
 interface EditCourseModalProps {
   visible: boolean;
@@ -39,7 +40,7 @@ interface CourseWithLessons extends Course {
 const EditCourseModal: React.FC<EditCourseModalProps> = ({ visible, course, categories, onClose, onUpdate }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryId, setCategoryId] = useState<number>(0);
+  const [categoryId, setCategoryId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const styles = getStyles();
@@ -62,7 +63,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ visible, course, cate
 
     setLoading(true);
     try {
-      await apiService.updateCourse(course.id, {
+      await api.updateCourse(course.id, {
         title: title.trim(),
         description: description.trim(),
         category_id: categoryId,
@@ -134,7 +135,6 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ visible, course, cate
           </TouchableOpacity>
         </View>
 
-        {/* Category Selection Modal */}
         <Modal visible={showCategoryModal} transparent animationType="fade">
           <View style={styles.categoryModalOverlay}>
             <View style={styles.categoryModalContent}>
@@ -188,7 +188,7 @@ const EditLessonModal: React.FC<EditLessonModalProps> = ({ visible, lesson, onCl
 
     setLoading(true);
     try {
-      await apiService.updateLesson(lesson.id, {
+      await api.updateLesson(lesson.id, {
         title: title.trim(),
         description: description.trim(),
         video_url: videoUrl.trim(),
@@ -274,16 +274,12 @@ export default function AdminCourses() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [allCourses, allCategories] = await Promise.all([
-        apiService.getAllCourses(),
-        apiService.getAllCategories(),
-      ]);
+      const [allCourses, allCategories] = await Promise.all([api.getAllCourses(), api.getAllCategories()]);
 
-      // Fetch lessons for each course
       const coursesWithLessons = await Promise.all(
-        allCourses.map(async (course) => {
+        allCourses.map(async (course: Course) => {
           try {
-            const lessons = await apiService.getLessonsByCourse(course.id);
+            const lessons = await api.getLessonsByCourse(course.id);
             return { ...course, lessons, expanded: false };
           } catch (error) {
             console.error(`Error fetching lessons for course ${course.id}:`, error);
@@ -314,7 +310,7 @@ export default function AdminCourses() {
         style: "destructive",
         onPress: async () => {
           try {
-            await apiService.deleteCourse(course.id);
+            await api.deleteCourse(course.id);
             Alert.alert("Success", "Course deleted successfully");
             fetchData();
           } catch (error) {
@@ -344,7 +340,7 @@ export default function AdminCourses() {
         style: "destructive",
         onPress: async () => {
           try {
-            await apiService.deleteLesson(lesson.id);
+            await api.deleteLesson(lesson.id);
             Alert.alert("Success", "Lesson deleted successfully");
             fetchData();
           } catch (error) {
@@ -356,7 +352,7 @@ export default function AdminCourses() {
     ]);
   };
 
-  const toggleCourseExpansion = (courseId: number) => {
+  const toggleCourseExpansion = (courseId: string) => {
     setCourses(courses.map((course) => (course.id === courseId ? { ...course, expanded: !course.expanded } : course)));
   };
 
@@ -428,19 +424,13 @@ export default function AdminCourses() {
   );
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.purple} />
-        <Text style={styles.loadingText}>Loading courses...</Text>
-      </View>
-    );
+    return <LoadingState text="Loading courses..." />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Course Management</Text>
-        <Text style={styles.headerSubtitle}>{courses.length} courses total</Text>
+        <SectionHeader title="Course Management" subtitle={`${courses.length} courses total`} />
       </View>
 
       <View style={styles.searchContainer}>
@@ -599,7 +589,6 @@ function getStyles() {
       justifyContent: "center",
       alignItems: "center",
     },
-    // Modal styles
     modalContainer: {
       flex: 1,
       backgroundColor: COLORS.white,
@@ -673,7 +662,6 @@ function getStyles() {
     disabledButton: {
       opacity: 0.6,
     },
-    // Category selection modal
     categoryModalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0,0,0,0.5)",
@@ -719,7 +707,6 @@ function getStyles() {
       fontWeight: "600",
       textAlign: "center",
     },
-    // Lesson-related styles
     courseHeader: {
       marginBottom: 8,
     },

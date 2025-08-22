@@ -1,0 +1,11 @@
+Commands to set sql localy
+pgweb \
+--user=shovang \
+--db=skillinDB \
+--port=5432 \
+--bind=127.0.0.1 \
+--listen=8080
+
+Command to set diffrent user types 
+psql "postgres://shovang:1976@localhost:5432/skillinDB" -c "UPDATE users SET user_type = 'admin' WHERE id = '315b9570-70d1-708a-b48d-cdff4eadfc87';"
+

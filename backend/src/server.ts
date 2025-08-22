@@ -1,51 +1,79 @@
-// src/server.ts
 import express, { Request, Response } from "express";
 import cors from "cors";
-import "dotenv/config";
+import { serverConfig } from "./config/environment";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-import usersRouter from "./routes/users";
-import sendEmailRouter from "./routes/sendEmail";
-import messagesRouter from "./routes/messages";
-import lessonsRouter from "./routes/lessons";
-import coursesRouter from "./routes/courses";
-import categoriesRouter from "./routes/categories";
-import progressRouter from "./routes/progress";
-import teacherRoutes from "./routes/teachers";
+// Import route handlers
 
+// General Routes
+import userRoutes from "./routes/users";
+import messageRoutes from "./routes/messages";
+import categoryRoutes from "./routes/categories";
+import courseRoutes from "./routes/courses";
+import progressRoutes from "./routes/progress";
+import stripeWebhookRouter from "./routes/stripeWebhook";
+import bodyParser from "body-parser";
+
+import lessonRoutes from "./routes/lessons";
+
+// Video Routes
+import videoUploadRoutes from "./routes/videoUpload";
+import videoStreamRoutes from "./routes/videoStream";
+
+// Payment Routes
+import stripeRoutes from "./routes/stripe";
+
+// Import Cognito auth middleware
+import { cognitoAuthMiddleware } from "./middleware/cognitoAuth";
+import { validateEnvironmentConfig } from "./aws-rds-config";
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // change to frontend url in prod
+    origin: serverConfig.frontendUrl,
     methods: ["GET", "POST"],
   },
 });
+app.use("/api/webhook/stripe", bodyParser.raw({ type: "application/json" }), stripeWebhookRouter);
 
-const PORT = Number(process.env.PORT) || 4000;
+const port = serverConfig.port;
 
-const userSockets = new Map<number, string>();
+const userSockets = new Map<string, string>();
 
-app.use(cors());
-app.use(express.json({ limit: "10mb" })); // change to 20mb if needed
+app.use(express.json());
+app.use(
+  cors({
+    origin: serverConfig.frontendUrl,
+    credentials: true,
+  })
+);
 
-// backend check
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello from Express + TypeScript!");
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
+
+// Stripe Webhook events (must be first, before body parsers)
+app.use("/api", stripeWebhookRouter);
+// Stripe RESTful APIs for checkout, billing, payment status, etc.
+app.use("/stripe", stripeRoutes);
+
+app.get("/favicon.ico", (req: Request, res: Response) => {
+  res.status(204).end();
 });
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("register", (userId: number) => {
+  socket.on("register", (userId: string) => {
     userSockets.set(userId, socket.id);
     console.log(`User ${userId} registered with socket ${socket.id}`);
   });
 
-  socket.on("send_message", async (data: { sender_id: number; receiver_id: number; content: string }) => {
+  socket.on("send_message", async (data: { sender_id: string; receiver_id: string; content: string }) => {
     try {
-      const { createMessage } = await import("./db");
+      const { createMessage } = await import("./db/");
       const newMessage = await createMessage({
         sender_id: data.sender_id,
         receiver_id: data.receiver_id,
@@ -72,8 +100,8 @@ io.on("connection", (socket) => {
         is_read: newMessage.is_read,
         created_at: newMessage.created_at,
       });
-    } catch (error) {
-      console.error("Error handling message:", error);
+    } catch {
+      console.error("Error handling message");
       socket.emit("message_error", { error: "Failed to send message" });
     }
   });
@@ -89,19 +117,62 @@ io.on("connection", (socket) => {
   });
 });
 
-app.use("/users", usersRouter);
-app.use("/send-email", sendEmailRouter);
-app.use("/messages", messagesRouter);
-app.use("/lessons", lessonsRouter);
-app.use("/courses", coursesRouter);
-app.use("/categories", categoriesRouter);
-app.use("/progress", progressRouter);
-app.use("/teachers", teacherRoutes);
+// Public routes (no authentication required)
 
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: "Not Found" });
+// Public registration endpoint (no authentication required)
+app.post("/register", async (req: Request, res: Response) => {
+  try {
+    const { createUser } = await import("./db");
+    const newUser = await createUser(req.body);
+    res.status(201).json(newUser);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
 });
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Public routes (no authentication required)
+app.use("/categories", categoryRoutes);
+app.use("/courses", courseRoutes);
+app.use("/lessons", lessonRoutes);
+app.use("/messages", messageRoutes);
+app.use("/progress", progressRoutes);
+app.use("/api", stripeRoutes);
+//app.use("/api", userRoutes);
+
+// Protected routes (require Cognito authentication)
+// i think its stuff that is locked to that account and that account only? idk yet
+app.use("/users", cognitoAuthMiddleware, userRoutes);
+app.use("/api", stripeRoutes);
+app.use("/video-upload", videoUploadRoutes);
+app.use("/video-stream", videoStreamRoutes);
+
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    error: "Route not found",
+    path: req.originalUrl,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.use((err: Error, req: Request, res: Response) => {
+  console.error("Unhandled error:", err);
+  res.status(500).json({
+    error: "Internal server error",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+try {
+  validateEnvironmentConfig();
+} catch (error) {
+  console.error("Server startup failed due to configuration issues:", error);
+  process.exit(1);
+}
+
+server.listen(port, () => {
+  console.log(`[server]: Server is running at http://localhost:${port}`);
 });

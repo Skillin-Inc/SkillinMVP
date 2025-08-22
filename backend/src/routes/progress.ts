@@ -1,13 +1,14 @@
 import { Router, Request, Response } from "express";
 import {
   createProgress,
+  NewProgress,
   getProgressByUser,
   getProgressById,
   getProgressByUserAndLesson,
   deleteProgress,
   deleteProgressByUserAndLesson,
-  NewProgress,
-} from "../db";
+} from "../db/";
+import { isValidId } from "../utils";
 
 const router = Router();
 
@@ -23,13 +24,13 @@ router.post("/", async (req: Request<object, unknown, NewProgress>, res: Respons
     }
   }
 
-  if (typeof body.user_id !== "number") {
-    res.status(400).json({ error: "user_id must be a number" });
+  if (typeof body.user_id !== "string" || !isValidId(body.user_id)) {
+    res.status(400).json({ error: "user_id must be a valid UUID" });
     return;
   }
 
-  if (typeof body.lesson_id !== "number") {
-    res.status(400).json({ error: "lesson_id must be a number" });
+  if (typeof body.lesson_id !== "string" || !isValidId(body.lesson_id)) {
+    res.status(400).json({ error: "lesson_id must be a valid UUID" });
     return;
   }
 
@@ -49,99 +50,114 @@ router.post("/", async (req: Request<object, unknown, NewProgress>, res: Respons
     const newProgress = await createProgress(progressData);
     res.status(201).json(newProgress);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
 
 router.get("/user/:userId", async (req, res) => {
-  const userId = Number(req.params.userId);
+  const userId = String(req.params.userId);
 
-  if (isNaN(userId)) {
-    res.status(400).json({ error: "Invalid user ID" });
+  if (!isValidId(userId)) {
+    res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
 
   try {
-    const progressList = await getProgressByUser(userId);
-    res.json(progressList);
+    const progress = await getProgressByUser(userId);
+    res.json(progress);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid progress ID" });
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid progress ID format" });
     return;
   }
 
   try {
     const progress = await getProgressById(id);
     if (!progress) {
-      res.status(404).json({ error: "Progress record not found" });
+      res.status(404).json({ error: "Progress not found" });
       return;
     }
     res.json(progress);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 router.delete("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid progress ID" });
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid progress ID format" });
     return;
   }
 
   try {
     const deleted = await deleteProgress(id);
     if (!deleted) {
-      res.status(404).json({ error: "Progress record not found" });
+      res.status(404).json({ error: "Progress not found" });
       return;
     }
-    res.json({ success: true, message: "Progress record deleted successfully" });
+    res.json({ success: true, message: "Progress deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 router.delete("/user/:userId/lesson/:lessonId", async (req, res) => {
-  const userId = Number(req.params.userId);
-  const lessonId = Number(req.params.lessonId);
+  const userId = String(req.params.userId);
+  const lessonId = String(req.params.lessonId);
 
-  if (isNaN(userId)) {
-    res.status(400).json({ error: "Invalid user ID" });
+  if (!isValidId(userId)) {
+    res.status(400).json({ error: "Invalid user ID format" });
     return;
   }
 
-  if (isNaN(lessonId)) {
-    res.status(400).json({ error: "Invalid lesson ID" });
+  if (!isValidId(lessonId)) {
+    res.status(400).json({ error: "Invalid lesson ID format" });
     return;
   }
 
   try {
     const deleted = await deleteProgressByUserAndLesson(userId, lessonId);
     if (!deleted) {
-      res.status(404).json({ error: "Progress record not found" });
+      res.status(404).json({ error: "Progress not found" });
       return;
     }
-    res.json({ success: true, message: "Progress record deleted successfully" });
+    res.json({ success: true, message: "Progress deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
+  return;
 });
 
 export default router;

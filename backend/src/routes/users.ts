@@ -1,5 +1,7 @@
 // src/routes/users.ts
 import { Router, Request, Response, RequestHandler } from "express";
+import { executeQuery } from "../db/connection";
+import rateLimit from "express-rate-limit";
 import {
   createUser,
   NewUser,
@@ -7,28 +9,64 @@ import {
   getUserByUsername,
   getUserByPhone,
   getUserByEmail,
-  verifyUser,
+  getIsPaidByUserId,
   getAllUsers,
-  deleteUserByEmail,
-  updateUserTypeByEmail,
-} from "../db";
-import rateLimit from "express-rate-limit";
+  deleteUserById,
+  updateUserTypeById,
+  updateUserProfile,
+  UpdateUserProfileData,
+  checkUsernameAvailability,
+} from "../db/";
+
+import { isValidId } from "../utils";
 
 const router = Router();
+const limiter = rateLimit({ windowMs: 60_000, max: 60 });
 
 router.get("/", async (req, res) => {
   try {
     const users = await getAllUsers();
     res.json(users);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
   return;
 });
 
+router.get("/check-paid-status", async (req, res) => {
+  const rawId = req.query.userId;
+  console.log("Raw userId:", rawId);
+
+  try {
+    const isPaid = await getIsPaidByUserId(rawId as string);
+
+    if (isPaid === null) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({ isPaid });
+  } catch (err) {
+    if (err instanceof Error) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+});
+
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
+
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid user ID format" });
+    return;
+  }
+
   const user = await getUserById(id);
 
   if (!user) {
@@ -76,50 +114,10 @@ router.get("/by-email/:email", async (req, res) => {
   return;
 });
 
-const loginRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: "Too many login attempts from this IP, please try again later.",
-});
-
-router.post(
-  "/login",
-  loginRateLimiter,
-  async (req: Request<object, unknown, { emailOrPhone: string; password: string }>, res: Response): Promise<void> => {
-    const { emailOrPhone, password } = req.body;
-
-    if (!emailOrPhone || !password) {
-      res.status(400).json({ error: "Email/phone and password are required" });
-      return;
-    }
-
-    try {
-      const user = await verifyUser(emailOrPhone, password);
-      if (!user) {
-        res.status(401).json({ error: "Invalid credentials" });
-        return;
-      }
-
-      res.json({ success: true, user });
-    } catch (error: unknown) {
-      console.error(error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  }
-);
-
 router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): Promise<void> => {
   const body = req.body;
 
-  const required: (keyof NewUser)[] = [
-    "firstName",
-    "lastName",
-    "email",
-    "phoneNumber",
-    "username",
-    "password",
-    "postalCode",
-  ];
+  const required: (keyof NewUser)[] = ["firstName", "lastName", "email", "username"];
 
   for (const key of required) {
     if (body[key] === undefined) {
@@ -128,30 +126,44 @@ router.post("/", async (req: Request<object, unknown, NewUser>, res: Response): 
     }
   }
 
+  if (!body.id) {
+    res.status(400).json({ error: "Missing field: id (Cognito userSub is required)" });
+    return;
+  }
+
+  if (!isValidId(body.id)) {
+    res.status(400).json({ error: "Invalid Cognito userSub format" });
+    return;
+  }
+
   try {
     const newUser = await createUser(body);
     res.status(201).json(newUser);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
   return;
 });
 
-const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res, next) => {
-  const { email } = req.params;
+const deleteByIdHandler: RequestHandler<{ id: string }> = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid user ID format" });
+    return;
+  }
 
   try {
-    const deleted = await deleteUserByEmail(email);
+    const deleted = await deleteUserById(id);
 
     if (deleted) {
-      res.status(200).json({ message: "User deleted", user: deleted });
+      res.status(200).json({ success: true, message: "User deleted successfully" });
     } else {
-      res.status(404).json({ message: "No user found" });
+      res.status(404).json({ success: false, message: "No user found" });
     }
     return;
   } catch (err) {
@@ -159,15 +171,20 @@ const deleteByEmailHandler: RequestHandler<{ email: string }> = async (req, res,
   }
 };
 
-router.delete("/:email", deleteByEmailHandler);
+router.delete("/:id", deleteByIdHandler);
 
 const updateUserTypeHandler: RequestHandler<
-  { email: string },
+  { id: string },
   unknown,
   { userType: "student" | "teacher" | "admin" }
 > = async (req, res, next) => {
-  const { email } = req.params;
+  const { id } = req.params;
   const { userType } = req.body;
+
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid user ID format" });
+    return;
+  }
 
   if (!userType || !["student", "teacher", "admin"].includes(userType)) {
     res.status(400).json({ error: "Invalid user type. Must be 'student', 'teacher', or 'admin'" });
@@ -175,12 +192,12 @@ const updateUserTypeHandler: RequestHandler<
   }
 
   try {
-    const updated = await updateUserTypeByEmail(email, userType);
+    const updated = await updateUserTypeById(id, userType);
 
     if (updated) {
-      res.status(200).json({ message: "User type updated", user: updated });
+      res.status(200).json({ success: true, message: "User type updated successfully" });
     } else {
-      res.status(404).json({ message: "No user found or no change made" });
+      res.status(404).json({ success: false, message: "No user found or no change made" });
     }
     return;
   } catch (err) {
@@ -188,6 +205,118 @@ const updateUserTypeHandler: RequestHandler<
   }
 };
 
-router.patch("/:email/user-type", updateUserTypeHandler);
+router.patch("/:id/user-type", updateUserTypeHandler);
+
+const updateProfileHandler: RequestHandler<{ id: string }, unknown, UpdateUserProfileData> = async (req, res, next) => {
+  const { id } = req.params;
+  const updateData = req.body;
+
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid user ID format" });
+    return;
+  }
+
+  if (
+    !updateData.firstName &&
+    !updateData.lastName &&
+    !updateData.phoneNumber &&
+    !updateData.dateOfBirth &&
+    !updateData.username
+  ) {
+    res.status(400).json({ error: "At least one field must be provided for update" });
+    return;
+  }
+
+  if (updateData.username) {
+    const isAvailable = await checkUsernameAvailability(updateData.username, id);
+    if (!isAvailable) {
+      res.status(400).json({ error: "Username is already taken" });
+      return;
+    }
+  }
+
+  try {
+    const updated = await updateUserProfile(id, updateData);
+
+    if (updated) {
+      res.status(200).json({ message: "Profile updated successfully", user: updated });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.patch("/:id/profile", updateProfileHandler);
+
+const checkUsernameHandler: RequestHandler<{ username: string }, unknown, { excludeUserId?: string }> = async (
+  req,
+  res,
+  next
+) => {
+  const { username } = req.params;
+  const { excludeUserId } = req.body;
+
+  if (!username) {
+    res.status(400).json({ error: "Username is required" });
+    return;
+  }
+
+  try {
+    const isAvailable = await checkUsernameAvailability(username, excludeUserId);
+    res.status(200).json({ available: isAvailable });
+    return;
+  } catch (err) {
+    next(err);
+  }
+};
+
+router.post("/check-username/:username", checkUsernameHandler);
+
+
+router.post("/set-free-mode", limiter, async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    res.status(400).json({ error: "Missing userId" });
+    return;
+  }
+
+  try {
+    await executeQuery(
+      "UPDATE public.users SET is_free = true WHERE id = $1",
+      [userId]
+    );
+
+    console.log(" Updated is_free for user:", userId); 
+    res.json({ success: true });
+  } catch (error) {
+    console.error(" Failed to update is_free:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/check-free-mode/:id", limiter, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await executeQuery(
+      "SELECT is_free FROM public.users WHERE id = $1",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: "User not found" });
+      return;
+    }
+
+    res.json({ isFree: result.rows[0].is_free });
+  } catch (error) {
+    console.error("Error checking free mode:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 export default router;

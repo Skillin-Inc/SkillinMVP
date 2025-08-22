@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, TextStyle, StatusBar, Linking } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, TextStyle, StatusBar } from "react-native";
 import { StackScreenProps } from "@react-navigation/stack";
 
 import SkillinLogo from "../../../assets/icons/skillin-logo.png";
@@ -13,9 +13,6 @@ export default function WelcomeScreen({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
 
-  const handlePaymentPress = () => {
-    Linking.openURL("https://buy.stripe.com/9AQ03wbg7ayg7SM288");
-  };
 
   return (
     <View style={styles.container}>
@@ -56,9 +53,11 @@ export default function WelcomeScreen({ navigation }: Props) {
             <Text style={styles.buttonText}>Register</Text>
           </TouchableOpacity>
 
+          {/*
           <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handlePaymentPress}>
             <Text style={styles.buttonText}>Handle payments</Text>
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
+
         </View>
       </View>
     </View>

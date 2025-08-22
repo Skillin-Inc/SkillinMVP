@@ -1,35 +1,38 @@
 import React, { useState } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, StatusBar } from "react-native";
-import { useScreenDimensions, formatDOB, formatPhoneNumber, formatZipCode, isValidEmail } from "../../hooks";
+import { useScreenDimensions, formatDateOfBirth, formatPhoneNumber, isValidEmail } from "../../hooks";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
 import { AuthStackParamList } from "../../types";
+import { SectionHeader } from "../../components/common";
+import collegeData from "../../../assets/us_institutions.json";
 
 type Props = StackScreenProps<AuthStackParamList, "StudentInfo">;
 
 export default function StudentInfo({ navigation }: Props) {
   const { screenWidth, screenHeight } = useScreenDimensions();
   const styles = getStyles(screenWidth, screenHeight);
+  const collegeList = collegeData.map((c) => c.institution);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [dOB, setDOB] = useState("");
-  const [zipCode, setZipCode] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [email, setEmail] = useState("");
+  const [collegeValue, setcollegeValue] = useState("");
+
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const filtered = collegeList.filter((name) => name.toLowerCase().includes(collegeValue.toLowerCase())).slice(0, 5);
+  // Add 'Other' if not already present
+  const showOther = !filtered.some((name) => name.toLowerCase() === "other");
+  const suggestions = showOther ? [...filtered, "Other"] : filtered;
+
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleNext = () => {
-    if (
-      !firstName.trim() ||
-      !lastName.trim() ||
-      !dOB.trim() ||
-      !zipCode.trim() ||
-      !email.trim() ||
-      !phoneNumber.trim()
-    ) {
-      alert("Please fill out all fields.");
+    if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim() || !email.trim() || !collegeValue.trim()) {
+      alert("Please fill out all required fields.");
       return;
     }
 
@@ -38,20 +41,13 @@ export default function StudentInfo({ navigation }: Props) {
       return;
     }
 
-    const postalCode = parseInt(zipCode.replace(/\D/g, ""), 10);
-    if (isNaN(postalCode)) {
-      alert("Please enter a valid zip code.");
-      return;
-    }
-
     navigation.navigate("StudentAccount", {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      dOB: dOB.trim(),
-      zipCode: zipCode.trim(),
+      date_of_birth: dateOfBirth.trim(),
       email: email.trim().toLowerCase(),
-      phoneNumber: phoneNumber.replace(/\D/g, ""),
-      postalCode,
+      phoneNumber: phoneNumber.trim() || undefined,
+      college: collegeValue.trim(),
     });
   };
 
@@ -63,7 +59,7 @@ export default function StudentInfo({ navigation }: Props) {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color={COLORS.purple} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Personal Information</Text>
+        <SectionHeader title="Personal Information" />
       </View>
 
       <View style={styles.formContainer}>
@@ -97,20 +93,8 @@ export default function StudentInfo({ navigation }: Props) {
             placeholder="Date of Birth (MM/DD/YYYY)"
             placeholderTextColor={COLORS.gray}
             keyboardType="number-pad"
-            value={dOB}
-            onChangeText={(text) => setDOB(formatDOB(text))}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Ionicons name="location-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Zip Code"
-            placeholderTextColor={COLORS.gray}
-            keyboardType="number-pad"
-            value={zipCode}
-            onChangeText={(text) => setZipCode(formatZipCode(text))}
+            value={dateOfBirth}
+            onChangeText={(text) => setDateOfBirth(formatDateOfBirth(text))}
           />
         </View>
 
@@ -123,15 +107,52 @@ export default function StudentInfo({ navigation }: Props) {
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => setEmail(text.toLowerCase())}
           />
         </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="What college do you attend"
+            value={collegeValue}
+            onChangeText={setcollegeValue}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+          />
+        </View>
+        {showSuggestions && suggestions.length > 0 && (
+          <View
+            style={{
+              backgroundColor: "white",
+              borderRadius: 8,
+              elevation: 2,
+              position: "absolute",
+              left: 24,
+              right: 24,
+              zIndex: 10,
+            }}
+          >
+            {suggestions.map((name) => (
+              <TouchableOpacity
+                key={name}
+                onPress={() => {
+                  setcollegeValue(name);
+                  setShowSuggestions(false);
+                }}
+                style={{ padding: 12 }}
+              >
+                <Text>{name}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
 
         <View style={styles.inputContainer}>
           <Ionicons name="call-outline" size={20} color={COLORS.darkGray} style={styles.inputIcon} />
           <TextInput
             style={styles.input}
-            placeholder="Phone Number"
+            placeholder="Phone Number (Optional)"
             placeholderTextColor={COLORS.gray}
             keyboardType="phone-pad"
             value={phoneNumber}

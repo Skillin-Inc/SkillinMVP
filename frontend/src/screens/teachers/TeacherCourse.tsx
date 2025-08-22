@@ -7,16 +7,20 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
-  ActivityIndicator,
   RefreshControl,
+  TextInput,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StackScreenProps } from "@react-navigation/stack";
 
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
-import { apiService, Course, Lesson } from "../../services/api";
+import { api, Course, Lesson } from "../../services/api/";
 import { TeacherStackParamList } from "../../types/navigation";
+import { HeaderWithBack, LoadingState, EmptyState, SectionHeader } from "../../components/common";
+import { LessonCard } from "../../components/cards";
+import { ActionButtons } from "../../components/actions";
 
 type Props = StackScreenProps<TeacherStackParamList, "TeacherCourse">;
 
@@ -27,6 +31,10 @@ export default function TeacherCourse({ navigation, route }: Props) {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [editingDescription, setEditingDescription] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const styles = getStyles();
 
@@ -37,8 +45,8 @@ export default function TeacherCourse({ navigation, route }: Props) {
   const loadCourseData = async () => {
     try {
       const [courseData, lessonsData] = await Promise.all([
-        apiService.getCourseById(courseId),
-        apiService.getLessonsByCourse(courseId),
+        api.getCourseById(courseId),
+        api.getLessonsByCourse(courseId),
       ]);
       setCourse(courseData);
       setLessons(lessonsData);
@@ -66,15 +74,48 @@ export default function TeacherCourse({ navigation, route }: Props) {
   };
 
   const handleCreateLesson = () => {
-    // Navigate to create lesson screen - the course will be available in the dropdown
     navigation.navigate("TeacherTabs", {
       screen: "TeacherCreateLesson",
     });
   };
 
   const handleEditCourse = () => {
-    // TODO: Navigate to edit course screen
-    Alert.alert("Edit Course", "Course editing will be available soon!");
+    if (!course) return;
+    setEditingTitle(course.title);
+    setEditingDescription(course.description);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!course || !editingTitle.trim() || !editingDescription.trim()) {
+      Alert.alert("Error", "Title and description cannot be empty");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const updateData = {
+        title: editingTitle.trim(),
+        description: editingDescription.trim(),
+      };
+
+      await api.updateCourse(courseId, updateData);
+
+      setCourse({ ...course, ...updateData });
+      setIsEditing(false);
+      Alert.alert("Success", "Course updated successfully!");
+    } catch (error) {
+      console.error("Error updating course:", error);
+      Alert.alert("Error", "Failed to update course. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditingTitle("");
+    setEditingDescription("");
   };
 
   const handleDeleteCourse = () => {
@@ -88,7 +129,7 @@ export default function TeacherCourse({ navigation, route }: Props) {
           style: "destructive",
           onPress: async () => {
             try {
-              await apiService.deleteCourse(courseId);
+              await api.deleteCourse(courseId);
               Alert.alert("Success", "Course deleted successfully.", [
                 { text: "OK", onPress: () => navigation.goBack() },
               ]);
@@ -117,19 +158,8 @@ export default function TeacherCourse({ navigation, route }: Props) {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleText}>Course Details</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.purple} />
-          <Text style={styles.loadingText}>Loading course details...</Text>
-        </View>
+        <HeaderWithBack title="Course Details" onBackPress={() => navigation.goBack()} />
+        <LoadingState text="Loading course details..." />
       </SafeAreaView>
     );
   }
@@ -137,52 +167,49 @@ export default function TeacherCourse({ navigation, route }: Props) {
   if (!course) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitleText}>Course Not Found</Text>
-          </View>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={64} color={COLORS.error} />
-          <Text style={styles.errorTitle}>Course Not Found</Text>
-          <Text style={styles.errorText}>The requested course could not be found.</Text>
-        </View>
+        <HeaderWithBack title="Course Not Found" onBackPress={() => navigation.goBack()} />
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Course Not Found"
+          subtitle="The requested course could not be found."
+        />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.headerContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.black} />
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitleText} numberOfLines={1}>
-            {course.title}
-          </Text>
-        </View>
-        <TouchableOpacity style={styles.menuButton} onPress={handleEditCourse}>
-          <Ionicons name="ellipsis-vertical" size={24} color={COLORS.black} />
-        </TouchableOpacity>
-      </View>
+      <HeaderWithBack
+        title={course.title}
+        onBackPress={() => navigation.goBack()}
+        rightComponent={
+          <TouchableOpacity style={styles.menuButton} onPress={handleEditCourse}>
+            <Ionicons name="ellipsis-vertical" size={24} color={COLORS.black} />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Course Header */}
         <View style={styles.courseHeader}>
           <View style={styles.courseIcon}>
             <Ionicons name="book" size={32} color={COLORS.purple} />
           </View>
           <View style={styles.courseInfo}>
-            <Text style={styles.courseTitle}>{course.title}</Text>
+            {isEditing ? (
+              <TextInput
+                style={styles.editInput}
+                value={editingTitle}
+                onChangeText={setEditingTitle}
+                placeholder="Course title"
+                maxLength={100}
+              />
+            ) : (
+              <Text style={styles.courseTitle}>{course.title}</Text>
+            )}
             <Text style={styles.courseDate}>Created {formatDate(course.created_at)}</Text>
             <View style={styles.courseStats}>
               <View style={styles.statItem}>
@@ -199,73 +226,92 @@ export default function TeacherCourse({ navigation, route }: Props) {
           </View>
         </View>
 
-        {/* Course Description */}
         <View style={styles.descriptionSection}>
           <Text style={styles.sectionTitle}>About this course</Text>
-          <Text style={styles.courseDescription}>{course.description}</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.editTextArea}
+              value={editingDescription}
+              onChangeText={setEditingDescription}
+              placeholder="Course description"
+              multiline
+              numberOfLines={4}
+              maxLength={500}
+            />
+          ) : (
+            <Text style={styles.courseDescription}>{course.description}</Text>
+          )}
         </View>
 
-        {/* Course Actions */}
-        <View style={styles.actionsSection}>
-          <TouchableOpacity style={styles.primaryAction} onPress={handleCreateLesson}>
-            <Ionicons name="add-circle-outline" size={20} color={COLORS.white} />
-            <Text style={styles.primaryActionText}>Add New Lesson</Text>
-          </TouchableOpacity>
-          <View style={styles.secondaryActions}>
-            <TouchableOpacity style={styles.secondaryAction} onPress={handleEditCourse}>
-              <Ionicons name="create-outline" size={20} color={COLORS.purple} />
-              <Text style={styles.secondaryActionText}>Edit Course</Text>
+        {isEditing ? (
+          <View style={styles.editActions}>
+            <TouchableOpacity style={styles.cancelButton} onPress={handleCancelEdit} disabled={saving}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.dangerAction} onPress={handleDeleteCourse}>
-              <Ionicons name="trash-outline" size={20} color={COLORS.error} />
-              <Text style={styles.dangerActionText}>Delete Course</Text>
+            <TouchableOpacity
+              style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+              onPress={handleSaveEdit}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator size="small" color={COLORS.white} />
+              ) : (
+                <>
+                  <Ionicons name="checkmark" size={16} color={COLORS.white} />
+                  <Text style={styles.saveButtonText}>Save</Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
-        </View>
+        ) : (
+          <ActionButtons
+            primaryAction={{
+              icon: "add-circle-outline",
+              title: "Add New Lesson",
+              onPress: handleCreateLesson,
+            }}
+            secondaryActions={[
+              {
+                icon: "create-outline",
+                title: "Edit Course",
+                onPress: handleEditCourse,
+              },
+            ]}
+            dangerAction={{
+              icon: "trash-outline",
+              title: "Delete Course",
+              onPress: handleDeleteCourse,
+            }}
+          />
+        )}
 
-        {/* Lessons Section */}
         <View style={styles.lessonsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Lessons ({lessons.length})</Text>
+          <View style={styles.sectionHeaderContainer}>
+            <SectionHeader title={`Lessons (${lessons.length})`} />
             <TouchableOpacity onPress={handleCreateLesson}>
               <Ionicons name="add" size={24} color={COLORS.purple} />
             </TouchableOpacity>
           </View>
 
           {lessons.length === 0 ? (
-            <View style={styles.emptyLessonsContainer}>
-              <Ionicons name="videocam-outline" size={64} color={COLORS.gray} />
-              <Text style={styles.emptyLessonsTitle}>No Lessons Yet</Text>
-              <Text style={styles.emptyLessonsText}>Start adding lessons to build your course content.</Text>
-              <TouchableOpacity style={styles.createLessonButton} onPress={handleCreateLesson}>
-                <Ionicons name="add-circle-outline" size={20} color={COLORS.white} />
-                <Text style={styles.createLessonButtonText}>Create Your First Lesson</Text>
-              </TouchableOpacity>
-            </View>
+            <EmptyState
+              icon="videocam-outline"
+              title="No Lessons Yet"
+              subtitle="Start adding lessons to build your course content."
+              buttonText="Create Your First Lesson"
+              onButtonPress={handleCreateLesson}
+            />
           ) : (
             <View style={styles.lessonsContainer}>
               {lessons.map((lesson, index) => (
-                <TouchableOpacity
+                <LessonCard
                   key={lesson.id}
-                  style={styles.lessonCard}
+                  lesson={lesson}
+                  index={index}
                   onPress={() => {
                     navigation.navigate("TeacherLesson", { lessonId: lesson.id });
                   }}
-                >
-                  <View style={styles.lessonNumber}>
-                    <Text style={styles.lessonNumberText}>{index + 1}</Text>
-                  </View>
-                  <View style={styles.lessonInfo}>
-                    <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                    <Text style={styles.lessonDescription} numberOfLines={2}>
-                      {lesson.description}
-                    </Text>
-                    <Text style={styles.lessonDate}>Created {formatDate(lesson.created_at)}</Text>
-                  </View>
-                  <View style={styles.lessonActions}>
-                    <Ionicons name="chevron-forward" size={20} color={COLORS.gray} />
-                  </View>
-                </TouchableOpacity>
+                />
               ))}
             </View>
           )}
@@ -463,6 +509,12 @@ function getStyles() {
     lessonsSection: {
       padding: 20,
     },
+    sectionHeaderContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
     sectionHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -556,6 +608,67 @@ function getStyles() {
     },
     lessonActions: {
       padding: 8,
+    },
+    editInput: {
+      fontSize: 24,
+      fontWeight: "bold",
+      color: COLORS.black,
+      marginBottom: 8,
+      borderWidth: 1,
+      borderColor: COLORS.lightGray,
+      borderRadius: 8,
+      padding: 12,
+      backgroundColor: COLORS.white,
+    },
+    editTextArea: {
+      fontSize: 16,
+      color: COLORS.black,
+      lineHeight: 24,
+      borderWidth: 1,
+      borderColor: COLORS.lightGray,
+      borderRadius: 8,
+      padding: 12,
+      backgroundColor: COLORS.white,
+      minHeight: 100,
+      textAlignVertical: "top",
+    },
+    editActions: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 20,
+      gap: 12,
+    },
+    cancelButton: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: COLORS.gray,
+      borderRadius: 12,
+      paddingVertical: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    cancelButtonText: {
+      color: COLORS.gray,
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    saveButton: {
+      flex: 1,
+      backgroundColor: COLORS.purple,
+      borderRadius: 12,
+      paddingVertical: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    saveButtonDisabled: {
+      opacity: 0.6,
+    },
+    saveButtonText: {
+      color: COLORS.white,
+      fontSize: 16,
+      fontWeight: "600",
+      marginLeft: 4,
     },
   });
 }

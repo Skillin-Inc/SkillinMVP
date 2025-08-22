@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   Alert,
   SafeAreaView,
   RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { CompositeScreenProps } from "@react-navigation/native";
+import { CompositeScreenProps, useFocusEffect} from "@react-navigation/native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { StackScreenProps } from "@react-navigation/stack";
-
 import { COLORS } from "../../styles";
 import { StudentTabsParamList, StudentStackParamList } from "../../types/navigation";
-import CategoryCard from "../../components/CategoryCard";
-import { apiService, Category } from "../../services/api";
+import { AuthContext } from "../../hooks/AuthContext";
+import { SectionHeader, LoadingState, EmptyState } from "../../components/common";
+import { CategoryCard, QuickActionCard } from "../../components/cards";
+import { api, Category } from "../../services/api/";
 import temp from "../../../assets/playingCards.png";
 
 type Props = CompositeScreenProps<
@@ -27,19 +28,27 @@ type Props = CompositeScreenProps<
 >;
 
 export default function StudentHome({ navigation }: Props) {
+  const { user, checkPaidStatus} = useContext(AuthContext);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
   const styles = getStyles();
 
   useEffect(() => {
+    if (user?.id) checkPaidStatus(user.id);
     loadCategories();
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      if (user?.id) checkPaidStatus(user.id);
+    }, [user?.id])
+  );
+
+
   const loadCategories = async () => {
     try {
-      const categoriesData = await apiService.getAllCategories();
+      const categoriesData = await api.getAllCategories();
       setCategories(categoriesData);
     } catch (error) {
       console.error("Error loading categories:", error);
@@ -55,9 +64,14 @@ export default function StudentHome({ navigation }: Props) {
     setRefreshing(false);
   };
 
-  const handleViewProfile = () => {
-    navigation.navigate("StudentProfile");
+  const handlePremiumFeature = () => {
+    Alert.alert("Premium Feature", "This feature is premium-only and coming soon!");
   };
+
+  const handleViewProfile = () => {
+    navigation.navigate("StudentProfile", { userId: user?.id });
+  };
+
 
   if (loading) {
     return (
@@ -71,10 +85,7 @@ export default function StudentHome({ navigation }: Props) {
             <Ionicons name="person-circle-outline" size={24} color={COLORS.black} />
           </TouchableOpacity>
         </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.purple} />
-          <Text style={styles.loadingText}>Loading topics...</Text>
-        </View>
+        <LoadingState text="Loading topics..." />
       </SafeAreaView>
     );
   }
@@ -96,7 +107,6 @@ export default function StudentHome({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Welcome Section */}
         <View style={styles.welcomeSection}>
           <View style={styles.welcomeIcon}>
             <Ionicons name="school" size={32} color={COLORS.purple} />
@@ -105,21 +115,18 @@ export default function StudentHome({ navigation }: Props) {
           <Text style={styles.welcomeDescription}>Explore our topics and start your learning journey today!</Text>
         </View>
 
-        {/* Topics Section */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Topics</Text>
-            <Text style={styles.sectionSubtitle}>
-              {categories.length} {categories.length === 1 ? "topic" : "topics"} available
-            </Text>
-          </View>
+          <SectionHeader
+            title="Topics"
+            subtitle={`${categories.length} ${categories.length === 1 ? "topic" : "topics"} available`}
+          />
 
           {categories.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="library-outline" size={64} color={COLORS.gray} />
-              <Text style={styles.emptyTitle}>No Topics Available</Text>
-              <Text style={styles.emptyText}>Check back later for new topics!</Text>
-            </View>
+            <EmptyState
+              icon="library-outline"
+              title="No Topics Available"
+              subtitle="Check back later for new topics!"
+            />
           ) : (
             <ScrollView
               horizontal
@@ -139,43 +146,31 @@ export default function StudentHome({ navigation }: Props) {
           )}
         </View>
 
-        {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.quickActionCard} onPress={() => navigation.navigate("StudentProfile")}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="person-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>My Profile</Text>
-              <Text style={styles.quickActionSubtitle}>View and edit your profile</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="person-outline"
+              title="My Profile"
+              subtitle="View and edit your profile"
+              onPress={() => navigation.navigate("StudentProfile", { userId: user?.id })}
+            />
 
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="bookmark-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Saved Courses</Text>
-              <Text style={styles.quickActionSubtitle}>Your bookmarked content</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="bookmark-outline"
+              title="Saved Courses"
+              subtitle="Your bookmarked content"
+              onPress={() => {}}
+            />
           </View>
 
           <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="trending-up-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Progress</Text>
-              <Text style={styles.quickActionSubtitle}>Track your learning</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.quickActionCard}>
-              <View style={styles.quickActionIcon}>
-                <Ionicons name="help-circle-outline" size={24} color={COLORS.purple} />
-              </View>
-              <Text style={styles.quickActionTitle}>Help & Support</Text>
-              <Text style={styles.quickActionSubtitle}>Get assistance</Text>
-            </TouchableOpacity>
+            <QuickActionCard
+              icon="trending-up-outline"
+              title="Progress"
+              subtitle="Track your learning"
+              onPress={handlePremiumFeature}
+            />
           </View>
         </View>
       </ScrollView>

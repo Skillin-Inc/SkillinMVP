@@ -7,6 +7,7 @@ import { StackScreenProps } from "@react-navigation/stack";
 import { COLORS } from "../../styles";
 import { AuthContext } from "../../hooks/AuthContext";
 import { AuthStackParamList } from "../../types";
+import { SectionHeader } from "../../components/common";
 
 type Props = StackScreenProps<AuthStackParamList, "StudentAccount">;
 
@@ -22,7 +23,7 @@ export default function StudentAccount({ navigation, route }: Props) {
   const [hideConfirmPassword, setHideConfirmPassword] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { firstName, lastName, email, phoneNumber, postalCode } = route.params;
+  const { firstName, lastName, email, phoneNumber } = route.params; // route " college " also
 
   async function handleSignUp() {
     if (!username.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -50,13 +51,24 @@ export default function StudentAccount({ navigation, route }: Props) {
         phoneNumber,
         username: username.trim(),
         password,
-        postalCode,
       });
 
-      Alert.alert("Success", "Account created successfully! You are now logged in.", [
+      Alert.alert("Success", "Account created successfully! Please confirm your email.", [
         {
           text: "OK",
-          onPress: () => navigation.navigate("RegisterPayment"),
+          onPress: () =>
+            navigation.navigate("EmailConfirmation", {
+              email,
+              registrationData: {
+                firstName,
+                lastName,
+                email,
+                phoneNumber,
+                username: username.trim(),
+                password,
+                userType: "student",
+              },
+            }),
         },
       ]);
     } catch (error) {
@@ -78,7 +90,7 @@ export default function StudentAccount({ navigation, route }: Props) {
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={28} color={COLORS.purple} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create Account</Text>
+        <SectionHeader title="Create Account" />
       </View>
 
       <View style={styles.formContainer}>

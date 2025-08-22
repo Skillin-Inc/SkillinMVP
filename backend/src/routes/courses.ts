@@ -8,9 +8,12 @@ import {
   updateCourse,
   deleteCourse,
   NewCourse,
-} from "../db";
+} from "../db/";
+import { isValidId } from "../utils";
 
 const router = Router();
+
+// Helper function to validate UUID
 
 router.post("/", async (req: Request<object, unknown, NewCourse>, res: Response): Promise<void> => {
   const body = req.body;
@@ -24,13 +27,13 @@ router.post("/", async (req: Request<object, unknown, NewCourse>, res: Response)
     }
   }
 
-  if (typeof body.teacher_id !== "number") {
-    res.status(400).json({ error: "teacher_id must be a number" });
+  if (typeof body.teacher_id !== "string" || !isValidId(body.teacher_id)) {
+    res.status(400).json({ error: "teacher_id must be a valid UUID" });
     return;
   }
 
-  if (typeof body.category_id !== "number") {
-    res.status(400).json({ error: "category_id must be a number" });
+  if (typeof body.category_id !== "string" || !isValidId(body.category_id)) {
+    res.status(400).json({ error: "category_id must be a valid UUID" });
     return;
   }
 
@@ -50,11 +53,10 @@ router.post("/", async (req: Request<object, unknown, NewCourse>, res: Response)
     const newCourse = await createCourse(courseData);
     res.status(201).json(newCourse);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
@@ -64,16 +66,19 @@ router.get("/", async (req, res) => {
     const courses = await getAllCourses();
     res.json(courses);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid course ID" });
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid course ID format" });
     return;
   }
 
@@ -85,16 +90,19 @@ router.get("/:id", async (req, res) => {
     }
     res.json(course);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.get("/teacher/:teacherId", async (req, res) => {
-  const teacherId = Number(req.params.teacherId);
+  const teacherId = String(req.params.teacherId);
 
-  if (isNaN(teacherId)) {
-    res.status(400).json({ error: "Invalid teacher ID" });
+  if (!isValidId(teacherId)) {
+    res.status(400).json({ error: "Invalid teacher ID format" });
     return;
   }
 
@@ -102,34 +110,53 @@ router.get("/teacher/:teacherId", async (req, res) => {
     const courses = await getCoursesByTeacher(teacherId);
     res.json(courses);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.get("/category/:categoryId", async (req, res) => {
-  const categoryId = Number(req.params.categoryId);
+  const categoryId = String(req.params.categoryId);
+  const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+  const offset = req.query.offset ? parseInt(String(req.query.offset), 10) : undefined;
 
-  if (isNaN(categoryId)) {
-    res.status(400).json({ error: "Invalid category ID" });
+  if (!isValidId(categoryId)) {
+    res.status(400).json({ error: "Invalid category ID format" });
+    return;
+  }
+
+  // Validate pagination parameters
+  if (limit !== undefined && (isNaN(limit) || limit <= 0 || limit > 100)) {
+    res.status(400).json({ error: "Limit must be a positive number between 1 and 100" });
+    return;
+  }
+
+  if (offset !== undefined && (isNaN(offset) || offset < 0)) {
+    res.status(400).json({ error: "Offset must be a non-negative number" });
     return;
   }
 
   try {
-    const courses = await getCoursesByCategory(categoryId);
+    const courses = await getCoursesByCategory(categoryId, limit, offset);
     res.json(courses);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.put("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
   const updateData = req.body;
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid course ID" });
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid course ID format" });
     return;
   }
 
@@ -141,6 +168,12 @@ router.put("/:id", async (req, res) => {
     return;
   }
 
+  // Validate category_id if provided
+  if (updateData.category_id && (!isValidId(updateData.category_id) || typeof updateData.category_id !== "string")) {
+    res.status(400).json({ error: "category_id must be a valid UUID" });
+    return;
+  }
+
   try {
     const updatedCourse = await updateCourse(id, updateData);
     if (!updatedCourse) {
@@ -149,20 +182,19 @@ router.put("/:id", async (req, res) => {
     }
     res.json(updatedCourse);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
 
 router.delete("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid course ID" });
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid course ID format" });
     return;
   }
 
@@ -174,8 +206,11 @@ router.delete("/:id", async (req, res) => {
     }
     res.json({ success: true, message: "Course deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 

@@ -1,7 +1,10 @@
 import { Router, Request, Response } from "express";
-import { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory, NewCategory } from "../db";
+import { createCategory, getAllCategories, getCategoryById, updateCategory, deleteCategory, NewCategory } from "../db/";
+import { isValidId } from "../utils";
 
 const router = Router();
+
+// Helper function to validate UUID
 
 router.post("/", async (req: Request<object, unknown, NewCategory>, res: Response): Promise<void> => {
   const body = req.body;
@@ -28,11 +31,10 @@ router.post("/", async (req: Request<object, unknown, NewCategory>, res: Respons
     const newCategory = await createCategory(categoryData);
     res.status(201).json(newCategory);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
@@ -42,16 +44,19 @@ router.get("/", async (req, res) => {
     const categories = await getAllCategories();
     res.json(categories);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid category ID" });
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid category ID format" });
     return;
   }
 
@@ -63,17 +68,20 @@ router.get("/:id", async (req, res) => {
     }
     res.json(category);
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
 router.put("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
   const updateData = req.body;
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid category ID" });
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid category ID format" });
     return;
   }
 
@@ -93,20 +101,19 @@ router.put("/:id", async (req, res) => {
     }
     res.json(updatedCategory);
   } catch (error: unknown) {
-    console.error(error);
     if (error instanceof Error) {
       res.status(500).json({ error: error.message });
     } else {
-      res.status(500).json({ error: "Unknown error occurred" });
+      res.status(500).json({ error: "Internal server error" });
     }
   }
 });
 
 router.delete("/:id", async (req, res) => {
-  const id = Number(req.params.id);
+  const id = String(req.params.id);
 
-  if (isNaN(id)) {
-    res.status(400).json({ error: "Invalid category ID" });
+  if (!isValidId(id)) {
+    res.status(400).json({ error: "Invalid category ID format" });
     return;
   }
 
@@ -118,8 +125,11 @@ router.delete("/:id", async (req, res) => {
     }
     res.json({ success: true, message: "Category deleted successfully" });
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 });
 
