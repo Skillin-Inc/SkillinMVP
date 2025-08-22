@@ -1,29 +1,21 @@
-import { CognitoUser, CognitoUserSession, CognitoUserAttribute } from "amazon-cognito-identity-js";
-import { userPool } from "../config/userPool";
+import { signUp, getCurrentUser, fetchAuthSession, deleteUser as amplifyDeleteUser } from "aws-amplify/auth";
 import { api } from "./api";
 import { RegisterData, User, BackendUser, UpdateUserProfileData } from "./api/types";
 import { transformBackendUserToUser } from "./api/utils";
 
 const verifyCognitoUser = async (userId: string): Promise<boolean> => {
   try {
-    const currentUser = userPool.getCurrentUser();
+    const currentUser = await getCurrentUser();
     if (!currentUser) {
       return false;
     }
 
-    const session = await new Promise<CognitoUserSession>((resolve, reject) => {
-      currentUser.getSession((err: Error | null, session: CognitoUserSession | null) => {
-        if (err) reject(err);
-        else if (session) resolve(session);
-        else reject(new Error("No session available"));
-      });
-    });
-
-    if (!session || !session.isValid()) {
+    const session = await fetchAuthSession();
+    if (!session || !session.tokens) {
       return false;
     }
 
-    const cognitoUserSub = session.getIdToken().payload.sub;
+    const cognitoUserSub = currentUser.userId;
     return cognitoUserSub === userId;
   } catch (error) {
     console.error("Error verifying Cognito user:", error);
@@ -32,55 +24,36 @@ const verifyCognitoUser = async (userId: string): Promise<boolean> => {
 };
 
 export const createUser = async (userData: RegisterData): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    const attributeList = [new CognitoUserAttribute({ Name: "email", Value: userData.email })];
-
-    userPool.signUp(userData.email, userData.password, attributeList, [], async (err, result) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-
-      try {
-        const cognitoUserSub = result?.userSub;
-        if (!cognitoUserSub) {
-          throw new Error("Failed to get Cognito user sub");
-        }
-
-        const userDataWithId = {
-          ...userData,
-          id: cognitoUserSub,
-        };
-
-        await api.createUser(userDataWithId);
-        resolve();
-      } catch (backendError) {
-        console.error("Backend user creation failed, rolling back Cognito user:", backendError);
-
-        try {
-          const cognitoUser = new CognitoUser({
-            Username: userData.email,
-            Pool: userPool,
-          });
-
-          await new Promise<void>((resolveDelete, rejectDelete) => {
-            cognitoUser.deleteUser((deleteErr) => {
-              if (deleteErr) {
-                console.error("Failed to rollback Cognito user:", deleteErr);
-                rejectDelete(deleteErr);
-              } else {
-                resolveDelete();
-              }
-            });
-          });
-        } catch (rollbackError) {
-          console.error("Failed to rollback Cognito user:", rollbackError);
-        }
-
-        reject(new Error("User creation failed: " + (backendError as Error).message));
-      }
+  try {
+    const signUpResult = await signUp({
+      username: userData.email,
+      password: userData.password,
+      options: {
+        userAttributes: {
+          email: userData.email,
+        },
+      },
     });
-  });
+
+    const cognitoUserSub = signUpResult.userId;
+    if (!cognitoUserSub) {
+      throw new Error("Failed to get Cognito user sub");
+    }
+
+    const userDataWithId = {
+      ...userData,
+      id: cognitoUserSub,
+    };
+
+    await api.createUser(userDataWithId);
+  } catch (backendError) {
+    console.error("Backend user creation failed:", backendError);
+
+    // Note: Amplify doesn't provide easy rollback for sign up like the old SDK
+    // The user will need to be handled through the confirmation process
+
+    throw new Error("User creation failed: " + (backendError as Error).message);
+  }
 };
 
 export const getUser = async (userId: string): Promise<User> => {
@@ -130,18 +103,8 @@ export const deleteUser = async (userId: string): Promise<{ success: boolean; me
     }
 
     try {
-      const currentUser = userPool.getCurrentUser();
-      if (currentUser) {
-        await new Promise<void>((resolve, reject) => {
-          currentUser.deleteUser((err) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve();
-            }
-          });
-        });
-      }
+      // Delete the Cognito user using Amplify
+      await amplifyDeleteUser();
     } catch (cognitoError) {
       console.error("Failed to delete Cognito user, recreating backend user:", cognitoError);
 
