@@ -31,7 +31,7 @@ jobs:
         with:
           switches: -avzr --delete
           path: ./*
-          remote_path: /home/ec2-user/project/
+          remote_path: /home/ec2-user/skillin-mvp/
           remote_host: ${{ env.EC2_HOST }}
           remote_user: ec2-user
           remote_key: "${{ env.SSH_PRIVATE_KEY }}"
