@@ -12,6 +12,7 @@
     "install:frontend": "npm install --prefix frontend",
     "install:backend": "npm install --prefix backend",
     "postinstall": "npm-run-all --parallel install:*",
+    "deploy": "git push --force origin dev:pub",
     "lint": "eslint . --ext .ts,.tsx"
   },
   "author": "",
