@@ -3,7 +3,7 @@ import "dotenv/config";
 
 const environmentSchema = z.object({
   // server
-  PORT: z.string().default("4040").transform(Number),
+  PORT: z.string().default("8080").transform(Number),
   FRONTEND_URL: z.string().default("http://ec2-18-220-186-167.us-east-2.compute.amazonaws.com/"),
 
   // aws
